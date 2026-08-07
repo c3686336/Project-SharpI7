@@ -3,28 +3,12 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 
-public class ChantManager : MonoBehaviour
+public class ChantManager : MonoBehaviour, IChantManager
 {
     public enum ChantState
     {
         Idle,
         Casting
-    }
-
-    [Serializable]
-    public struct CastResult
-    {
-        public string targetText;
-        public string typedText;
-
-        public int correctCount;
-        public int typoCount;
-        public int castLevel;
-
-        public float powerMultiplier;
-        public float penaltyMultiplier;
-
-        public bool completed;
     }
 
     [Header("UI")]
@@ -163,8 +147,8 @@ public class ChantManager : MonoBehaviour
 
             chantInputField.interactable = true;
 
-            chantInputField.ActivateInputField();
             chantInputField.Select();
+            chantInputField.ActivateInputField();
         }
 
         UpdateUI();

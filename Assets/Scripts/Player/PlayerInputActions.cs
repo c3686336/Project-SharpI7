@@ -121,6 +121,26 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""ExitChant"",
+                    ""type"": ""Button"",
+                    ""id"": ""ae76566f-7d29-4bbf-b357-fa4475527ead"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""ConfirmChant"",
+                    ""type"": ""Button"",
+                    ""id"": ""977bce32-1135-4c5f-8806-2ea6a8310f53"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -200,6 +220,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Spell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fa1a835a-38cc-4778-a211-3c8cdf064de5"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ExitChant"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c0956b43-12df-4ff3-87ed-c2643b2d371b"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ConfirmChant"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -211,6 +253,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Movement_Movement = m_Movement.FindAction("Movement", throwIfNotFound: true);
         m_Movement_Dash = m_Movement.FindAction("Dash", throwIfNotFound: true);
         m_Movement_Spell = m_Movement.FindAction("Spell", throwIfNotFound: true);
+        m_Movement_ExitChant = m_Movement.FindAction("ExitChant", throwIfNotFound: true);
+        m_Movement_ConfirmChant = m_Movement.FindAction("ConfirmChant", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -294,6 +338,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Movement_Movement;
     private readonly InputAction m_Movement_Dash;
     private readonly InputAction m_Movement_Spell;
+    private readonly InputAction m_Movement_ExitChant;
+    private readonly InputAction m_Movement_ConfirmChant;
     /// <summary>
     /// Provides access to input actions defined in input action map "Movement".
     /// </summary>
@@ -317,6 +363,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Movement/Spell".
         /// </summary>
         public InputAction @Spell => m_Wrapper.m_Movement_Spell;
+        /// <summary>
+        /// Provides access to the underlying input action "Movement/ExitChant".
+        /// </summary>
+        public InputAction @ExitChant => m_Wrapper.m_Movement_ExitChant;
+        /// <summary>
+        /// Provides access to the underlying input action "Movement/ConfirmChant".
+        /// </summary>
+        public InputAction @ConfirmChant => m_Wrapper.m_Movement_ConfirmChant;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -352,6 +406,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Spell.started += instance.OnSpell;
             @Spell.performed += instance.OnSpell;
             @Spell.canceled += instance.OnSpell;
+            @ExitChant.started += instance.OnExitChant;
+            @ExitChant.performed += instance.OnExitChant;
+            @ExitChant.canceled += instance.OnExitChant;
+            @ConfirmChant.started += instance.OnConfirmChant;
+            @ConfirmChant.performed += instance.OnConfirmChant;
+            @ConfirmChant.canceled += instance.OnConfirmChant;
         }
 
         /// <summary>
@@ -372,6 +432,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Spell.started -= instance.OnSpell;
             @Spell.performed -= instance.OnSpell;
             @Spell.canceled -= instance.OnSpell;
+            @ExitChant.started -= instance.OnExitChant;
+            @ExitChant.performed -= instance.OnExitChant;
+            @ExitChant.canceled -= instance.OnExitChant;
+            @ConfirmChant.started -= instance.OnConfirmChant;
+            @ConfirmChant.performed -= instance.OnConfirmChant;
+            @ConfirmChant.canceled -= instance.OnConfirmChant;
         }
 
         /// <summary>
@@ -433,5 +499,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSpell(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ExitChant" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnExitChant(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ConfirmChant" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnConfirmChant(InputAction.CallbackContext context);
     }
 }

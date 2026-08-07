@@ -39,10 +39,13 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     private int maxHp;
 
     [SerializeField]
-    private ISpell spellController;
+    private ChantManager chantManager;
 
     [SerializeField]
-    private IBoss bossController;
+    private DummyBoss bossController;
+
+    [SerializeField, Min(0f)]
+    private float baseSpellDamage = 10f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -59,24 +62,46 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     void OnEnable()
     {
         input.Movement.Enable();
+
+        chantManager.OnChantStarted += LockMovement;
+        chantManager.OnChantCancelled += UnLockMovement;
+        chantManager.OnChantInterrupted += UnLockMovement;
+        chantManager.OnChantCast += HandleChantCast;
     }
 
     void OnDisable()
     {
         input.Movement.Disable();
+
+        chantManager.OnChantStarted -= LockMovement;
+        chantManager.OnChantCancelled -= UnLockMovement;
+        chantManager.OnChantInterrupted -= UnLockMovement;
+        chantManager.OnChantCast -= HandleChantCast;
     }
 
     void Update()
     {
-        if (input.Movement.Dash.IsPressed())
+        if (input.Movement.Dash.WasPressedThisFrame())
         {
             Dash().Forget();
         }
 
-        if (input.Movement.Spell.IsPressed())
+        if (input.Movement.Spell.WasPressedThisFrame())
         {
-            LockMovement();
-            spellController.Begin();
+            Debug.Log("asdf");
+            if (chantManager.IsCasting)
+            {
+                chantManager.ResolveChant();
+            }
+            else
+            {
+                chantManager.StartChant();
+            }
+        }
+
+        if (input.Movement.ExitChant.WasPressedThisFrame())
+        {
+            chantManager.CancelChant();
         }
     }
 
@@ -89,7 +114,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
         var ct = destroyCancellationToken;
 
         await UniTask.Delay(TimeSpan.FromSeconds(dashPreCoolDownS), cancellationToken: ct);
-        
+
         await rb.DOMove(currentMovement * dashDistance, dashAnimationDurationS).SetRelative().SetEase(Ease.InOutQuad).ToUniTask(cancellationToken: ct);
         isDashing = false;
 
@@ -103,7 +128,8 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     void FixedUpdate()
     {
         currentMovement = input.Movement.Movement.ReadValue<Vector2>();
-        if (!isDashing && !isMovementLocked) {
+        if (!isDashing && !isMovementLocked)
+        {
             rb.MovePosition(rb.position + speed * currentMovement); // Diagonal movement handled by input action system
         }
 
@@ -129,6 +155,20 @@ public class PlayerMovement : MonoBehaviour, IPlayer
         isMovementLocked = false;
     }
 
+    private void HandleChantCast(CastResult result)
+    {
+        if (!result.completed)
+        {
+            SpellFailed();
+            return;
+        }
+
+        float damage = baseSpellDamage * result.powerMultiplier /
+            Mathf.Max(1f, result.penaltyMultiplier);
+
+        SpellSucceeded(damage);
+    }
+
     public int GetHp()
     {
         return hp;
@@ -136,7 +176,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
 
     public void DealDamage()
     {
-        spellController.Cancel();
+        chantManager.InterruptChant();
         hp--;
     }
 
