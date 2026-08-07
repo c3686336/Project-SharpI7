@@ -10,7 +10,11 @@ public interface IPlayer : IDamageable
     bool IsDashing { get; }
     float MaxHealth { get; }
     float CurrentHealth { get; }
+    float MaxMana { get; }
+    float CurrentMana { get; }
 
     void LockMovement();
     void UnlockMovement();
+
+    void DeductMana(float amount);
 }
