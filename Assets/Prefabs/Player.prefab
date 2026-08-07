@@ -114,10 +114,10 @@ MonoBehaviour:
   dashDistance: 5
   referenceHeading: {x: 0, y: 1}
   maxHealth: 3
-  defaultMana: 50
-  manaWarningThreshold: 90
-  criticalMana: 100
-  manaFillSpeed: 10
+  defaultMana: 30
+  manaWarningThreshold: 100
+  criticalMana: 150
+  manaFillSpeed: 5
   manaSaturationDamageCooldown: 3
   chantManager: {fileID: 0}
   bossHealth: {fileID: 0}
