@@ -261,17 +261,11 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-        if (!result.canCast && result.manaRelease >= CurrentMana)
-        int completedWordCount = CountCompletedWords(result);
-        if (completedWordCount <= 0)
+        if (!result.canCast || result.manaRelease > CurrentMana)
         {
             UnlockMovement();
             return;
         }
-
-        bossHealth.TakeDamage(result.actualDamage);
-        DeductMana(result.manaRelease);
-
 
         if (bossHealth == null)
         {
@@ -280,7 +274,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
         if (bossHealth != null)
         {
-            bossHealth.TakeSpellDamage(completedWordCount);
+            bossHealth.TakeDamage(result.actualDamage);
+            DeductMana(result.manaRelease);
         }
 
         UnlockMovement();
