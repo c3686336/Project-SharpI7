@@ -231,7 +231,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
             return;
         }
 
-<<<<<<< HEAD
         if (bossHealth == null)
         {
             bossHealth = FindFirstObjectByType<BossHealth>();
