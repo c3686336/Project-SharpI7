@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace SharpI7.Combat
@@ -6,16 +7,26 @@ namespace SharpI7.Combat
     public sealed class BossHealth : MonoBehaviour, IDamageable
     {
         [SerializeField, Min(1f)] private float maxHealth = 500f;
+        [Header("Phase Two")]
+        [SerializeField] private bool enablePhaseTwo = true;
+        [SerializeField, Min(1f)] private float phaseTwoMaxHealth = 1000f;
+        [SerializeField, Min(0f)] private float phaseTwoTransitionDelay = 2f;
         [SerializeField] private DamagePopup damagePopupPrefab;
         [SerializeField, Min(0f)] private float damagePerWord = 15f;
         [SerializeField, Min(1)] private int maxWordDamageStage = 3;
 
         public event Action<float, float> HealthChanged;
         public event Action Died;
+        public event Action PhaseTwoTransitionStarted;
+        public event Action PhaseTwoStarted;
 
-        public float MaxHealth => maxHealth;
+        public float MaxHealth => IsPhaseTwo ? phaseTwoMaxHealth : maxHealth;
         public float CurrentHealth { get; private set; }
-        public bool IsAlive => CurrentHealth > 0f;
+        public bool IsAlive => CurrentHealth > 0f || IsTransitioningToPhaseTwo;
+        public bool IsPhaseTwo { get; private set; }
+        public bool IsTransitioningToPhaseTwo { get; private set; }
+
+        private Coroutine phaseTwoTransitionRoutine;
 
         private void Awake()
         {
@@ -24,14 +35,21 @@ namespace SharpI7.Combat
 
         public void TakeDamage(float amount)
         {
-            if (!IsAlive || amount <= 0f)
+            if (!IsAlive || IsTransitioningToPhaseTwo || amount <= 0f)
             {
                 return;
             }
 
             ShowDamagePopup(amount);
             CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
-            HealthChanged?.Invoke(CurrentHealth, maxHealth);
+
+            if (!IsAlive && enablePhaseTwo && !IsPhaseTwo)
+            {
+                BeginPhaseTwoTransition();
+                return;
+            }
+
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
             if (!IsAlive)
             {
@@ -59,8 +77,44 @@ namespace SharpI7.Combat
 
         public void RestoreFullHealth()
         {
+            if (phaseTwoTransitionRoutine != null)
+            {
+                StopCoroutine(phaseTwoTransitionRoutine);
+                phaseTwoTransitionRoutine = null;
+            }
+
+            IsPhaseTwo = false;
+            IsTransitioningToPhaseTwo = false;
             CurrentHealth = maxHealth;
             HealthChanged?.Invoke(CurrentHealth, maxHealth);
+        }
+
+        private void BeginPhaseTwoTransition()
+        {
+            IsTransitioningToPhaseTwo = true;
+            HealthChanged?.Invoke(CurrentHealth, maxHealth);
+            PhaseTwoTransitionStarted?.Invoke();
+            phaseTwoTransitionRoutine = StartCoroutine(StartPhaseTwoAfterDelay());
+        }
+
+        private IEnumerator StartPhaseTwoAfterDelay()
+        {
+            if (phaseTwoTransitionDelay > 0f)
+            {
+                yield return new WaitForSeconds(phaseTwoTransitionDelay);
+            }
+
+            phaseTwoTransitionRoutine = null;
+            IsTransitioningToPhaseTwo = false;
+            StartPhaseTwo();
+        }
+
+        private void StartPhaseTwo()
+        {
+            IsPhaseTwo = true;
+            CurrentHealth = phaseTwoMaxHealth;
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+            PhaseTwoStarted?.Invoke();
         }
 
         private void ShowDamagePopup(float amount)
@@ -102,6 +156,8 @@ namespace SharpI7.Combat
         private void OnValidate()
         {
             maxHealth = Mathf.Max(1f, maxHealth);
+            phaseTwoMaxHealth = Mathf.Max(1f, phaseTwoMaxHealth);
+            phaseTwoTransitionDelay = Mathf.Max(0f, phaseTwoTransitionDelay);
             damagePerWord = Mathf.Max(0f, damagePerWord);
             maxWordDamageStage = Mathf.Max(1, maxWordDamageStage);
         }

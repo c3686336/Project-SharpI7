@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 11400001}
   - component: {fileID: 11400002}
   - component: {fileID: 21200000}
+  - component: {fileID: 580000}
   m_Layer: 0
   m_Name: TopDownBoss
   m_TagString: Untagged
@@ -35,6 +36,42 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &580000
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 2.7
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48,6 +85,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 500
+  enablePhaseTwo: 1
+  phaseTwoMaxHealth: 1000
+  phaseTwoTransitionDelay: 2
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
   damagePerWord: 15
   maxWordDamageStage: 3
@@ -70,18 +110,15 @@ MonoBehaviour:
   rotatingLaserDangerPrefab: {fileID: 11400000, guid: dddddddddddddddddddddddddddddddd, type: 3}
   slowWobbleOrbPrefab: {fileID: 11400000, guid: ffffffffffffffffffffffffffffffff, type: 3}
   bossDistanceDangerPrefab: {fileID: 11400000, guid: bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc, type: 3}
-  trailHazardOrbPrefab: {fileID: 11400000, guid: 2468ace02468ace02468ace02468ace0, type: 3}
-  coneDangerZonePrefab: {fileID: 11400000, guid: c0dec0dec0dec0dec0dec0dec0dec0de, type: 3}
-  enableCircleGroundAttack: 1
+  dashLaserWallDangerPrefab: {fileID: 11400000, guid: 2468ace13579bdf02468ace13579bdf0, type: 3}
   firstAttackDelay: 3
-  warningDuration: 3.5
-  recoveryDuration: 4
+  recoveryDuration: 5
   chantOpportunityDuration: 1
-  attackRadius: 2.25
   attackDamage: 1
   enableTrackingBarrage: 1
   minTrackingStrikes: 3
   maxTrackingStrikes: 3
+  trackingAttackRadius: 2.25
   trackingWarningDuration: 1.5
   trackingStrikeInterval: 0.35
   enableLineGroundAttack: 1
@@ -100,8 +137,17 @@ MonoBehaviour:
   laserLength: 14
   laserWidth: 1.2
   laserDamagePerTick: 1
-  laserDamageTickInterval: 0.5
-  enableSlowWobbleOrbAttack: 1
+  laserPlayerDamageInvulnerabilityDuration: 1
+  enableDashLaserWallAttack: 1
+  dashLaserWallFieldSize: {x: 45, y: 27}
+  dashLaserWallThickness: 1.4
+  dashLaserWallWarningDuration: 1.2
+  dashLaserWallTravelDuration: 2.7
+  dashLaserWallDamage: 1
+  contactDamage: 1
+  contactDamageInterval: 1
+  phaseTwoAttackDelayMultiplier: 0.7
+  phaseTwoMoveSpeedMultiplier: 1.5
   enableRadialWobbleOrbAttack: 1
   radialOrbCount: 12
   orbMovementSpeed: 1.2
@@ -109,25 +155,11 @@ MonoBehaviour:
   orbWobbleFrequency: 0.6
   orbCollisionRadius: 0.3
   orbDamage: 1
-  aimedOrbSpawnOffset: 1.35
-  aimedOrbShotsPerAttack: 5
-  aimedOrbShotInterval: 1.5
   orbPlayAreaSize: {x: 30, y: 18}
   enableBossDistanceAttack: 1
   bossDistanceWarningDuration: 4
   bossDistanceFieldSize: {x: 30, y: 18}
   bossDistanceRadius: 6
-  enableMovementTrailAttack: 1
-  trailPatternDuration: 4
-  trailSpawnInterval: 0.75
-  trailOrbLifetime: 3
-  trailOrbCollisionRadius: 0.45
-  trailOrbDamage: 1
-  enableForwardConeAttack: 1
-  coneWarningDuration: 2.5
-  coneAttackRange: 6
-  coneAttackAngle: 70
-  coneAttackDamage: 25
 --- !u!114 &11400002
 MonoBehaviour:
   m_ObjectHideFlags: 0
