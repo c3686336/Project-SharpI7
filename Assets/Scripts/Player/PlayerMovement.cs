@@ -181,7 +181,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public void TakeDamage(float amount)
     {
-        if (!IsAlive || amount <= 0f)
+        if (!IsAlive || amount <= 0f || isDashing)
         {
             return;
         }
