@@ -1,0 +1,30 @@
+{
+  "spells": [
+    {
+      "id": "dark_flame",
+      "spellName": "어둠의 화염",
+      "fullChantText": "무한한 어둠을 불태워라",
+      "baseDamage": 100.0,
+      "manaRelease": 30.0,
+      "magicType": "Fire",
+      "effectId": "DarkFlame",
+      "stages": [
+        {
+          "chantLevel": 1,
+          "chantText": "불태워라",
+          "damageMultiplier": 1.0
+        },
+        {
+          "chantLevel": 2,
+          "chantText": "어둠을 불태워라",
+          "damageMultiplier": 1.5
+        },
+        {
+          "chantLevel": 3,
+          "chantText": "무한한 어둠을 불태워라",
+          "damageMultiplier": 2.0
+        }
+      ]
+    }
+  ]
+}

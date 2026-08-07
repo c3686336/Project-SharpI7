@@ -116,7 +116,6 @@ MonoBehaviour:
   maxHealth: 3
   chantManager: {fileID: 0}
   bossHealth: {fileID: 0}
-  baseSpellDamage: 10
 --- !u!50 &6057062684835720305
 Rigidbody2D:
   serializedVersion: 5

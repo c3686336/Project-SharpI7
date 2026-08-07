@@ -42,9 +42,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     [SerializeField]
     private BossHealth bossHealth;
 
-    [SerializeField, Min(0f)]
-    private float baseSpellDamage = 10f;
-
     public event Action<float, float> HealthChanged;
     public event Action Died;
 
@@ -190,16 +187,13 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-        if (!result.completed)
+        if (!result.canCast)
         {
             UnlockMovement();
             return;
         }
 
-        float damage = baseSpellDamage * result.powerMultiplier /
-            Mathf.Max(1f, result.penaltyMultiplier);
-
-        bossHealth.TakeDamage(damage);
+        bossHealth.TakeDamage(result.actualDamage);
         UnlockMovement();
     }
 
@@ -231,7 +225,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         dashDuration = Mathf.Max(0f, dashDuration);
         dashDistance = Mathf.Max(0f, dashDistance);
         maxHealth = Mathf.Max(1f, maxHealth);
-        baseSpellDamage = Mathf.Max(0f, baseSpellDamage);
     }
 #endif
 }
