@@ -75,7 +75,7 @@ MonoBehaviour:
   warningDuration: 2.5
   recoveryDuration: 1.5
   attackRadius: 2.25
-  attackDamage: 20
+  attackDamage: 1
   enableTrackingBarrage: 1
   minTrackingStrikes: 3
   maxTrackingStrikes: 3
@@ -96,8 +96,8 @@ MonoBehaviour:
   laserActiveDuration: 5
   laserLength: 14
   laserWidth: 1.2
-  laserDamagePerTick: 10
-  laserDamageTickInterval: 0.5
+  laserDamagePerTick: 1
+  laserDamageTickInterval: 3
   enableSlowWobbleOrbAttack: 1
   enableRadialWobbleOrbAttack: 1
   radialOrbCount: 12
@@ -105,7 +105,7 @@ MonoBehaviour:
   orbWobbleAmplitude: 0.8
   orbWobbleFrequency: 0.6
   orbCollisionRadius: 0.3
-  orbDamage: 15
+  orbDamage: 1
   aimedOrbSpawnOffset: 1.35
   aimedOrbShotsPerAttack: 5
   aimedOrbShotInterval: 1.5
@@ -119,7 +119,7 @@ MonoBehaviour:
   trailSpawnInterval: 0.75
   trailOrbLifetime: 3
   trailOrbCollisionRadius: 0.45
-  trailOrbDamage: 15
+  trailOrbDamage: 1
   enableForwardConeAttack: 1
   coneWarningDuration: 1.25
   coneAttackRange: 6

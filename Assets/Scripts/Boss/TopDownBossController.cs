@@ -25,7 +25,7 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.05f)] private float warningDuration = 2.5f;
         [SerializeField, Min(0f)] private float recoveryDuration = 1.5f;
         [SerializeField, Min(0.1f)] private float attackRadius = 2.25f;
-        [SerializeField, Min(0f)] private float attackDamage = 20f;
+        [SerializeField, Min(0f)] private float attackDamage = 1f;
 
         [Header("Tracking Barrage")]
         [SerializeField] private bool enableTrackingBarrage = true;
@@ -54,8 +54,8 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.05f)] private float laserActiveDuration = 5f;
         [SerializeField, Min(0.1f)] private float laserLength = 14f;
         [SerializeField, Min(0.1f)] private float laserWidth = 1.2f;
-        [SerializeField, Min(0f)] private float laserDamagePerTick = 10f;
-        [SerializeField, Min(0.05f)] private float laserDamageTickInterval = 0.5f;
+        [SerializeField, Min(0f)] private float laserDamagePerTick = 1f;
+        [SerializeField, Min(0.05f)] private float laserDamageTickInterval = 3f;
 
         [Header("Slow Wobble Orb Attack")]
         [SerializeField] private bool enableSlowWobbleOrbAttack = true;
@@ -65,7 +65,7 @@ namespace SharpI7.Combat
         [SerializeField, Min(0f)] private float orbWobbleAmplitude = 0.8f;
         [SerializeField, Min(0f)] private float orbWobbleFrequency = 0.6f;
         [SerializeField, Min(0.05f)] private float orbCollisionRadius = 0.55f;
-        [SerializeField, Min(0f)] private float orbDamage = 15f;
+        [SerializeField, Min(0f)] private float orbDamage = 1f;
         [SerializeField, Min(0f)] private float aimedOrbSpawnOffset = 1.35f;
         [SerializeField, Min(1)] private int aimedOrbShotsPerAttack = 3;
         [SerializeField, Min(0.05f)] private float aimedOrbShotInterval = 1.5f;
@@ -83,14 +83,14 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.05f)] private float trailSpawnInterval = 0.75f;
         [SerializeField, Min(0.05f)] private float trailOrbLifetime = 3f;
         [SerializeField, Min(0.05f)] private float trailOrbCollisionRadius = 0.45f;
-        [SerializeField, Min(0f)] private float trailOrbDamage = 15f;
+        [SerializeField, Min(0f)] private float trailOrbDamage = 1f;
 
         [Header("Forward Cone Attack")]
         [SerializeField] private bool enableForwardConeAttack = true;
         [SerializeField, Min(0.05f)] private float coneWarningDuration = 1.25f;
         [SerializeField, Min(0.1f)] private float coneAttackRange = 6f;
         [SerializeField, Range(1f, 359f)] private float coneAttackAngle = 70f;
-        [SerializeField, Min(0f)] private float coneAttackDamage = 25f;
+        [SerializeField, Min(0f)] private float coneAttackDamage = 1f;
 
         private BossHealth bossHealth;
         private BossMovement bossMovement;

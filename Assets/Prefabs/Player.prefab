@@ -113,7 +113,7 @@ MonoBehaviour:
   dashDuration: 0.2
   dashDistance: 5
   referenceHeading: {x: 0, y: 1}
-  maxHealth: 100
+  maxHealth: 5
   chantManager: {fileID: 0}
   bossHealth: {fileID: 0}
   baseSpellDamage: 10

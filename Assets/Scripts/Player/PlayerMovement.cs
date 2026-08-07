@@ -34,7 +34,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     private Vector2 referenceHeading;
 
     [SerializeField, Min(1f)]
-    private float maxHealth = 100f;
+    private float maxHealth = 5f;
 
     [SerializeField]
     private ChantManager chantManager;
