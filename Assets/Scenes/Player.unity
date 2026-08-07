@@ -470,6 +470,10 @@ MonoBehaviour:
   speed: 0.2
   boss: {fileID: 1010442797}
   referenceHeading: {x: 0, y: 1}
+  dashPreCoolDownMs: 0
+  dashCoolDownMs: 1000
+  dashAnimationDurationS: 0.2
+  dashDistance: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
