@@ -218,6 +218,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         {
             LockMovement();
             Died?.Invoke();
+            OutGameManager.LoadGameOver();
         }
     }
 
