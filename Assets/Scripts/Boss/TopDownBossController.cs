@@ -55,7 +55,7 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.1f)] private float laserLength = 14f;
         [SerializeField, Min(0.1f)] private float laserWidth = 1.2f;
         [SerializeField, Min(0f)] private float laserDamagePerTick = 1f;
-        [SerializeField, Min(0.05f)] private float laserDamageTickInterval = 3f;
+        [SerializeField, Min(0.05f)] private float laserDamageTickInterval = 0.5f;
 
         [Header("Slow Wobble Orb Attack")]
         [SerializeField] private bool enableSlowWobbleOrbAttack = true;

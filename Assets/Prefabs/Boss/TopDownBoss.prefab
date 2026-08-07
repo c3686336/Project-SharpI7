@@ -97,7 +97,7 @@ MonoBehaviour:
   laserLength: 14
   laserWidth: 1.2
   laserDamagePerTick: 1
-  laserDamageTickInterval: 3
+  laserDamageTickInterval: 0.5
   enableSlowWobbleOrbAttack: 1
   enableRadialWobbleOrbAttack: 1
   radialOrbCount: 12
