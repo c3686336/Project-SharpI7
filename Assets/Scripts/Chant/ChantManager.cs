@@ -2,6 +2,8 @@ using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 public class ChantManager : MonoBehaviour, IChantManager
 {
@@ -77,6 +79,12 @@ public class ChantManager : MonoBehaviour, IChantManager
     private int typoCount;
     private int chantLevel;
 
+    private Keyboard imeKeyboard;
+    private string pendingImeComposition = "";
+    private string textBeforeImeComposition = "";
+    private bool isImeComposing;
+    private int imeCompositionEndedFrame = -1;
+
 
     // =========================================================
     // Unity Lifecycle
@@ -92,6 +100,11 @@ public class ChantManager : MonoBehaviour, IChantManager
         SetChantUI(false);
     }
 
+    private void OnEnable()
+    {
+        RegisterImeListener();
+    }
+
     private void Start()
     {
         SetTargetText(defaultTargetText);
@@ -104,6 +117,27 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (chantInputField != null)
         {
             chantInputField.onValueChanged.RemoveListener(OnInputChanged);
+        }
+    }
+
+    private void OnDisable()
+    {
+        UnregisterImeListener();
+    }
+
+    private void LateUpdate()
+    {
+        if (State != ChantState.Casting || isImeComposing ||
+            string.IsNullOrEmpty(pendingImeComposition))
+        {
+            return;
+        }
+
+        // Keep the last composition for the frame in which Enter ended it.
+        // If no submit followed, it was cancelled and must not be reused later.
+        if (Time.frameCount > imeCompositionEndedFrame)
+        {
+            ClearPendingImeComposition();
         }
     }
 
@@ -132,6 +166,9 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
         State = ChantState.Casting;
+
+        RegisterImeListener();
+        ClearPendingImeComposition();
 
         currentInput = "";
 
@@ -196,6 +233,8 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (State != ChantState.Casting)
             return default;
 
+        currentInput = GetInputIncludingPendingImeComposition();
+
         EvaluateInput();
 
         CastResult result = CreateCastResult();
@@ -239,8 +278,94 @@ public class ChantManager : MonoBehaviour, IChantManager
 
         currentInput = value;
 
+        if (isImeComposing)
+        {
+            // TMP_InputField.text contains the committed prefix only while an
+            // IME character is still being composed.
+            textBeforeImeComposition = value;
+        }
+        else if (!string.IsNullOrEmpty(pendingImeComposition) &&
+                 value != textBeforeImeComposition)
+        {
+            // The IME character reached TMP normally, so no fallback is needed.
+            ClearPendingImeComposition();
+        }
+
         EvaluateInput();
         UpdateUI();
+    }
+
+    private void RegisterImeListener()
+    {
+        Keyboard currentKeyboard = Keyboard.current;
+
+        if (imeKeyboard == currentKeyboard)
+            return;
+
+        UnregisterImeListener();
+
+        imeKeyboard = currentKeyboard;
+
+        if (imeKeyboard != null)
+        {
+            imeKeyboard.onIMECompositionChange += OnImeCompositionChanged;
+        }
+    }
+
+    private void UnregisterImeListener()
+    {
+        if (imeKeyboard != null)
+        {
+            imeKeyboard.onIMECompositionChange -= OnImeCompositionChanged;
+            imeKeyboard = null;
+        }
+    }
+
+    private void OnImeCompositionChanged(IMECompositionString composition)
+    {
+        if (State != ChantState.Casting)
+            return;
+
+        string compositionText = composition.ToString();
+
+        if (string.IsNullOrEmpty(compositionText))
+        {
+            isImeComposing = false;
+            imeCompositionEndedFrame = Time.frameCount;
+            return;
+        }
+
+        isImeComposing = true;
+        pendingImeComposition = compositionText;
+        textBeforeImeComposition = chantInputField != null
+            ? chantInputField.text
+            : currentInput;
+        imeCompositionEndedFrame = -1;
+    }
+
+    private string GetInputIncludingPendingImeComposition()
+    {
+        string committedInput = chantInputField != null
+            ? chantInputField.text
+            : currentInput;
+
+        if (string.IsNullOrEmpty(pendingImeComposition) ||
+            committedInput != textBeforeImeComposition)
+        {
+            return committedInput;
+        }
+
+        // Chant input is append-only. TMP can visually show this final Hangul
+        // syllable without including it in text when Enter is pressed.
+        return committedInput + pendingImeComposition;
+    }
+
+    private void ClearPendingImeComposition()
+    {
+        pendingImeComposition = "";
+        textBeforeImeComposition = "";
+        isImeComposing = false;
+        imeCompositionEndedFrame = -1;
     }
 
 
@@ -485,6 +610,8 @@ public class ChantManager : MonoBehaviour, IChantManager
     private void ResetChant()
     {
         State = ChantState.Idle;
+
+        ClearPendingImeComposition();
 
         currentInput = "";
 
