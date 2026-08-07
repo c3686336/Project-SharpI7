@@ -5,7 +5,7 @@ using UnityEngine;
 public sealed class BookChantAnimator : MonoBehaviour
 {
     [SerializeField] private ChantManager chantManager;
-    [SerializeField] private float riseDistance = 200f;
+    [SerializeField] private float riseDistance = 300f;
     [SerializeField] private float duration = 0.3f;
 
     private RectTransform bookRect;

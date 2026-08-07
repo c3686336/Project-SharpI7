@@ -11,6 +11,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     private PlayerInputActions input;
     private Rigidbody2D rigidbody2D;
     private bool isDashOnCooldown;
+    private float dashCooldownStartedAt;
     private bool isMovementLocked;
     private Vector2 currentMovement;
 
@@ -49,6 +50,28 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public float DashCooldownUntil { get; private set; }
     public bool IsDashing { get; private set; }
+    public float DashCooldownProgress
+    {
+        get
+        {
+            if (IsDashing)
+            {
+                return 0f;
+            }
+
+            if (!isDashOnCooldown)
+            {
+                return 1f;
+            }
+
+            return Mathf.InverseLerp(
+                dashCooldownStartedAt,
+                DashCooldownUntil,
+                Time.time
+            );
+        }
+    }
+
     public float MaxHealth => maxHealth;
     public float CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0f;
@@ -130,7 +153,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         IsDashing = false;
 
         isDashOnCooldown = true;
-        DashCooldownUntil = Time.time + dashCooldownDuration;
+        dashCooldownStartedAt = Time.time;
+        DashCooldownUntil = dashCooldownStartedAt + dashCooldownDuration;
         await UniTask.Delay(TimeSpan.FromSeconds(dashCooldownDuration), cancellationToken: ct);
         isDashOnCooldown = false;
     }
