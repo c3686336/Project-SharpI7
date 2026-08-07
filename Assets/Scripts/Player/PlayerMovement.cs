@@ -84,16 +84,17 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     {
         if (isDashCooldown || isDashing || isMovementLocked) return;
 
+        isDashing = true;
+
         var ct = destroyCancellationToken;
 
         await UniTask.Delay(TimeSpan.FromSeconds(dashPreCoolDownS), cancellationToken: ct);
-        isDashing = true;
         
         await rb.DOMove(currentMovement * dashDistance, dashAnimationDurationS).SetRelative().SetEase(Ease.InOutQuad).ToUniTask(cancellationToken: ct);
         isDashing = false;
 
         isDashCooldown = true;
-        dashCoolDownUntil = Time.time + dashPreCoolDownS;
+        dashCoolDownUntil = Time.time + dashCoolDownS;
         await UniTask.Delay(TimeSpan.FromSeconds(dashCoolDownS), cancellationToken: ct);
         isDashCooldown = false;
     }
