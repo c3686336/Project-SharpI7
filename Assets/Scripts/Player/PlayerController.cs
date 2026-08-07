@@ -146,7 +146,7 @@ public sealed class PlayerController : MonoBehaviour,
         {
             if (chantManager.IsCasting)
             {
-                chantManager.ResolveChant();
+                TryResolveChant();
             }
             else
             {
@@ -240,7 +240,7 @@ public sealed class PlayerController : MonoBehaviour,
     {
         if (spellCaster.TryCast(result, mana.Current))
         {
-            DeductMana(result.manaRelease);
+            DeductMana(result.manaCost);
         }
 
         UnlockMovement();
@@ -269,6 +269,35 @@ public sealed class PlayerController : MonoBehaviour,
     private void PublishManaStatus()
     {
         ManaStatusChanged?.Invoke(mana.Status);
+    }
+
+    private void TryResolveChant()
+    {
+        // 현재 단계의 영창 길이를 아직 만족하지 않음
+        if (!chantManager.CanResolveCurrentStage)
+        {
+            return;
+        }
+
+
+        float manaCost =
+            chantManager.CurrentManaCost;
+
+
+        // 현재 마나 부족
+        if (mana.Current < manaCost)
+        {
+            Debug.Log(
+                $"마나 부족. 현재 마나: {mana.Current:0.#}, " +
+                $"필요 마나: {manaCost:0.#}",
+                this
+            );
+
+            return;
+        }
+
+
+        chantManager.ResolveChant();
     }
 
 #if UNITY_EDITOR

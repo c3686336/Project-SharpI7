@@ -38,7 +38,8 @@ public class ChantDatabase : MonoBehaviour
             return;
         }
 
-        string json = File.ReadAllText(path);
+        string json =
+            File.ReadAllText(path);
 
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -69,7 +70,8 @@ public class ChantDatabase : MonoBehaviour
             return;
         }
 
-        if (data == null || data.spells == null)
+        if (data == null ||
+            data.spells == null)
         {
             Debug.LogError(
                 "[ChantDatabase] spells 데이터가 없습니다."
@@ -79,25 +81,34 @@ public class ChantDatabase : MonoBehaviour
             return;
         }
 
-        spells = data.spells;
+        spells =
+            data.spells;
 
         ValidateDatabase();
 
-        IsLoaded = true;
+        IsLoaded =
+            true;
 
         Debug.Log(
             $"[ChantDatabase] 영창 {spells.Count}개 로드 완료"
         );
     }
 
-    public ChantSpellData GetSpell(string spellId)
+    public ChantSpellData GetSpell(
+        string spellId
+    )
     {
         if (string.IsNullOrEmpty(spellId))
             return null;
 
-        for (int i = 0; i < spells.Count; i++)
+        for (
+            int i = 0;
+            i < spells.Count;
+            i++
+        )
         {
-            ChantSpellData spell = spells[i];
+            ChantSpellData spell =
+                spells[i];
 
             if (spell == null)
                 continue;
@@ -118,12 +129,17 @@ public class ChantDatabase : MonoBehaviour
         HashSet<string> ids =
             new HashSet<string>();
 
-        foreach (ChantSpellData spell in spells)
+        foreach (
+            ChantSpellData spell
+            in spells
+        )
         {
             if (spell == null)
                 continue;
 
-            if (string.IsNullOrWhiteSpace(spell.id))
+            if (string.IsNullOrWhiteSpace(
+                spell.id
+            ))
             {
                 Debug.LogWarning(
                     "[ChantDatabase] ID가 없는 주문이 있습니다."
@@ -145,6 +161,26 @@ public class ChantDatabase : MonoBehaviour
                 Debug.LogWarning(
                     $"[ChantDatabase] 단계가 없는 주문: {spell.id}"
                 );
+
+                continue;
+            }
+
+            foreach (
+                ChantStageData stage
+                in spell.stages
+            )
+            {
+                if (stage == null)
+                    continue;
+
+                if (stage.manaCost < 0)
+                {
+                    Debug.LogWarning(
+                        $"[ChantDatabase] 마나 소비량이 음수입니다. " +
+                        $"Spell: {spell.id}, " +
+                        $"Level: {stage.chantLevel}"
+                    );
+                }
             }
         }
     }

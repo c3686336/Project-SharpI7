@@ -15,14 +15,17 @@ public struct CastResult
     public float actualDamage;
 
     public float penaltyMultiplier;
+
+    // 해당 영창 단계에서 실제 소비할 마나
+    public float manaCost;
+
+    // 기존 데이터. manaCost와 다른 값
     public float manaRelease;
 
     public string magicType;
     public string effectId;
 
-    // 길이까지 입력하여 발동 가능한 상태
     public bool canCast;
 
-    // 오타까지 하나도 없는 완벽한 영창
     public bool completed;
 }
