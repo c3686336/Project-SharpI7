@@ -1,127 +1,63 @@
-using UnityEngine;
-using DG.Tweening;
-using Cysharp.Threading.Tasks;
 using System;
+using Cysharp.Threading.Tasks;
 using SharpI7.Combat;
+using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
 public sealed class PlayerController : MonoBehaviour,
     IPlayerHealth,
     IPlayerMana,
-    IPlayerDash,
-    IPlayerMovementControl
+    IPlayerDash
 {
+    [SerializeField, Min(0f)] private float moveSpeed;
+    [SerializeField, Min(0f)] private float dashWindupDuration;
+    [SerializeField, Min(0f)] private float dashCooldownDuration;
+    [SerializeField, Min(0f)] private float dashDuration;
+    [SerializeField, Min(0f)] private float dashDistance;
+    [SerializeField] private Vector2 referenceHeading;
+    [SerializeField, Min(1f)] private float maxHealth = 3f;
+    [SerializeField] private float defaultMana = 50f;
+    [SerializeField, Min(0f)] private float manaWarningThreshold = 90f;
+    [SerializeField, Min(1f)] private float criticalMana = 100f;
+    [SerializeField, Min(0f)] private float manaFillSpeed = 10f;
+    [SerializeField, Min(0.1f)] private float manaSaturationDamageCooldown = 3f;
+    [SerializeField] private ChantManager chantManager;
+    [SerializeField] private BossHealth bossHealth;
+
     private PlayerInputActions input;
-    private Rigidbody2D rigidbody2D;
-    private bool isDashOnCooldown;
-    private float dashCooldownStartedAt;
+    private PlayerHealth health;
+    private PlayerMana mana;
+    private PlayerLocomotion locomotion;
+    private PlayerDash dash;
+    private PlayerSpellCaster spellCaster;
     private bool isMovementLocked;
     private bool combatEnded;
-    private Vector2 currentMovement;
-
-    private float manaSaturationTimer;
-
-    [SerializeField, Min(0f)]
-    private float moveSpeed;
-
-    [SerializeField, Min(0f)]
-    private float dashWindupDuration;
-
-    [SerializeField, Min(0f)]
-    private float dashCooldownDuration;
-
-    [SerializeField, Min(0f)]
-    private float dashDuration;
-
-    [SerializeField, Min(0f)]
-    private float dashDistance;
-
-    [SerializeField]
-    private Vector2 referenceHeading;
-
-    [SerializeField, Min(1f)]
-    private float maxHealth = 3f;
-
-    [SerializeField]
-    private float defaultMana = 50f;
-
-    [SerializeField, Min(0f)]
-    private float manaWarningThreshold = 90f;
-
-    [SerializeField, Min(1f)]
-    private float criticalMana = 100f;
-
-    [SerializeField, Min(0f)]
-    private float manaFillSpeed = 10f;
-
-    [SerializeField, Min(0.1f)]
-    private float manaSaturationDamageCooldown = 3f;
-
-    [SerializeField]
-    private ChantManager chantManager;
-
-    [SerializeField]
-    private BossHealth bossHealth;
 
     public event Action<float, float> HealthChanged;
     public event Action<ManaStatus> ManaStatusChanged;
     public event Action Died;
 
-    public float DashCooldownUntil { get; private set; }
-    public bool IsDashing { get; private set; }
-    public float DashCooldownProgress
-    {
-        get
-        {
-            if (IsDashing)
-            {
-                return 0f;
-            }
-
-            if (!isDashOnCooldown)
-            {
-                return 1f;
-            }
-
-            return Mathf.InverseLerp(
-                dashCooldownStartedAt,
-                DashCooldownUntil,
-                Time.time
-            );
-        }
-    }
-
-    public float MaxHealth => maxHealth;
-    public float CurrentHealth { get; private set; }
-
-    public float MaxMana => criticalMana;
-    public float CurrentMana { get; private set; }
-    public float ManaDisplayMaximum =>
-        criticalMana + manaFillSpeed * manaSaturationDamageCooldown;
-    public float ManaSaturationRemaining =>
-        CurrentMana >= criticalMana ? manaSaturationTimer : 0f;
-    public bool IsManaWarning =>
-        CurrentMana >= manaWarningThreshold && CurrentMana < criticalMana;
-    public bool IsManaSaturated => CurrentMana >= criticalMana;
-    public ManaStatus ManaStatus => new(
-        CurrentMana,
-        manaWarningThreshold,
-        criticalMana,
-        ManaDisplayMaximum,
-        manaSaturationDamageCooldown,
-        ManaSaturationRemaining,
-        GetManaState());
-
-    public bool IsAlive => CurrentHealth > 0f;
+    public float DashCooldownUntil => dash?.CooldownUntil ?? 0f;
+    public float DashCooldownProgress => dash?.CooldownProgress ?? 0f;
+    public bool IsDashing => dash?.IsDashing ?? false;
+    public float MaxHealth => health?.Maximum ?? maxHealth;
+    public float CurrentHealth => health?.Current ?? 0f;
+    public bool IsAlive => health?.IsAlive ?? false;
+    public float MaxMana => mana?.SaturationThreshold ?? criticalMana;
+    public float CurrentMana => mana?.Current ?? 0f;
+    public ManaStatus ManaStatus => mana?.Status ?? default;
 
     private void Awake()
     {
         input = new PlayerInputActions();
-        rigidbody2D = GetComponent<Rigidbody2D>();
-        CurrentHealth = maxHealth;
-        CurrentMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
-        manaSaturationTimer = manaSaturationDamageCooldown;
+        health = new PlayerHealth(maxHealth);
+        mana = new PlayerMana(
+            defaultMana,
+            manaWarningThreshold,
+            criticalMana,
+            manaFillSpeed,
+            manaSaturationDamageCooldown);
 
         if (chantManager == null || bossHealth == null)
         {
@@ -129,11 +65,33 @@ public sealed class PlayerController : MonoBehaviour,
                 "PlayerController requires ChantManager and BossHealth references.",
                 this);
             enabled = false;
+            return;
         }
+
+        Rigidbody2D rigidbody2D = GetComponent<Rigidbody2D>();
+        locomotion = new PlayerLocomotion(
+            rigidbody2D,
+            bossHealth.transform,
+            moveSpeed,
+            referenceHeading);
+        dash = new PlayerDash(
+            rigidbody2D,
+            () => locomotion.CurrentMovement,
+            dashWindupDuration,
+            dashCooldownDuration,
+            dashDuration,
+            dashDistance,
+            destroyCancellationToken);
+        spellCaster = new PlayerSpellCaster(bossHealth);
     }
 
     private void OnEnable()
     {
+        if (input == null || chantManager == null || bossHealth == null || dash == null)
+        {
+            return;
+        }
+
         input.Movement.Enable();
 
         chantManager.OnChantStarted += LockMovement;
@@ -141,21 +99,21 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
 
-        if (bossHealth != null)
-        {
-            bossHealth.Died -= HandleBossDied;
-            bossHealth.Died += HandleBossDied;
-        }
+        bossHealth.Died -= HandleBossDied;
+        bossHealth.Died += HandleBossDied;
     }
 
     private void OnDisable()
     {
-        input.Movement.Disable();
+        input?.Movement.Disable();
 
-        chantManager.OnChantStarted -= LockMovement;
-        chantManager.OnChantCancelled -= UnlockMovement;
-        chantManager.OnChantInterrupted -= UnlockMovement;
-        chantManager.OnChantCast -= HandleChantCast;
+        if (chantManager != null)
+        {
+            chantManager.OnChantStarted -= LockMovement;
+            chantManager.OnChantCancelled -= UnlockMovement;
+            chantManager.OnChantInterrupted -= UnlockMovement;
+            chantManager.OnChantCast -= HandleChantCast;
+        }
 
         if (bossHealth != null)
         {
@@ -165,14 +123,14 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void Update()
     {
-        if (!IsAlive || combatEnded)
+        if (!health.IsAlive || combatEnded)
         {
             return;
         }
 
-        if (input.Movement.Dash.WasPressedThisFrame())
+        if (input.Movement.Dash.WasPressedThisFrame() && !isMovementLocked)
         {
-            Dash().Forget();
+            dash.ExecuteAsync().Forget();
         }
 
         if (input.Movement.Spell.WasPressedThisFrame())
@@ -192,78 +150,59 @@ public sealed class PlayerController : MonoBehaviour,
             chantManager.CancelChant();
         }
 
-        UpdateMana(Time.deltaTime);
-    }
-
-    private async UniTaskVoid Dash()
-    {
-        if (isDashOnCooldown || IsDashing || isMovementLocked)
+        bool overloadDamageDue = mana.Tick(Time.deltaTime);
+        PublishManaStatus();
+        if (overloadDamageDue)
         {
-            return;
+            ApplyDamage(1f, true);
         }
-
-        IsDashing = true;
-
-        var ct = destroyCancellationToken;
-
-        await UniTask.Delay(TimeSpan.FromSeconds(dashWindupDuration), cancellationToken: ct);
-
-        await rigidbody2D.DOMove(currentMovement * dashDistance, dashDuration)
-            .SetRelative()
-            .SetEase(Ease.InOutQuad)
-            .ToUniTask(cancellationToken: ct);
-        IsDashing = false;
-
-        isDashOnCooldown = true;
-        dashCooldownStartedAt = Time.time;
-        DashCooldownUntil = dashCooldownStartedAt + dashCooldownDuration;
-        await UniTask.Delay(TimeSpan.FromSeconds(dashCooldownDuration), cancellationToken: ct);
-        isDashOnCooldown = false;
     }
 
     private void FixedUpdate()
     {
-        if (!IsAlive || combatEnded)
+        if (!health.IsAlive || combatEnded)
         {
             return;
         }
 
-        currentMovement = input.Movement.Movement.ReadValue<Vector2>();
-        if (!IsDashing && !isMovementLocked)
-        {
-            rigidbody2D.MovePosition(rigidbody2D.position + moveSpeed * currentMovement);
-        }
-
-        Vector2 toBoss = bossHealth.transform.position - transform.position;
-        float angle = Vector2.SignedAngle(referenceHeading, toBoss);
-
-        rigidbody2D.MoveRotation(angle);
-
+        locomotion.FixedTick(
+            input.Movement.Movement.ReadValue<Vector2>(),
+            !dash.IsDashing && !isMovementLocked);
     }
 
-    public void LockMovement()
+    private void LockMovement()
     {
         isMovementLocked = true;
     }
 
-    public void UnlockMovement()
+    private void UnlockMovement()
     {
-        if (combatEnded)
+        if (!combatEnded)
         {
-            return;
+            isMovementLocked = false;
         }
+    }
 
-        isMovementLocked = false;
+    public void TakeDamage(float amount)
+    {
+        ApplyDamage(amount, false);
+    }
+
+    private void DeductMana(float amount)
+    {
+        if (mana.Deduct(amount))
+        {
+            PublishManaStatus();
+        }
     }
 
     private void HandleBossDied()
     {
         combatEnded = true;
-        currentMovement = Vector2.zero;
-        IsDashing = false;
-        DOTween.Kill(rigidbody2D);
+        locomotion.Stop();
+        dash.Stop();
 
-        if (chantManager != null && chantManager.IsCasting)
+        if (chantManager.IsCasting)
         {
             chantManager.InterruptChant();
         }
@@ -274,123 +213,37 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void HandleChantCast(CastResult result)
     {
-        if (!result.canCast || result.manaRelease > CurrentMana)
+        if (spellCaster.TryCast(result, mana.Current))
         {
-            UnlockMovement();
-            return;
+            DeductMana(result.manaRelease);
         }
-
-        bossHealth.TakeDamage(result.actualDamage);
-        DeductMana(result.manaRelease);
 
         UnlockMovement();
     }
 
-    private static int CountCompletedWords(CastResult result)
-    {
-        if (result.typoCount > 0 || string.IsNullOrWhiteSpace(result.typedText))
-        {
-            return 0;
-        }
-
-        string typedText = result.typedText.Trim();
-        string targetText = result.targetText ?? string.Empty;
-        if (!targetText.StartsWith(typedText, StringComparison.Ordinal))
-        {
-            return 0;
-        }
-
-        // A correct prefix only counts when it ends at a word boundary.
-        if (typedText.Length < targetText.Length &&
-            !char.IsWhiteSpace(targetText[typedText.Length]))
-        {
-            return 0;
-        }
-
-        return typedText.Split(
-            new[] { ' ', '\t', '\r', '\n' },
-            StringSplitOptions.RemoveEmptyEntries).Length;
-    }
-
-    public void TakeDamage(float amount)
-    {
-        ApplyDamage(amount, false);
-    }
-
-    public void DeductMana(float amount)
-    {
-        if (amount <= 0f)
-        {
-            return;
-        }
-
-        CurrentMana = Mathf.Max(0f, CurrentMana - amount);
-        if (CurrentMana < criticalMana)
-        {
-            manaSaturationTimer = manaSaturationDamageCooldown;
-        }
-
-        PublishManaStatus();
-    }
-
-    private void UpdateMana(float deltaTime)
-    {
-        CurrentMana = Mathf.Min(
-            ManaDisplayMaximum,
-            CurrentMana + deltaTime * manaFillSpeed);
-
-        if (CurrentMana < criticalMana)
-        {
-            manaSaturationTimer = manaSaturationDamageCooldown;
-            PublishManaStatus();
-            return;
-        }
-
-        manaSaturationTimer = Mathf.Max(0f, manaSaturationTimer - deltaTime);
-        if (manaSaturationTimer > 0f)
-        {
-            PublishManaStatus();
-            return;
-        }
-
-        CurrentMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
-        manaSaturationTimer = manaSaturationDamageCooldown;
-        PublishManaStatus();
-        ApplyDamage(1f, true);
-    }
-
-    private ManaState GetManaState()
-    {
-        if (IsManaSaturated)
-        {
-            return ManaState.Saturated;
-        }
-
-        return IsManaWarning ? ManaState.Warning : ManaState.Normal;
-    }
-
-    private void PublishManaStatus()
-    {
-        ManaStatusChanged?.Invoke(ManaStatus);
-    }
-
     private void ApplyDamage(float amount, bool ignoreDashInvulnerability)
     {
-        if (!IsAlive || amount <= 0f || (!ignoreDashInvulnerability && IsDashing))
+        if (!health.IsAlive || amount <= 0f ||
+            (!ignoreDashInvulnerability && dash.IsDashing))
         {
             return;
         }
 
         chantManager.InterruptChant();
-        CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
-        HealthChanged?.Invoke(CurrentHealth, maxHealth);
+        health.TryTakeDamage(amount);
+        HealthChanged?.Invoke(health.Current, health.Maximum);
 
-        if (!IsAlive)
+        if (!health.IsAlive)
         {
             LockMovement();
             Died?.Invoke();
             OutGameManager.LoadGameOver();
         }
+    }
+
+    private void PublishManaStatus()
+    {
+        ManaStatusChanged?.Invoke(mana.Status);
     }
 
 #if UNITY_EDITOR
@@ -406,7 +259,8 @@ public sealed class PlayerController : MonoBehaviour,
         manaWarningThreshold = Mathf.Clamp(manaWarningThreshold, 0f, criticalMana);
         manaFillSpeed = Mathf.Max(0f, manaFillSpeed);
         manaSaturationDamageCooldown = Mathf.Max(0.1f, manaSaturationDamageCooldown);
-        defaultMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
+        float displayMaximum = criticalMana + manaFillSpeed * manaSaturationDamageCooldown;
+        defaultMana = Mathf.Clamp(defaultMana, 0f, displayMaximum);
     }
 #endif
 }

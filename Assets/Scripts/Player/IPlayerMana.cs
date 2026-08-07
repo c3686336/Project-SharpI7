@@ -7,6 +7,4 @@ public interface IPlayerMana
     float MaxMana { get; }
     float CurrentMana { get; }
     ManaStatus ManaStatus { get; }
-
-    void DeductMana(float amount);
 }
