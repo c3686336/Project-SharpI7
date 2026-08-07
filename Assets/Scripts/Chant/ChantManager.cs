@@ -3,7 +3,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 
-public class ChantManager : MonoBehaviour
+public class ChantManager : MonoBehaviour, IChantManager
 {
     public enum ChantState
     {

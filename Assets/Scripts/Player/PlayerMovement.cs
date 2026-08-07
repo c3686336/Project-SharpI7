@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     private int maxHp;
 
     [SerializeField]
-    private ISpell spellController;
+    private ChantManager chantManager;
 
     [SerializeField]
     private IBoss bossController;
@@ -76,7 +76,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
         if (input.Movement.Spell.IsPressed())
         {
             LockMovement();
-            spellController.Begin();
+            chantManager.StartChant();
         }
     }
 
@@ -136,7 +136,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
 
     public void DealDamage()
     {
-        spellController.Cancel();
+        chantManager.CancelChant();
         hp--;
     }
 
