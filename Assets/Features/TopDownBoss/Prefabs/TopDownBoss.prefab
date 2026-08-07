@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 11400000}
   - component: {fileID: 11400001}
   - component: {fileID: 11400002}
-  - component: {fileID: 11400003}
   - component: {fileID: 21200000}
   m_Layer: 0
   m_Name: TopDownBoss
@@ -31,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -49,6 +48,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 500
+  damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
+  damagePerWord: 15
+  maxWordDamageStage: 3
 --- !u!114 &11400001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,28 +73,29 @@ MonoBehaviour:
   trailHazardOrbPrefab: {fileID: 11400000, guid: 2468ace02468ace02468ace02468ace0, type: 3}
   coneDangerZonePrefab: {fileID: 11400000, guid: c0dec0dec0dec0dec0dec0dec0dec0de, type: 3}
   enableCircleGroundAttack: 1
-  firstAttackDelay: 1
-  warningDuration: 2.5
-  recoveryDuration: 1.5
+  firstAttackDelay: 3
+  warningDuration: 3.5
+  recoveryDuration: 4
+  chantOpportunityDuration: 1
   attackRadius: 2.25
   attackDamage: 20
   enableTrackingBarrage: 1
   minTrackingStrikes: 3
   maxTrackingStrikes: 3
-  trackingWarningDuration: 0.8
-  trackingStrikeInterval: 0.1
+  trackingWarningDuration: 1.5
+  trackingStrikeInterval: 0.35
   enableLineGroundAttack: 1
-  lineWarningDuration: 1.5
+  lineWarningDuration: 2.5
   lineAttackLength: 16
   lineAttackWidth: 2
   enableSafeZoneAttack: 1
-  safeZoneWarningDuration: 3
+  safeZoneWarningDuration: 4
   safeZoneFieldSize: {x: 30, y: 18}
   safeZoneRadius: 3
   safeZoneMinDistance: 5
   safeZoneMaxDistance: 9
   enableRotatingLaserAttack: 1
-  laserWarningDuration: 1
+  laserWarningDuration: 2
   laserActiveDuration: 5
   laserLength: 14
   laserWidth: 1.2
@@ -111,7 +114,7 @@ MonoBehaviour:
   aimedOrbShotInterval: 1.5
   orbPlayAreaSize: {x: 30, y: 18}
   enableBossDistanceAttack: 1
-  bossDistanceWarningDuration: 3
+  bossDistanceWarningDuration: 4
   bossDistanceFieldSize: {x: 30, y: 18}
   bossDistanceRadius: 6
   enableMovementTrailAttack: 1
@@ -121,7 +124,7 @@ MonoBehaviour:
   trailOrbCollisionRadius: 0.45
   trailOrbDamage: 15
   enableForwardConeAttack: 1
-  coneWarningDuration: 1.25
+  coneWarningDuration: 2.5
   coneAttackRange: 6
   coneAttackAngle: 70
   coneAttackDamage: 25
@@ -140,23 +143,6 @@ MonoBehaviour:
   playerTarget: {fileID: 0}
   moveSpeed: 1.25
   stoppingDistance: 1.5
---- !u!114 &11400003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27182818271828182718281827182818, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualSize: 2.4
-  textureResolution: 128
-  bodyColor: {r: 0.32, g: 0.035, b: 0.08, a: 1}
-  rimColor: {r: 0.9, g: 0.22, b: 0.08, a: 1}
-  eyeColor: {r: 1, g: 0.8, b: 0.2, a: 1}
 --- !u!212 &21200000
 SpriteRenderer:
   serializedVersion: 3
@@ -206,14 +192,14 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 100
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: fb3eeafba79f4c84cb4a0fdd43b12dc8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 14.48, y: 10.86}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
