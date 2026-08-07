@@ -1,6 +1,3 @@
-using System;
-using SharpI7.Combat;
-
 public enum ManaState
 {
     Normal,
@@ -37,24 +34,4 @@ public readonly struct ManaStatus
     public ManaState State { get; }
     public bool IsWarning => State == ManaState.Warning;
     public bool IsSaturated => State == ManaState.Saturated;
-}
-
-public interface IPlayer : IDamageable
-{
-    event Action<float, float> HealthChanged;
-    event Action<ManaStatus> ManaStatusChanged;
-    event Action Died;
-
-    float DashCooldownUntil { get; }
-    bool IsDashing { get; }
-    float MaxHealth { get; }
-    float CurrentHealth { get; }
-    float MaxMana { get; }
-    float CurrentMana { get; }
-    ManaStatus ManaStatus { get; }
-
-    void LockMovement();
-    void UnlockMovement();
-
-    void DeductMana(float amount);
 }

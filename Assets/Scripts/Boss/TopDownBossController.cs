@@ -101,7 +101,7 @@ namespace SharpI7.Combat
         private BossDistanceDanger activeBossDistanceZone;
         private AttackFamily lastAttackFamily = AttackFamily.None;
         private BossDistanceDangerMode nextBossDistanceMode = BossDistanceDangerMode.InnerDanger;
-        private IPlayer subscribedPlayer;
+        private IPlayerHealth subscribedPlayer;
         private bool playerWasAcquired;
         private bool combatStopped;
         private bool phaseTwoActive;
@@ -335,7 +335,7 @@ namespace SharpI7.Combat
 
             foreach (var behaviour in other.GetComponentsInParent<MonoBehaviour>(true))
             {
-                if (behaviour is IPlayer player && player.IsAlive)
+                if (behaviour is IPlayerHealth player && player.IsAlive)
                 {
                     var previousHealth = player.CurrentHealth;
                     player.TakeDamage(contactDamage);
@@ -601,7 +601,7 @@ namespace SharpI7.Combat
             var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
             foreach (var behaviour in behaviours)
             {
-                if (!(behaviour is IPlayer player))
+                if (!(behaviour is IPlayerHealth player))
                 {
                     continue;
                 }

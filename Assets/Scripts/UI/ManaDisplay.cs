@@ -4,29 +4,36 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class ManaDisplay : MonoBehaviour
 {
-    [SerializeField] private PlayerMovement player;
+    [SerializeField] private MonoBehaviour player;
     [SerializeField] private ManaRingGraphic ring;
     [SerializeField] private TMP_Text saturationCountdownText;
     [SerializeField] private Color saturationColor = new(1f, 0.12f, 0.08f, 1f);
 
+    private IPlayerMana playerMana;
+
+    private void Awake()
+    {
+        playerMana = player as IPlayerMana;
+    }
+
     private void OnEnable()
     {
-        if (player == null || ring == null || saturationCountdownText == null)
+        if (playerMana == null || ring == null || saturationCountdownText == null)
         {
             Debug.LogError("ManaDisplay requires all Inspector references.", this);
             enabled = false;
             return;
         }
 
-        player.ManaStatusChanged += Refresh;
-        Refresh(player.ManaStatus);
+        playerMana.ManaStatusChanged += Refresh;
+        Refresh(playerMana.ManaStatus);
     }
 
     private void OnDisable()
     {
-        if (player != null)
+        if (playerMana != null)
         {
-            player.ManaStatusChanged -= Refresh;
+            playerMana.ManaStatusChanged -= Refresh;
         }
     }
 

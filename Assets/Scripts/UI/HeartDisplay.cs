@@ -3,19 +3,17 @@ using UnityEngine.UI;
 
 public sealed class HeartDisplay : MonoBehaviour
 {
-    [SerializeField] private PlayerMovement player;
+    [SerializeField] private MonoBehaviour player;
     [SerializeField] private RectTransform heartPrefab;
     [SerializeField] private float heartSize = 80f;
     [SerializeField] private float spacing = 100f;
 
     private Color fullHeartColor = Color.white;
+    private IPlayerHealth playerHealth;
 
     private void Awake()
     {
-        if (player == null)
-        {
-            player = FindAnyObjectByType<PlayerMovement>();
-        }
+        playerHealth = player as IPlayerHealth;
 
         if (heartPrefab != null && heartPrefab.TryGetComponent(out Image heartImage))
         {
@@ -25,32 +23,32 @@ public sealed class HeartDisplay : MonoBehaviour
 
     private void Start()
     {
-        if (player == null || heartPrefab == null)
+        if (playerHealth == null || heartPrefab == null)
         {
             Debug.LogWarning(
-                "[HeartDisplay] PlayerMovement 또는 Heart Prefab을 찾을 수 없습니다.",
+                "[HeartDisplay] IPlayerHealth 또는 Heart Prefab 참조가 올바르지 않습니다.",
                 this
             );
             return;
         }
 
-        Rebuild(Mathf.RoundToInt(player.MaxHealth));
-        UpdateHeartColors(Mathf.RoundToInt(player.CurrentHealth));
+        Rebuild(Mathf.RoundToInt(playerHealth.MaxHealth));
+        UpdateHeartColors(Mathf.RoundToInt(playerHealth.CurrentHealth));
     }
 
     private void OnEnable()
     {
-        if (player != null)
+        if (playerHealth != null)
         {
-            player.HealthChanged += UpdateHealth;
+            playerHealth.HealthChanged += UpdateHealth;
         }
     }
 
     private void OnDisable()
     {
-        if (player != null)
+        if (playerHealth != null)
         {
-            player.HealthChanged -= UpdateHealth;
+            playerHealth.HealthChanged -= UpdateHealth;
         }
     }
 

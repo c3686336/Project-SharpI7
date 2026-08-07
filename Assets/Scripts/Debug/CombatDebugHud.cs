@@ -7,13 +7,19 @@ namespace SharpI7.Debugging
     [DisallowMultipleComponent]
     public sealed class CombatDebugHud : MonoBehaviour
     {
-        [SerializeField] private PlayerMovement player;
+        [SerializeField] private MonoBehaviour player;
         [SerializeField] private BossHealth bossHealth;
         [SerializeField] private Vector2 screenPosition = new(16f, 16f);
         [SerializeField, Min(160f)] private float width = 240f;
         [SerializeField, Min(12)] private int fontSize = 18;
 
         private GUIStyle labelStyle;
+        private IPlayerHealth playerHealth;
+
+        private void Awake()
+        {
+            playerHealth = player as IPlayerHealth;
+        }
 
         private void OnGUI()
         {
@@ -25,7 +31,10 @@ namespace SharpI7.Debugging
 
             var area = new Rect(screenPosition.x, screenPosition.y, width, 72f);
             GUILayout.BeginArea(area, GUI.skin.box);
-            GUILayout.Label(FormatHealth("Player", player?.CurrentHealth, player?.MaxHealth), labelStyle);
+            GUILayout.Label(FormatHealth(
+                "Player",
+                playerHealth?.CurrentHealth,
+                playerHealth?.MaxHealth), labelStyle);
             GUILayout.Label(FormatHealth("Boss", bossHealth?.CurrentHealth, bossHealth?.MaxHealth), labelStyle);
             GUILayout.EndArea();
         }

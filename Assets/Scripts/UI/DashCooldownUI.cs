@@ -4,30 +4,19 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class DashCooldownUI : MonoBehaviour
 {
-    [SerializeField] private PlayerMovement player;
+    [SerializeField] private MonoBehaviour player;
     [SerializeField] private Image cooldownFill;
+
+    private IPlayerDash playerDash;
 
     private void Awake()
     {
-        if (player == null)
-        {
-            player = FindAnyObjectByType<PlayerMovement>();
-        }
+        playerDash = player as IPlayerDash;
 
-        if (cooldownFill == null)
-        {
-            Transform fillTransform = transform.Find("BrightFill");
-
-            if (fillTransform != null)
-            {
-                cooldownFill = fillTransform.GetComponent<Image>();
-            }
-        }
-
-        if (player == null || cooldownFill == null)
+        if (playerDash == null || cooldownFill == null)
         {
             Debug.LogWarning(
-                "[DashCooldownUI] PlayerMovement 또는 BrightFill Image를 찾을 수 없습니다.",
+                "[DashCooldownUI] IPlayerDash 또는 Cooldown Fill 참조가 올바르지 않습니다.",
                 this
             );
         }
@@ -35,11 +24,11 @@ public sealed class DashCooldownUI : MonoBehaviour
 
     private void Update()
     {
-        if (player == null || cooldownFill == null)
+        if (playerDash == null || cooldownFill == null)
         {
             return;
         }
 
-        cooldownFill.fillAmount = player.DashCooldownProgress;
+        cooldownFill.fillAmount = playerDash.DashCooldownProgress;
     }
 }

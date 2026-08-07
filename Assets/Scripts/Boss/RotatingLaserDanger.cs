@@ -185,7 +185,7 @@ namespace SharpI7.Combat
             var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
             foreach (var behaviour in behaviours)
             {
-                if (behaviour is IPlayer player && player.IsAlive)
+                if (behaviour is IPlayerHealth player && player.IsAlive)
                 {
                     var previousHealth = player.CurrentHealth;
                     player.TakeDamage(amount);

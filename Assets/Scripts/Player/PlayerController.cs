@@ -6,7 +6,11 @@ using SharpI7.Combat;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
-public sealed class PlayerMovement : MonoBehaviour, IPlayer
+public sealed class PlayerController : MonoBehaviour,
+    IPlayerHealth,
+    IPlayerMana,
+    IPlayerDash,
+    IPlayerMovementControl
 {
     private PlayerInputActions input;
     private Rigidbody2D rigidbody2D;
@@ -116,14 +120,16 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         input = new PlayerInputActions();
         rigidbody2D = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
-
-        // if (bossHealth == null)
-        // {
-        //     bossHealth = FindFirstObjectByType<BossHealth>();
-        // }
-        // Just Drag&Drop, dumbass!
         CurrentMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
         manaSaturationTimer = manaSaturationDamageCooldown;
+
+        if (chantManager == null || bossHealth == null)
+        {
+            Debug.LogError(
+                "PlayerController requires ChantManager and BossHealth references.",
+                this);
+            enabled = false;
+        }
     }
 
     private void OnEnable()
@@ -274,16 +280,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
             return;
         }
 
-        if (bossHealth == null)
-        {
-            bossHealth = FindFirstObjectByType<BossHealth>();
-        }
-
-        if (bossHealth != null)
-        {
-            bossHealth.TakeDamage(result.actualDamage);
-            DeductMana(result.manaRelease);
-        }
+        bossHealth.TakeDamage(result.actualDamage);
+        DeductMana(result.manaRelease);
 
         UnlockMovement();
     }
