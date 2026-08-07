@@ -144,6 +144,7 @@ namespace SharpI7.Combat
         public void SetPlayerTarget(Transform target)
         {
             playerTarget = target;
+            bossMovement.SetPlayerTarget(target);
         }
 
         private IEnumerator AttackLoop()
