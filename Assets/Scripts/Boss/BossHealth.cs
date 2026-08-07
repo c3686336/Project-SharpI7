@@ -36,6 +36,7 @@ namespace SharpI7.Combat
             if (!IsAlive)
             {
                 Died?.Invoke();
+                OutGameManager.LoadWin();
                 Destroy(gameObject);
             }
         }
