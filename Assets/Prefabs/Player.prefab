@@ -109,7 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   moveSpeed: 0.2
   dashWindupDuration: 0
-  dashCooldownDuration: 0
+  dashCooldownDuration: 0.3
   dashDuration: 0.2
   dashDistance: 5
   referenceHeading: {x: 0, y: 1}
