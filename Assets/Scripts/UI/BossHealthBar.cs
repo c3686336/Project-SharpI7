@@ -11,6 +11,16 @@ public sealed class BossHealthBar : MonoBehaviour
 
     private void Start()
     {
+        if (healthSlider == null)
+        {
+            healthSlider = GetComponent<Slider>();
+        }
+
+        if (healthText == null)
+        {
+            healthText = GetComponentInChildren<TMP_Text>(true);
+        }
+
         if (bossHealth == null)
         {
             bossHealth = FindAnyObjectByType<BossHealth>();
@@ -28,13 +38,16 @@ public sealed class BossHealthBar : MonoBehaviour
 
     private void UpdateHealth(float current, float max)
     {
-        healthSlider.minValue = 0f;
-        healthSlider.maxValue = max;
-        healthSlider.value = current;
+        if (healthSlider != null)
+        {
+            healthSlider.minValue = 0f;
+            healthSlider.maxValue = max;
+            healthSlider.value = current;
+        }
 
         if (healthText != null)
         {
-            healthText.text = $"{current:0} / {max:0}";
+            healthText.text = $"{current:0}/{max:0}";
         }
     }
 
