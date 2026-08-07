@@ -12,6 +12,7 @@ namespace SharpI7.Combat
 
         private BossHealth bossHealth;
         private bool movementLocked;
+        private float speedMultiplier = 1f;
 
         private void Awake()
         {
@@ -20,7 +21,7 @@ namespace SharpI7.Combat
 
         private void Update()
         {
-            if (movementLocked || !bossHealth.IsAlive)
+            if (movementLocked || !bossHealth.IsAlive || bossHealth.IsTransitioningToPhaseTwo)
             {
                 return;
             }
@@ -43,7 +44,7 @@ namespace SharpI7.Combat
             transform.position = Vector3.MoveTowards(
                 currentPosition,
                 targetPosition,
-                moveSpeed * Time.deltaTime);
+                moveSpeed * speedMultiplier * Time.deltaTime);
         }
 
         public void SetPlayerTarget(Transform target)
@@ -59,6 +60,11 @@ namespace SharpI7.Combat
         public void UnlockMovement()
         {
             movementLocked = false;
+        }
+
+        public void SetSpeedMultiplier(float multiplier)
+        {
+            speedMultiplier = Mathf.Max(0f, multiplier);
         }
 
         private void ResolvePlayerTarget()

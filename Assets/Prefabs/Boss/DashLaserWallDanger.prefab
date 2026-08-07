@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 400000}
   - component: {fileID: 11400000}
   m_Layer: 0
-  m_Name: TrailHazardOrb
+  m_Name: DashLaserWallDanger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,8 +41,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 100000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13579bdf13579bdf13579bdf13579bdf, type: 3}
+  m_Script: {fileID: 11500000, guid: 3cbd919688ed39d429c4193c45d7787b, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  orbColor: {r: 0.35, g: 0.05, b: 0.65, a: 0.9}
-  circleResolution: 32
+  warningColor: {r: 1, g: 0.08, b: 0.08, a: 0.3}
+  activeColor: {r: 1, g: 0.2, b: 0.02, a: 0.95}
