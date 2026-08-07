@@ -48,5 +48,5 @@ MonoBehaviour:
   lifetime: 0.9
   riseDistance: 0.8
   textColor: {r: 1, g: 0.82, b: 0.12, a: 1}
-  fontSize: 64
-  characterSize: 0.08
+  fontSize: 96
+  characterSize: 0.35

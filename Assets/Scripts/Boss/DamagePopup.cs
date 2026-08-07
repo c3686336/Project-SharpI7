@@ -9,8 +9,8 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.05f)] private float lifetime = 0.9f;
         [SerializeField, Min(0f)] private float riseDistance = 0.8f;
         [SerializeField] private Color textColor = new(1f, 0.82f, 0.12f, 1f);
-        [SerializeField, Min(1)] private int fontSize = 64;
-        [SerializeField, Min(0.001f)] private float characterSize = 0.08f;
+        [SerializeField, Min(1)] private int fontSize = 96;
+        [SerializeField, Min(0.001f)] private float characterSize = 0.35f;
 
         private TextMesh damageText;
         private Vector3 startPosition;
@@ -32,6 +32,13 @@ namespace SharpI7.Combat
             damageText.color = textColor;
 
             var textRenderer = damageText.GetComponent<MeshRenderer>();
+            var runtimeFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (runtimeFont != null)
+            {
+                damageText.font = runtimeFont;
+                textRenderer.sharedMaterial = runtimeFont.material;
+            }
+
             textRenderer.sortingOrder = 200;
             initialized = true;
         }

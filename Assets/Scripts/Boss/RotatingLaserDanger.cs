@@ -18,6 +18,7 @@ namespace SharpI7.Combat
         private float laserLength;
         private float laserWidth;
         private float damage;
+        private float playerDamageInvulnerabilityDuration;
         private bool finished;
 
         public void Begin(
@@ -28,13 +29,14 @@ namespace SharpI7.Combat
             float warningDuration,
             float activeDuration,
             float damagePerTick,
-            float damageTickInterval)
+            float damageInvulnerabilityDuration)
         {
             followTarget = anchor;
             damageTarget = target;
             laserLength = Mathf.Max(0.1f, length);
             laserWidth = Mathf.Clamp(width, 0.1f, laserLength);
             damage = Mathf.Max(0f, damagePerTick);
+            playerDamageInvulnerabilityDuration = Mathf.Max(0.05f, damageInvulnerabilityDuration);
 
             FollowAnchor();
             CreateLaserVisual();
@@ -44,8 +46,7 @@ namespace SharpI7.Combat
             laserRoutine = StartCoroutine(LaserRoutine(
                 Mathf.Max(0.05f, warningDuration),
                 Mathf.Max(0.05f, activeDuration),
-                clockwiseSweepDegrees,
-                Mathf.Max(0.05f, damageTickInterval)));
+                clockwiseSweepDegrees));
         }
 
         public void Cancel()
@@ -67,8 +68,7 @@ namespace SharpI7.Combat
         private IEnumerator LaserRoutine(
             float warningDuration,
             float activeDuration,
-            float signedRotationDegrees,
-            float damageTickInterval)
+            float signedRotationDegrees)
         {
             var elapsed = 0f;
             while (elapsed < warningDuration)
@@ -85,7 +85,7 @@ namespace SharpI7.Combat
 
             laserRenderer.color = activeColor;
             var startAngle = transform.eulerAngles.z;
-            var nextDamageTime = 0f;
+            var nextDamageAllowedTime = 0f;
             elapsed = 0f;
 
             while (elapsed < activeDuration)
@@ -96,12 +96,15 @@ namespace SharpI7.Combat
                 var currentAngle = startAngle + signedRotationDegrees * progress;
                 transform.rotation = Quaternion.Euler(0f, 0f, currentAngle);
 
-                if (elapsed >= nextDamageTime)
+                // Check every frame so the first contact always deals damage.
+                // After a hit, only this laser grants one second of protection.
+                if (damageTarget != null &&
+                    Time.time >= nextDamageAllowedTime &&
+                    ContainsPoint(damageTarget.position))
                 {
-                    nextDamageTime = elapsed + damageTickInterval;
-                    if (damageTarget != null && ContainsPoint(damageTarget.position))
+                    if (ApplyDamage(damageTarget, damage))
                     {
-                        ApplyDamage(damageTarget, damage);
+                        nextDamageAllowedTime = Time.time + playerDamageInvulnerabilityDuration;
                     }
                 }
 
@@ -177,19 +180,27 @@ namespace SharpI7.Combat
             laserRenderer.sortingOrder = 102;
         }
 
-        private static void ApplyDamage(Transform target, float amount)
+        private static bool ApplyDamage(Transform target, float amount)
         {
             var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
             foreach (var behaviour in behaviours)
             {
+                if (behaviour is IPlayer player && player.IsAlive)
+                {
+                    var previousHealth = player.CurrentHealth;
+                    player.TakeDamage(amount);
+                    return player.CurrentHealth < previousHealth;
+                }
+
                 if (behaviour is IDamageable damageable && damageable.IsAlive)
                 {
                     damageable.TakeDamage(amount);
-                    return;
+                    return true;
                 }
             }
 
             target.SendMessage("TakeDamage", amount, SendMessageOptions.DontRequireReceiver);
+            return true;
         }
 
         private void OnDestroy()

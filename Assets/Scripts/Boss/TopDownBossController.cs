@@ -16,22 +16,19 @@ namespace SharpI7.Combat
         [SerializeField] private RotatingLaserDanger rotatingLaserDangerPrefab;
         [SerializeField] private SlowWobbleOrb slowWobbleOrbPrefab;
         [SerializeField] private BossDistanceDanger bossDistanceDangerPrefab;
-        [SerializeField] private TrailHazardOrb trailHazardOrbPrefab;
-        [SerializeField] private ConeDangerZone coneDangerZonePrefab;
+        [SerializeField] private DashLaserWallDanger dashLaserWallDangerPrefab;
 
-        [Header("Circular Ground Attack")]
-        [SerializeField] private bool enableCircleGroundAttack = true;
+        [Header("Attack Timing")]
         [SerializeField, Min(0f)] private float firstAttackDelay = 3f;
-        [SerializeField, Min(0.05f)] private float warningDuration = 3.5f;
-        [SerializeField, Min(0f)] private float recoveryDuration = 4f;
+        [SerializeField, Min(0f)] private float recoveryDuration = 5f;
         [SerializeField, Min(0f)] private float chantOpportunityDuration = 1f;
-        [SerializeField, Min(0.1f)] private float attackRadius = 2.25f;
         [SerializeField, Min(0f)] private float attackDamage = 1f;
 
         [Header("Tracking Barrage")]
         [SerializeField] private bool enableTrackingBarrage = true;
         [SerializeField, Min(1)] private int minTrackingStrikes = 3;
         [SerializeField, Min(1)] private int maxTrackingStrikes = 5;
+        [SerializeField, Min(0.1f)] private float trackingAttackRadius = 2.25f;
         [SerializeField, Min(0.05f)] private float trackingWarningDuration = 1.5f;
         [SerializeField, Min(0f)] private float trackingStrikeInterval = 0.35f;
 
@@ -56,10 +53,25 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.1f)] private float laserLength = 14f;
         [SerializeField, Min(0.1f)] private float laserWidth = 1.2f;
         [SerializeField, Min(0f)] private float laserDamagePerTick = 1f;
-        [SerializeField, Min(0.05f)] private float laserDamageTickInterval = 0.5f;
+        [SerializeField, Min(0.05f)] private float laserPlayerDamageInvulnerabilityDuration = 1f;
 
-        [Header("Slow Wobble Orb Attack")]
-        [SerializeField] private bool enableSlowWobbleOrbAttack = true;
+        [Header("Dash Laser Wall Attack")]
+        [SerializeField] private bool enableDashLaserWallAttack = true;
+        [SerializeField] private Vector2 dashLaserWallFieldSize = new(45f, 27f);
+        [SerializeField, Min(0.1f)] private float dashLaserWallThickness = 1.4f;
+        [SerializeField, Min(0.05f)] private float dashLaserWallWarningDuration = 1.2f;
+        [SerializeField, Min(0.05f)] private float dashLaserWallTravelDuration = 2.7f;
+        [SerializeField, Min(0f)] private float dashLaserWallDamage = 1f;
+
+        [Header("Contact Damage")]
+        [SerializeField, Min(0f)] private float contactDamage = 1f;
+        [SerializeField, Min(0.05f)] private float contactDamageInterval = 1f;
+
+        [Header("Phase Two")]
+        [SerializeField, Range(0.1f, 1f)] private float phaseTwoAttackDelayMultiplier = 0.7f;
+        [SerializeField, Min(0f)] private float phaseTwoMoveSpeedMultiplier = 1.5f;
+
+        [Header("Radial Wobble Orb Attack")]
         [SerializeField] private bool enableRadialWobbleOrbAttack = true;
         [SerializeField, Min(3)] private int radialOrbCount = 12;
         [SerializeField, Min(0.01f)] private float orbMovementSpeed = 1.2f;
@@ -67,9 +79,6 @@ namespace SharpI7.Combat
         [SerializeField, Min(0f)] private float orbWobbleFrequency = 0.6f;
         [SerializeField, Min(0.05f)] private float orbCollisionRadius = 0.55f;
         [SerializeField, Min(0f)] private float orbDamage = 1f;
-        [SerializeField, Min(0f)] private float aimedOrbSpawnOffset = 1.35f;
-        [SerializeField, Min(1)] private int aimedOrbShotsPerAttack = 3;
-        [SerializeField, Min(0.05f)] private float aimedOrbShotInterval = 1.5f;
         [SerializeField] private Vector2 orbPlayAreaSize = new(30f, 18f);
 
         [Header("Boss Distance Attack")]
@@ -77,21 +86,6 @@ namespace SharpI7.Combat
         [SerializeField, Min(0.05f)] private float bossDistanceWarningDuration = 4f;
         [SerializeField] private Vector2 bossDistanceFieldSize = new(30f, 18f);
         [SerializeField, Min(0.1f)] private float bossDistanceRadius = 6f;
-
-        [Header("Movement Trail Attack")]
-        [SerializeField] private bool enableMovementTrailAttack = true;
-        [SerializeField, Min(0.05f)] private float trailPatternDuration = 4f;
-        [SerializeField, Min(0.05f)] private float trailSpawnInterval = 0.75f;
-        [SerializeField, Min(0.05f)] private float trailOrbLifetime = 3f;
-        [SerializeField, Min(0.05f)] private float trailOrbCollisionRadius = 0.45f;
-        [SerializeField, Min(0f)] private float trailOrbDamage = 1f;
-
-        [Header("Forward Cone Attack")]
-        [SerializeField] private bool enableForwardConeAttack = true;
-        [SerializeField, Min(0.05f)] private float coneWarningDuration = 2.5f;
-        [SerializeField, Min(0.1f)] private float coneAttackRange = 6f;
-        [SerializeField, Range(1f, 359f)] private float coneAttackAngle = 70f;
-        [SerializeField, Min(0f)] private float coneAttackDamage = 1f;
 
         private BossHealth bossHealth;
         private BossMovement bossMovement;
@@ -101,15 +95,17 @@ namespace SharpI7.Combat
         private LineDangerZone activeLineZone;
         private SafeZoneDanger activeSafeZone;
         private RotatingLaserDanger activeLaserZone;
+        private DashLaserWallDanger activeDashLaserWall;
         private readonly List<SlowWobbleOrb> activeOrbs = new();
-        private readonly List<TrailHazardOrb> activeTrailHazards = new();
         private readonly List<BossAttackPattern> availableAttacks = new();
         private BossDistanceDanger activeBossDistanceZone;
-        private ConeDangerZone activeConeZone;
         private AttackFamily lastAttackFamily = AttackFamily.None;
         private BossDistanceDangerMode nextBossDistanceMode = BossDistanceDangerMode.InnerDanger;
+        private IPlayer subscribedPlayer;
         private bool playerWasAcquired;
         private bool combatStopped;
+        private bool phaseTwoActive;
+        private float nextContactDamageTime;
 
         private void Awake()
         {
@@ -121,7 +117,16 @@ namespace SharpI7.Combat
         private void OnEnable()
         {
             combatStopped = false;
+            nextContactDamageTime = 0f;
             bossHealth.Died += StopAttacking;
+            bossHealth.PhaseTwoTransitionStarted += BeginPhaseTwoTransition;
+            bossHealth.PhaseTwoStarted += StartPhaseTwo;
+            phaseTwoActive = bossHealth.IsPhaseTwo;
+            if (phaseTwoActive && bossMovement != null)
+            {
+                bossMovement.SetSpeedMultiplier(phaseTwoMoveSpeedMultiplier);
+            }
+            ResolvePlayerTarget();
             attackRoutine = StartCoroutine(AttackLoop());
         }
 
@@ -147,6 +152,9 @@ namespace SharpI7.Combat
         private void OnDisable()
         {
             bossHealth.Died -= StopAttacking;
+            bossHealth.PhaseTwoTransitionStarted -= BeginPhaseTwoTransition;
+            bossHealth.PhaseTwoStarted -= StartPhaseTwo;
+            UnsubscribeFromPlayerDeath();
 
             if (attackRoutine != null)
             {
@@ -158,17 +166,18 @@ namespace SharpI7.Combat
             CancelActiveLineZone();
             CancelActiveSafeZone();
             CancelActiveLaserZone();
+            CancelActiveDashLaserWall();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
-            CancelActiveTrailHazards();
-            CancelActiveConeZone();
         }
 
         public void SetPlayerTarget(Transform target)
         {
+            UnsubscribeFromPlayerDeath();
             playerTarget = target;
             bossMovement.SetPlayerTarget(target);
             playerWasAcquired = target != null;
+            SubscribeToPlayerDeath(target);
         }
 
         public void NotifyPlayerDied()
@@ -176,9 +185,9 @@ namespace SharpI7.Combat
             StopAttacking();
         }
 
-        private IEnumerator AttackLoop()
+        private IEnumerator AttackLoop(bool waitForFirstAttack = true)
         {
-            if (firstAttackDelay > 0f)
+            if (waitForFirstAttack && firstAttackDelay > 0f)
             {
                 yield return new WaitForSeconds(firstAttackDelay);
             }
@@ -208,12 +217,12 @@ namespace SharpI7.Combat
 
                 if (chantOpportunityDuration > 0f)
                 {
-                    yield return new WaitForSeconds(chantOpportunityDuration);
+                    yield return new WaitForSeconds(GetPhaseAdjustedDelay(chantOpportunityDuration));
                 }
 
                 if (recoveryDuration > 0f)
                 {
-                    yield return new WaitForSeconds(recoveryDuration);
+                    yield return new WaitForSeconds(GetPhaseAdjustedDelay(recoveryDuration));
                 }
             }
         }
@@ -222,23 +231,16 @@ namespace SharpI7.Combat
         {
             availableAttacks.Clear();
 
-            AddAttackIf(enableCircleGroundAttack && dangerZonePrefab != null, BossAttackPattern.Circle);
             AddAttackIf(enableTrackingBarrage && dangerZonePrefab != null, BossAttackPattern.TrackingBarrage);
             AddAttackIf(enableLineGroundAttack && lineDangerZonePrefab != null, BossAttackPattern.Line);
             AddAttackIf(enableSafeZoneAttack && safeZoneDangerPrefab != null, BossAttackPattern.SafeZone);
             AddAttackIf(enableRotatingLaserAttack && rotatingLaserDangerPrefab != null, BossAttackPattern.RotatingLaser);
+            AddAttackIf(enableDashLaserWallAttack && dashLaserWallDangerPrefab != null, BossAttackPattern.DashLaserWall);
             AddAttackIf(
-                lastAttackFamily != AttackFamily.OrbProjectile
-                    && (enableSlowWobbleOrbAttack || enableRadialWobbleOrbAttack)
+                lastAttackFamily != AttackFamily.OrbProjectile && enableRadialWobbleOrbAttack
                     && slowWobbleOrbPrefab != null,
                 BossAttackPattern.OrbFamily);
             AddAttackIf(enableBossDistanceAttack && bossDistanceDangerPrefab != null, BossAttackPattern.BossDistance);
-            AddAttackIf(enableMovementTrailAttack && trailHazardOrbPrefab != null, BossAttackPattern.MovementTrail);
-            AddAttackIf(
-                enableForwardConeAttack
-                    && coneDangerZonePrefab != null
-                    && IsPlayerWithinConeActivationRange(),
-                BossAttackPattern.ForwardCone);
         }
 
         private void AddAttackIf(bool condition, BossAttackPattern attack)
@@ -249,26 +251,10 @@ namespace SharpI7.Combat
             }
         }
 
-        private bool IsPlayerWithinConeActivationRange()
-        {
-            if (playerTarget == null)
-            {
-                return false;
-            }
-
-            var bossSize = bossVisual != null ? bossVisual.VisualSize : 2.4f;
-            var activationRange = bossSize * 2f;
-            var offset = (Vector2)(playerTarget.position - transform.position);
-            return offset.sqrMagnitude <= activationRange * activationRange;
-        }
-
         private IEnumerator PerformAttack(BossAttackPattern attack)
         {
             switch (attack)
             {
-                case BossAttackPattern.Circle:
-                    yield return PerformSingleGroundAttack();
-                    break;
                 case BossAttackPattern.TrackingBarrage:
                     yield return PerformTrackingBarrage();
                     break;
@@ -281,86 +267,86 @@ namespace SharpI7.Combat
                 case BossAttackPattern.RotatingLaser:
                     yield return PerformRotatingLaserAttack();
                     break;
+                case BossAttackPattern.DashLaserWall:
+                    yield return PerformDashLaserWallAttack();
+                    break;
                 case BossAttackPattern.OrbFamily:
                     yield return PerformOrbFamilyAttack();
                     break;
                 case BossAttackPattern.BossDistance:
                     yield return PerformBossDistanceAttack();
                     break;
-                case BossAttackPattern.MovementTrail:
-                    yield return PerformMovementTrailAttack();
-                    break;
-                case BossAttackPattern.ForwardCone:
-                    yield return PerformForwardConeAttack();
-                    break;
             }
         }
 
-        private IEnumerator PerformForwardConeAttack()
+        private void StartPhaseTwo()
         {
+            phaseTwoActive = true;
+            if (bossMovement != null)
+            {
+                bossMovement.SetSpeedMultiplier(phaseTwoMoveSpeedMultiplier);
+                bossMovement.UnlockMovement();
+            }
+
+            if (!combatStopped && attackRoutine == null)
+            {
+                attackRoutine = StartCoroutine(AttackLoop(false));
+            }
+        }
+
+        private void BeginPhaseTwoTransition()
+        {
+            if (combatStopped)
+            {
+                return;
+            }
+
+            if (attackRoutine != null)
+            {
+                StopCoroutine(attackRoutine);
+                attackRoutine = null;
+            }
+
+            CancelActiveZone();
+            CancelActiveLineZone();
+            CancelActiveSafeZone();
+            CancelActiveLaserZone();
+            CancelActiveDashLaserWall();
+            CancelActiveOrbs();
+            CancelActiveBossDistanceZone();
+
             if (bossMovement != null)
             {
                 bossMovement.LockMovement();
             }
-
-            var attackPosition = transform.position;
-            attackPosition.z = 0f;
-            var fixedDirection = (Vector2)(playerTarget.position - attackPosition);
-            if (fixedDirection.sqrMagnitude < 0.001f)
-            {
-                fixedDirection = Vector2.right;
-            }
-
-            activeConeZone = Instantiate(coneDangerZonePrefab, attackPosition, Quaternion.identity);
-            activeConeZone.Begin(
-                playerTarget,
-                fixedDirection.normalized,
-                coneAttackRange,
-                coneAttackAngle,
-                coneWarningDuration,
-                coneAttackDamage);
-
-            yield return new WaitForSeconds(coneWarningDuration + 0.2f);
-            activeConeZone = null;
-
-            if (bossMovement != null && bossHealth.IsAlive)
-            {
-                bossMovement.UnlockMovement();
-            }
         }
 
-        private IEnumerator PerformMovementTrailAttack()
+        private float GetPhaseAdjustedDelay(float delay)
         {
-            var elapsed = 0f;
+            return phaseTwoActive ? delay * phaseTwoAttackDelayMultiplier : delay;
+        }
 
-            while (elapsed < trailPatternDuration && bossHealth.IsAlive)
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            if (combatStopped || !bossHealth.IsAlive || bossHealth.IsTransitioningToPhaseTwo || contactDamage <= 0f || Time.time < nextContactDamageTime)
             {
-                ResolvePlayerTarget();
-                SpawnTrailHazard();
+                return;
+            }
 
-                var waitDuration = Mathf.Min(trailSpawnInterval, trailPatternDuration - elapsed);
-                if (waitDuration <= 0f)
+            foreach (var behaviour in other.GetComponentsInParent<MonoBehaviour>(true))
+            {
+                if (behaviour is IPlayer player && player.IsAlive)
                 {
-                    break;
+                    var previousHealth = player.CurrentHealth;
+                    player.TakeDamage(contactDamage);
+                    if (player.CurrentHealth < previousHealth)
+                    {
+                        nextContactDamageTime = Time.time + contactDamageInterval;
+                    }
+
+                    return;
                 }
-
-                yield return new WaitForSeconds(waitDuration);
-                elapsed += waitDuration;
             }
-        }
-
-        private void SpawnTrailHazard()
-        {
-            activeTrailHazards.RemoveAll(hazard => hazard == null);
-            var spawnPosition = transform.position;
-            spawnPosition.z = 0f;
-            var hazard = Instantiate(trailHazardOrbPrefab, spawnPosition, Quaternion.identity);
-            activeTrailHazards.Add(hazard);
-            hazard.Begin(
-                playerTarget,
-                trailOrbCollisionRadius,
-                trailOrbDamage,
-                trailOrbLifetime);
         }
 
         private IEnumerator PerformBossDistanceAttack()
@@ -390,50 +376,7 @@ namespace SharpI7.Combat
 
         private IEnumerator PerformOrbFamilyAttack()
         {
-            var useRadialPattern = enableRadialWobbleOrbAttack
-                && (!enableSlowWobbleOrbAttack || Random.value < 0.5f);
-
-            if (useRadialPattern)
-            {
-                yield return PerformRadialWobbleOrbAttack();
-            }
-            else
-            {
-                yield return PerformSlowWobbleOrbAttack();
-            }
-        }
-
-        private IEnumerator PerformSlowWobbleOrbAttack()
-        {
-            var shotCount = Mathf.Max(1, aimedOrbShotsPerAttack);
-
-            for (var shotIndex = 0; shotIndex < shotCount && bossHealth.IsAlive; shotIndex++)
-            {
-                ResolvePlayerTarget();
-                if (playerTarget == null)
-                {
-                    yield break;
-                }
-
-                var bossPosition = transform.position;
-                bossPosition.z = 0f;
-                var fixedDirection = (Vector2)(playerTarget.position - bossPosition);
-                if (fixedDirection.sqrMagnitude < 0.001f)
-                {
-                    fixedDirection = Vector2.right;
-                }
-
-                fixedDirection.Normalize();
-                var spawnPosition = bossPosition
-                    + (Vector3)(fixedDirection * aimedOrbSpawnOffset);
-                var playAreaBounds = CreateOrbPlayAreaBounds(bossPosition);
-                SpawnWobbleOrb(spawnPosition, fixedDirection, playAreaBounds);
-
-                if (shotIndex < shotCount - 1)
-                {
-                    yield return new WaitForSeconds(aimedOrbShotInterval);
-                }
-            }
+            yield return PerformRadialWobbleOrbAttack();
         }
 
         private IEnumerator PerformRadialWobbleOrbAttack()
@@ -491,14 +434,42 @@ namespace SharpI7.Combat
                 laserWarningDuration,
                 laserActiveDuration,
                 laserDamagePerTick,
-                laserDamageTickInterval);
+                laserPlayerDamageInvulnerabilityDuration);
 
             yield return new WaitForSeconds(laserWarningDuration + laserActiveDuration + 0.15f);
             activeLaserZone = null;
         }
 
+        private IEnumerator PerformDashLaserWallAttack()
+        {
+            var fieldBounds = new Bounds(
+                transform.position,
+                new Vector3(dashLaserWallFieldSize.x, dashLaserWallFieldSize.y, 1f));
+            var direction = (DashLaserWallDirection)Random.Range(
+                0,
+                System.Enum.GetValues(typeof(DashLaserWallDirection)).Length);
+
+            activeDashLaserWall = Instantiate(dashLaserWallDangerPrefab, transform.position, Quaternion.identity);
+            activeDashLaserWall.Begin(
+                playerTarget,
+                fieldBounds,
+                direction,
+                dashLaserWallThickness,
+                dashLaserWallWarningDuration,
+                dashLaserWallTravelDuration,
+                dashLaserWallDamage);
+
+            yield return new WaitForSeconds(dashLaserWallWarningDuration + dashLaserWallTravelDuration + 0.1f);
+            activeDashLaserWall = null;
+        }
+
         private IEnumerator PerformSafeZoneAttack()
         {
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
+
             var fieldCenter = (Vector2)transform.position;
             var safePosition = ChooseSafeZonePosition(fieldCenter);
             var attackPosition = transform.position;
@@ -515,6 +486,11 @@ namespace SharpI7.Combat
 
             yield return new WaitForSeconds(safeZoneWarningDuration + 0.25f);
             activeSafeZone = null;
+
+            if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
+            {
+                bossMovement.UnlockMovement();
+            }
         }
 
         private Vector2 ChooseSafeZonePosition(Vector2 fieldCenter)
@@ -563,13 +539,6 @@ namespace SharpI7.Combat
             activeLineZone = null;
         }
 
-        private IEnumerator PerformSingleGroundAttack()
-        {
-            SpawnDangerZone(warningDuration);
-            yield return new WaitForSeconds(warningDuration + 0.2f);
-            activeZone = null;
-        }
-
         private IEnumerator PerformTrackingBarrage()
         {
             var strikeCount = Random.Range(minTrackingStrikes, maxTrackingStrikes + 1);
@@ -600,26 +569,67 @@ namespace SharpI7.Combat
             var targetPosition = playerTarget.position;
             targetPosition.z = 0f;
             activeZone = Instantiate(dangerZonePrefab, targetPosition, Quaternion.identity);
-            activeZone.Begin(playerTarget, attackRadius, duration, attackDamage);
+            activeZone.Begin(playerTarget, trackingAttackRadius, duration, attackDamage);
         }
 
         private void ResolvePlayerTarget()
         {
             if (playerTarget != null)
             {
+                if (!playerWasAcquired)
+                {
+                    SetPlayerTarget(playerTarget);
+                }
+
                 return;
             }
 
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                playerTarget = player.transform;
-                playerWasAcquired = true;
+                SetPlayerTarget(player.transform);
             }
+        }
+
+        private void SubscribeToPlayerDeath(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
+            foreach (var behaviour in behaviours)
+            {
+                if (!(behaviour is IPlayer player))
+                {
+                    continue;
+                }
+
+                subscribedPlayer = player;
+                subscribedPlayer.Died += StopAttacking;
+                return;
+            }
+        }
+
+        private void UnsubscribeFromPlayerDeath()
+        {
+            if (subscribedPlayer == null)
+            {
+                return;
+            }
+
+            subscribedPlayer.Died -= StopAttacking;
+            subscribedPlayer = null;
         }
 
         private bool IsPlayerAlive()
         {
+            if (subscribedPlayer != null)
+            {
+                return subscribedPlayer.IsAlive;
+            }
+
             if (playerTarget == null || !playerTarget.gameObject.activeInHierarchy)
             {
                 return false;
@@ -665,10 +675,14 @@ namespace SharpI7.Combat
             CancelActiveLineZone();
             CancelActiveSafeZone();
             CancelActiveLaserZone();
+            CancelActiveDashLaserWall();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
-            CancelActiveTrailHazards();
-            CancelActiveConeZone();
+
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
         }
 
         private void CancelActiveZone()
@@ -715,6 +729,17 @@ namespace SharpI7.Combat
             activeLaserZone = null;
         }
 
+        private void CancelActiveDashLaserWall()
+        {
+            if (activeDashLaserWall == null)
+            {
+                return;
+            }
+
+            activeDashLaserWall.Cancel();
+            activeDashLaserWall = null;
+        }
+
         private void CancelActiveOrbs()
         {
             for (var orbIndex = activeOrbs.Count - 1; orbIndex >= 0; orbIndex--)
@@ -739,44 +764,16 @@ namespace SharpI7.Combat
             activeBossDistanceZone = null;
         }
 
-        private void CancelActiveTrailHazards()
-        {
-            for (var hazardIndex = activeTrailHazards.Count - 1; hazardIndex >= 0; hazardIndex--)
-            {
-                if (activeTrailHazards[hazardIndex] != null)
-                {
-                    activeTrailHazards[hazardIndex].Cancel();
-                }
-            }
-
-            activeTrailHazards.Clear();
-        }
-
-        private void CancelActiveConeZone()
-        {
-            if (activeConeZone != null)
-            {
-                activeConeZone.Cancel();
-                activeConeZone = null;
-            }
-
-            if (bossMovement != null)
-            {
-                bossMovement.UnlockMovement();
-            }
-        }
-
 #if UNITY_EDITOR
         private void OnValidate()
         {
             firstAttackDelay = Mathf.Max(0f, firstAttackDelay);
-            warningDuration = Mathf.Max(0.05f, warningDuration);
             recoveryDuration = Mathf.Max(0f, recoveryDuration);
             chantOpportunityDuration = Mathf.Max(0f, chantOpportunityDuration);
-            attackRadius = Mathf.Max(0.1f, attackRadius);
             attackDamage = Mathf.Max(0f, attackDamage);
             minTrackingStrikes = Mathf.Max(1, minTrackingStrikes);
             maxTrackingStrikes = Mathf.Max(minTrackingStrikes, maxTrackingStrikes);
+            trackingAttackRadius = Mathf.Max(0.1f, trackingAttackRadius);
             trackingWarningDuration = Mathf.Max(0.05f, trackingWarningDuration);
             trackingStrikeInterval = Mathf.Max(0f, trackingStrikeInterval);
             lineWarningDuration = Mathf.Max(0.05f, lineWarningDuration);
@@ -793,16 +790,23 @@ namespace SharpI7.Combat
             laserLength = Mathf.Max(0.1f, laserLength);
             laserWidth = Mathf.Clamp(laserWidth, 0.1f, laserLength);
             laserDamagePerTick = Mathf.Max(0f, laserDamagePerTick);
-            laserDamageTickInterval = Mathf.Max(0.05f, laserDamageTickInterval);
+            laserPlayerDamageInvulnerabilityDuration = Mathf.Max(0.05f, laserPlayerDamageInvulnerabilityDuration);
+            dashLaserWallFieldSize.x = Mathf.Max(0.1f, dashLaserWallFieldSize.x);
+            dashLaserWallFieldSize.y = Mathf.Max(0.1f, dashLaserWallFieldSize.y);
+            dashLaserWallThickness = Mathf.Max(0.1f, dashLaserWallThickness);
+            dashLaserWallWarningDuration = Mathf.Max(0.05f, dashLaserWallWarningDuration);
+            dashLaserWallTravelDuration = Mathf.Max(0.05f, dashLaserWallTravelDuration);
+            dashLaserWallDamage = Mathf.Max(0f, dashLaserWallDamage);
+            contactDamage = Mathf.Max(0f, contactDamage);
+            contactDamageInterval = Mathf.Max(0.05f, contactDamageInterval);
+            phaseTwoAttackDelayMultiplier = Mathf.Clamp(phaseTwoAttackDelayMultiplier, 0.1f, 1f);
+            phaseTwoMoveSpeedMultiplier = Mathf.Max(0f, phaseTwoMoveSpeedMultiplier);
             radialOrbCount = Mathf.Max(3, radialOrbCount);
             orbMovementSpeed = Mathf.Max(0.01f, orbMovementSpeed);
             orbWobbleAmplitude = Mathf.Max(0f, orbWobbleAmplitude);
             orbWobbleFrequency = Mathf.Max(0f, orbWobbleFrequency);
             orbCollisionRadius = Mathf.Max(0.05f, orbCollisionRadius);
             orbDamage = Mathf.Max(0f, orbDamage);
-            aimedOrbSpawnOffset = Mathf.Max(0f, aimedOrbSpawnOffset);
-            aimedOrbShotsPerAttack = Mathf.Max(1, aimedOrbShotsPerAttack);
-            aimedOrbShotInterval = Mathf.Max(0.05f, aimedOrbShotInterval);
             orbPlayAreaSize.x = Mathf.Max(orbCollisionRadius * 2f, orbPlayAreaSize.x);
             orbPlayAreaSize.y = Mathf.Max(orbCollisionRadius * 2f, orbPlayAreaSize.y);
             bossDistanceWarningDuration = Mathf.Max(0.05f, bossDistanceWarningDuration);
@@ -813,15 +817,6 @@ namespace SharpI7.Combat
             bossDistanceFieldSize.y = Mathf.Max(
                 bossDistanceRadius * 2f,
                 bossDistanceFieldSize.y);
-            trailPatternDuration = Mathf.Max(0.05f, trailPatternDuration);
-            trailSpawnInterval = Mathf.Max(0.05f, trailSpawnInterval);
-            trailOrbLifetime = Mathf.Max(0.05f, trailOrbLifetime);
-            trailOrbCollisionRadius = Mathf.Max(0.05f, trailOrbCollisionRadius);
-            trailOrbDamage = Mathf.Max(0f, trailOrbDamage);
-            coneWarningDuration = Mathf.Max(0.05f, coneWarningDuration);
-            coneAttackRange = Mathf.Max(0.1f, coneAttackRange);
-            coneAttackAngle = Mathf.Clamp(coneAttackAngle, 1f, 359f);
-            coneAttackDamage = Mathf.Max(0f, coneAttackDamage);
         }
 #endif
 
@@ -834,15 +829,13 @@ namespace SharpI7.Combat
 
         private enum BossAttackPattern
         {
-            Circle,
             TrackingBarrage,
             Line,
             SafeZone,
             RotatingLaser,
+            DashLaserWall,
             OrbFamily,
-            BossDistance,
-            MovementTrail,
-            ForwardCone
+            BossDistance
         }
     }
 }
