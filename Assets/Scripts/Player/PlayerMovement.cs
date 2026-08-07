@@ -272,6 +272,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         bossHealth.TakeDamage(result.actualDamage);
         DeductMana(result.manaRelease);
 
+
         if (bossHealth == null)
         {
             bossHealth = FindFirstObjectByType<BossHealth>();
