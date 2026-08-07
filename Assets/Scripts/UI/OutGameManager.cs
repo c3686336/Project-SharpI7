@@ -12,6 +12,7 @@ public sealed class OutGameManager : MonoBehaviour
     [SerializeField] private GameObject WinMenu;
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button configButton;
+    [SerializeField] private Button exitGameButton;
     [SerializeField] private Button closeConfigButton;
     [SerializeField] private Button restartButton;
     [SerializeField] private Button winRestartButton;
@@ -29,7 +30,8 @@ public sealed class OutGameManager : MonoBehaviour
     private void Awake()
     {
         if (mainMenu == null || gameOverMenu == null || WinMenu == null ||
-            startGameButton == null || configButton == null || closeConfigButton == null ||
+            startGameButton == null || configButton == null || exitGameButton == null ||
+            closeConfigButton == null ||
             restartButton == null || winRestartButton == null || configPanel == null)
         {
             Debug.LogError("OutGameManager has missing menu or button references.", this);
@@ -45,6 +47,7 @@ public sealed class OutGameManager : MonoBehaviour
     {
         startGameButton.onClick.AddListener(StartGame);
         configButton.onClick.AddListener(OpenConfig);
+        exitGameButton.onClick.AddListener(QuitGame);
         closeConfigButton.onClick.AddListener(CloseConfig);
         restartButton.onClick.AddListener(ShowMainMenu);
         winRestartButton.onClick.AddListener(ShowMainMenu);
@@ -54,6 +57,7 @@ public sealed class OutGameManager : MonoBehaviour
     {
         startGameButton.onClick.RemoveListener(StartGame);
         configButton.onClick.RemoveListener(OpenConfig);
+        exitGameButton.onClick.RemoveListener(QuitGame);
         closeConfigButton.onClick.RemoveListener(CloseConfig);
         restartButton.onClick.RemoveListener(ShowMainMenu);
         winRestartButton.onClick.RemoveListener(ShowMainMenu);
@@ -80,6 +84,15 @@ public sealed class OutGameManager : MonoBehaviour
     public void CloseConfig()
     {
         configPanel.SetActive(false);
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     public static void LoadGameOver()

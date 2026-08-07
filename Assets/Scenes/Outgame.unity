@@ -997,6 +997,7 @@ MonoBehaviour:
   WinMenu: {fileID: 351782286}
   startGameButton: {fileID: 1609750160}
   configButton: {fileID: 23907308}
+  exitGameButton: {fileID: 1345563372}
   closeConfigButton: {fileID: 1685574824}
   restartButton: {fileID: 1056644434}
   winRestartButton: {fileID: 1442575428}
