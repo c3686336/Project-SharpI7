@@ -21,9 +21,10 @@ namespace SharpI7.Combat
 
         [Header("Circular Ground Attack")]
         [SerializeField] private bool enableCircleGroundAttack = true;
-        [SerializeField, Min(0f)] private float firstAttackDelay = 1f;
-        [SerializeField, Min(0.05f)] private float warningDuration = 2.5f;
-        [SerializeField, Min(0f)] private float recoveryDuration = 1.5f;
+        [SerializeField, Min(0f)] private float firstAttackDelay = 3f;
+        [SerializeField, Min(0.05f)] private float warningDuration = 3.5f;
+        [SerializeField, Min(0f)] private float recoveryDuration = 4f;
+        [SerializeField, Min(0f)] private float chantOpportunityDuration = 1f;
         [SerializeField, Min(0.1f)] private float attackRadius = 2.25f;
         [SerializeField, Min(0f)] private float attackDamage = 1f;
 
@@ -31,18 +32,18 @@ namespace SharpI7.Combat
         [SerializeField] private bool enableTrackingBarrage = true;
         [SerializeField, Min(1)] private int minTrackingStrikes = 3;
         [SerializeField, Min(1)] private int maxTrackingStrikes = 5;
-        [SerializeField, Min(0.05f)] private float trackingWarningDuration = 0.8f;
-        [SerializeField, Min(0f)] private float trackingStrikeInterval = 0.1f;
+        [SerializeField, Min(0.05f)] private float trackingWarningDuration = 1.5f;
+        [SerializeField, Min(0f)] private float trackingStrikeInterval = 0.35f;
 
         [Header("Line Ground Attack")]
         [SerializeField] private bool enableLineGroundAttack = true;
-        [SerializeField, Min(0.05f)] private float lineWarningDuration = 1.5f;
+        [SerializeField, Min(0.05f)] private float lineWarningDuration = 2.5f;
         [SerializeField, Min(0.1f)] private float lineAttackLength = 16f;
         [SerializeField, Min(0.1f)] private float lineAttackWidth = 2f;
 
         [Header("Safe Zone Attack")]
         [SerializeField] private bool enableSafeZoneAttack = true;
-        [SerializeField, Min(0.05f)] private float safeZoneWarningDuration = 3f;
+        [SerializeField, Min(0.05f)] private float safeZoneWarningDuration = 4f;
         [SerializeField] private Vector2 safeZoneFieldSize = new(30f, 18f);
         [SerializeField, Min(0.1f)] private float safeZoneRadius = 3f;
         [SerializeField, Min(0f)] private float safeZoneMinDistance = 5f;
@@ -50,7 +51,7 @@ namespace SharpI7.Combat
 
         [Header("Rotating Laser Attack")]
         [SerializeField] private bool enableRotatingLaserAttack = true;
-        [SerializeField, Min(0.05f)] private float laserWarningDuration = 1f;
+        [SerializeField, Min(0.05f)] private float laserWarningDuration = 2f;
         [SerializeField, Min(0.05f)] private float laserActiveDuration = 5f;
         [SerializeField, Min(0.1f)] private float laserLength = 14f;
         [SerializeField, Min(0.1f)] private float laserWidth = 1.2f;
@@ -73,7 +74,7 @@ namespace SharpI7.Combat
 
         [Header("Boss Distance Attack")]
         [SerializeField] private bool enableBossDistanceAttack = true;
-        [SerializeField, Min(0.05f)] private float bossDistanceWarningDuration = 3f;
+        [SerializeField, Min(0.05f)] private float bossDistanceWarningDuration = 4f;
         [SerializeField] private Vector2 bossDistanceFieldSize = new(30f, 18f);
         [SerializeField, Min(0.1f)] private float bossDistanceRadius = 6f;
 
@@ -87,7 +88,7 @@ namespace SharpI7.Combat
 
         [Header("Forward Cone Attack")]
         [SerializeField] private bool enableForwardConeAttack = true;
-        [SerializeField, Min(0.05f)] private float coneWarningDuration = 1.25f;
+        [SerializeField, Min(0.05f)] private float coneWarningDuration = 2.5f;
         [SerializeField, Min(0.1f)] private float coneAttackRange = 6f;
         [SerializeField, Range(1f, 359f)] private float coneAttackAngle = 70f;
         [SerializeField, Min(0f)] private float coneAttackDamage = 1f;
@@ -107,6 +108,8 @@ namespace SharpI7.Combat
         private ConeDangerZone activeConeZone;
         private AttackFamily lastAttackFamily = AttackFamily.None;
         private BossDistanceDangerMode nextBossDistanceMode = BossDistanceDangerMode.InnerDanger;
+        private bool playerWasAcquired;
+        private bool combatStopped;
 
         private void Awake()
         {
@@ -117,8 +120,28 @@ namespace SharpI7.Combat
 
         private void OnEnable()
         {
+            combatStopped = false;
             bossHealth.Died += StopAttacking;
             attackRoutine = StartCoroutine(AttackLoop());
+        }
+
+        private void Update()
+        {
+            if (combatStopped || !bossHealth.IsAlive)
+            {
+                return;
+            }
+
+            if (!playerWasAcquired)
+            {
+                ResolvePlayerTarget();
+                return;
+            }
+
+            if (!IsPlayerAlive())
+            {
+                StopAttacking();
+            }
         }
 
         private void OnDisable()
@@ -145,6 +168,12 @@ namespace SharpI7.Combat
         {
             playerTarget = target;
             bossMovement.SetPlayerTarget(target);
+            playerWasAcquired = target != null;
+        }
+
+        public void NotifyPlayerDied()
+        {
+            StopAttacking();
         }
 
         private IEnumerator AttackLoop()
@@ -154,7 +183,7 @@ namespace SharpI7.Combat
                 yield return new WaitForSeconds(firstAttackDelay);
             }
 
-            while (bossHealth.IsAlive)
+            while (bossHealth.IsAlive && !combatStopped)
             {
                 ResolvePlayerTarget();
 
@@ -176,6 +205,11 @@ namespace SharpI7.Combat
                 lastAttackFamily = selectedAttack == BossAttackPattern.OrbFamily
                     ? AttackFamily.OrbProjectile
                     : AttackFamily.NonOrb;
+
+                if (chantOpportunityDuration > 0f)
+                {
+                    yield return new WaitForSeconds(chantOpportunityDuration);
+                }
 
                 if (recoveryDuration > 0f)
                 {
@@ -203,7 +237,7 @@ namespace SharpI7.Combat
             AddAttackIf(
                 enableForwardConeAttack
                     && coneDangerZonePrefab != null
-                    && IsPlayerWithinBossSize(),
+                    && IsPlayerWithinConeActivationRange(),
                 BossAttackPattern.ForwardCone);
         }
 
@@ -215,7 +249,7 @@ namespace SharpI7.Combat
             }
         }
 
-        private bool IsPlayerWithinBossSize()
+        private bool IsPlayerWithinConeActivationRange()
         {
             if (playerTarget == null)
             {
@@ -223,8 +257,9 @@ namespace SharpI7.Combat
             }
 
             var bossSize = bossVisual != null ? bossVisual.VisualSize : 2.4f;
+            var activationRange = bossSize * 2f;
             var offset = (Vector2)(playerTarget.position - transform.position);
-            return offset.sqrMagnitude <= bossSize * bossSize;
+            return offset.sqrMagnitude <= activationRange * activationRange;
         }
 
         private IEnumerator PerformAttack(BossAttackPattern attack)
@@ -579,11 +614,47 @@ namespace SharpI7.Combat
             if (player != null)
             {
                 playerTarget = player.transform;
+                playerWasAcquired = true;
             }
+        }
+
+        private bool IsPlayerAlive()
+        {
+            if (playerTarget == null || !playerTarget.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            var behaviours = playerTarget.GetComponentsInParent<MonoBehaviour>(true);
+            foreach (var behaviour in behaviours)
+            {
+                if (behaviour is IDamageable damageable)
+                {
+                    return damageable.IsAlive;
+                }
+            }
+
+            foreach (var behaviour in behaviours)
+            {
+                var getHpMethod = behaviour.GetType().GetMethod(
+                    "GetHp",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public,
+                    null,
+                    System.Type.EmptyTypes,
+                    null);
+                if (getHpMethod != null && getHpMethod.ReturnType == typeof(int))
+                {
+                    return (int)getHpMethod.Invoke(behaviour, null) > 0;
+                }
+            }
+
+            return true;
         }
 
         private void StopAttacking()
         {
+            combatStopped = true;
+
             if (attackRoutine != null)
             {
                 StopCoroutine(attackRoutine);
@@ -701,6 +772,7 @@ namespace SharpI7.Combat
             firstAttackDelay = Mathf.Max(0f, firstAttackDelay);
             warningDuration = Mathf.Max(0.05f, warningDuration);
             recoveryDuration = Mathf.Max(0f, recoveryDuration);
+            chantOpportunityDuration = Mathf.Max(0f, chantOpportunityDuration);
             attackRadius = Mathf.Max(0.1f, attackRadius);
             attackDamage = Mathf.Max(0f, attackDamage);
             minTrackingStrikes = Mathf.Max(1, minTrackingStrikes);
