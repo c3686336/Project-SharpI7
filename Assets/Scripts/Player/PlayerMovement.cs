@@ -2,85 +2,91 @@ using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 using System;
+using SharpI7.Combat;
 
-public class PlayerMovement : MonoBehaviour, IPlayer
+[DisallowMultipleComponent]
+[RequireComponent(typeof(Rigidbody2D))]
+public sealed class PlayerMovement : MonoBehaviour, IPlayer
 {
     private PlayerInputActions input;
-    private Rigidbody2D rb;
+    private Rigidbody2D rigidbody2D;
     private bool isDashing;
-    private bool isDashCooldown;
+    private bool isDashOnCooldown;
     private bool isMovementLocked;
     private Vector2 currentMovement;
-    private float dashCoolDownUntil = 0f;
-    private int hp;
 
-    [SerializeField]
-    private float speed;
+    [SerializeField, Min(0f)]
+    private float moveSpeed;
 
-    [SerializeField]
-    private Transform boss;
+    [SerializeField, Min(0f)]
+    private float dashWindupDuration;
+
+    [SerializeField, Min(0f)]
+    private float dashCooldownDuration;
+
+    [SerializeField, Min(0f)]
+    private float dashDuration;
+
+    [SerializeField, Min(0f)]
+    private float dashDistance;
 
     [SerializeField]
     private Vector2 referenceHeading;
 
-    [SerializeField]
-    private int dashPreCoolDownS;
-
-    [SerializeField]
-    private int dashCoolDownS;
-
-    [SerializeField]
-    private float dashAnimationDurationS;
-
-    [SerializeField]
-    private float dashDistance;
-
-    [SerializeField]
-    private int maxHp;
+    [SerializeField, Min(1f)]
+    private float maxHealth = 5f;
 
     [SerializeField]
     private ChantManager chantManager;
 
     [SerializeField]
-    private DummyBoss bossController;
+    private BossHealth bossHealth;
 
     [SerializeField, Min(0f)]
     private float baseSpellDamage = 10f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        hp = maxHp;
-    }
+    public event Action<float, float> HealthChanged;
+    public event Action Died;
 
-    void Awake()
+    public float DashCooldownUntil { get; private set; }
+    public float MaxHealth => maxHealth;
+    public float CurrentHealth { get; private set; }
+    public bool IsAlive => CurrentHealth > 0f;
+
+    private void Awake()
     {
         input = new PlayerInputActions();
+        rigidbody2D = GetComponent<Rigidbody2D>();
+        CurrentHealth = maxHealth;
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         input.Movement.Enable();
 
         chantManager.OnChantStarted += LockMovement;
-        chantManager.OnChantCancelled += UnLockMovement;
-        chantManager.OnChantInterrupted += UnLockMovement;
+        chantManager.OnChantCancelled += UnlockMovement;
+        chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         input.Movement.Disable();
 
         chantManager.OnChantStarted -= LockMovement;
-        chantManager.OnChantCancelled -= UnLockMovement;
-        chantManager.OnChantInterrupted -= UnLockMovement;
+        chantManager.OnChantCancelled -= UnlockMovement;
+        chantManager.OnChantInterrupted -= UnlockMovement;
         chantManager.OnChantCast -= HandleChantCast;
     }
 
-    void Update()
+    private void Update()
     {
+        if (!IsAlive)
+        {
+            return;
+        }
+
         if (input.Movement.Dash.WasPressedThisFrame())
         {
             Dash().Forget();
@@ -88,7 +94,6 @@ public class PlayerMovement : MonoBehaviour, IPlayer
 
         if (input.Movement.Spell.WasPressedThisFrame())
         {
-            Debug.Log("asdf");
             if (chantManager.IsCasting)
             {
                 chantManager.ResolveChant();
@@ -105,44 +110,48 @@ public class PlayerMovement : MonoBehaviour, IPlayer
         }
     }
 
-    async UniTaskVoid Dash()
+    private async UniTaskVoid Dash()
     {
-        if (isDashCooldown || isDashing || isMovementLocked) return;
+        if (isDashOnCooldown || isDashing || isMovementLocked)
+        {
+            return;
+        }
 
         isDashing = true;
 
         var ct = destroyCancellationToken;
 
-        await UniTask.Delay(TimeSpan.FromSeconds(dashPreCoolDownS), cancellationToken: ct);
+        await UniTask.Delay(TimeSpan.FromSeconds(dashWindupDuration), cancellationToken: ct);
 
-        await rb.DOMove(currentMovement * dashDistance, dashAnimationDurationS).SetRelative().SetEase(Ease.InOutQuad).ToUniTask(cancellationToken: ct);
+        await rigidbody2D.DOMove(currentMovement * dashDistance, dashDuration)
+            .SetRelative()
+            .SetEase(Ease.InOutQuad)
+            .ToUniTask(cancellationToken: ct);
         isDashing = false;
 
-        isDashCooldown = true;
-        dashCoolDownUntil = Time.time + dashCoolDownS;
-        await UniTask.Delay(TimeSpan.FromSeconds(dashCoolDownS), cancellationToken: ct);
-        isDashCooldown = false;
+        isDashOnCooldown = true;
+        DashCooldownUntil = Time.time + dashCooldownDuration;
+        await UniTask.Delay(TimeSpan.FromSeconds(dashCooldownDuration), cancellationToken: ct);
+        isDashOnCooldown = false;
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    private void FixedUpdate()
     {
+        if (!IsAlive)
+        {
+            return;
+        }
+
         currentMovement = input.Movement.Movement.ReadValue<Vector2>();
         if (!isDashing && !isMovementLocked)
         {
-            rb.MovePosition(rb.position + speed * currentMovement); // Diagonal movement handled by input action system
+            rigidbody2D.MovePosition(rigidbody2D.position + moveSpeed * currentMovement);
         }
 
-        Vector2 toBoss = boss.position - transform.position;
+        Vector2 toBoss = bossHealth.transform.position - transform.position;
         float angle = Vector2.SignedAngle(referenceHeading, toBoss);
 
-        rb.MoveRotation(angle);
-    }
-
-    // IPlayer
-    public float GetDashCooldownUntil()
-    {
-        return dashCoolDownUntil;
+        rigidbody2D.MoveRotation(angle);
     }
 
     public void LockMovement()
@@ -150,7 +159,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
         isMovementLocked = true;
     }
 
-    public void UnLockMovement()
+    public void UnlockMovement()
     {
         isMovementLocked = false;
     }
@@ -159,35 +168,45 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     {
         if (!result.completed)
         {
-            SpellFailed();
+            UnlockMovement();
             return;
         }
 
         float damage = baseSpellDamage * result.powerMultiplier /
             Mathf.Max(1f, result.penaltyMultiplier);
 
-        SpellSucceeded(damage);
+        bossHealth.TakeDamage(damage);
+        UnlockMovement();
     }
 
-    public int GetHp()
+    public void TakeDamage(float amount)
     {
-        return hp;
-    }
+        if (!IsAlive || amount <= 0f)
+        {
+            return;
+        }
 
-    public void DealDamage()
-    {
         chantManager.InterruptChant();
-        hp--;
+        CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
+        HealthChanged?.Invoke(CurrentHealth, maxHealth);
+
+        if (!IsAlive)
+        {
+            LockMovement();
+            Died?.Invoke();
+        }
     }
 
-    public void SpellSucceeded(float damage)
+#if UNITY_EDITOR
+    private void OnValidate()
     {
-        bossController.DealDamage(damage);
-        UnLockMovement();
+        moveSpeed = Mathf.Max(0f, moveSpeed);
+        dashWindupDuration = Mathf.Max(0f, dashWindupDuration);
+        dashCooldownDuration = Mathf.Max(0f, dashCooldownDuration);
+        dashDuration = Mathf.Max(0f, dashDuration);
+        dashDistance = Mathf.Max(0f, dashDistance);
+        maxHealth = Mathf.Max(1f, maxHealth);
+        baseSpellDamage = Mathf.Max(0f, baseSpellDamage);
     }
-
-    public void SpellFailed()
-    {
-        UnLockMovement();
-    }
+#endif
 }

@@ -1,11 +1,15 @@
-using UnityEngine;
+using System;
+using SharpI7.Combat;
 
-public interface IPlayer {
-    float GetDashCooldownUntil();
+public interface IPlayer : IDamageable
+{
+    event Action<float, float> HealthChanged;
+    event Action Died;
+
+    float DashCooldownUntil { get; }
+    float MaxHealth { get; }
+    float CurrentHealth { get; }
+
     void LockMovement();
-    void UnLockMovement();
-    int GetHp();
-    void DealDamage();
-    void SpellSucceeded(float damage);
-    void SpellFailed();
+    void UnlockMovement();
 }

@@ -1,13 +1,13 @@
-# Top-down boss prefab
+# Boss combat
 
-This feature does not modify a shared scene. Use `Prefabs/TopDownBoss.prefab` when the integration owner is ready to place the boss.
+Boss scripts live in `Assets/Scripts/Boss`, shared combat contracts live in `Assets/Scripts/Combat`, and authored prefabs live in `Assets/Prefabs/Boss`.
 
 ## Integration
 
 1. Make sure the player GameObject uses the `Player` tag, or call `SetPlayerTarget` after spawning the boss.
-2. The player's health component should implement `SharpI7.Combat.IDamageable`. As a temporary compatibility path, a public `TakeDamage(float)` method is also detected through `SendMessage`.
+2. The player's health component must implement `SharpI7.Combat.IDamageable`.
 3. A spell projectile can damage the boss by calling `BossHealth.TakeDamage(spellDamage)`.
-4. Add artwork, animation and collision as children of `TopDownBoss.prefab`; the root prefab owns combat logic only.
+4. Add artwork, animation and collision as children of `Assets/Prefabs/Boss/TopDownBoss.prefab`; the root prefab owns combat logic only.
 
 The boss cycles through these pattern groups:
 
