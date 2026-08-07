@@ -136,7 +136,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
 
     public void DealDamage()
     {
-        chantManager.CancelChant();
+        chantManager.InterruptChant();
         hp--;
     }
 
