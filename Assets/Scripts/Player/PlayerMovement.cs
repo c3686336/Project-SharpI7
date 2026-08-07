@@ -15,6 +15,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     private bool isMovementLocked;
     private Vector2 currentMovement;
 
+    private float manaSaturationTimer;
+
     [SerializeField, Min(0f)]
     private float moveSpeed;
 
@@ -35,6 +37,18 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     [SerializeField, Min(1f)]
     private float maxHealth = 3f;
+
+    [SerializeField]
+    private float defaultMana = 50f;
+
+    [SerializeField, Min(0f)]
+    private float criticalMana = 100f;
+
+    [SerializeField]
+    private float manaFillSpeed = 10.0f;
+
+    [SerializeField]
+    private float manaSaturationDamageCooldown = 3.0f;
 
     [SerializeField]
     private ChantManager chantManager;
@@ -71,6 +85,10 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public float MaxHealth => maxHealth;
     public float CurrentHealth { get; private set; }
+
+    public float MaxMana => criticalMana;
+    public float CurrentMana { get; private set; }
+
     public bool IsAlive => CurrentHealth > 0f;
 
     private void Awake()
@@ -78,6 +96,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         input = new PlayerInputActions();
         rigidbody2D = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
+        CurrentMana = defaultMana;
     }
 
     private void OnEnable()
@@ -173,6 +192,23 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         float angle = Vector2.SignedAngle(referenceHeading, toBoss);
 
         rigidbody2D.MoveRotation(angle);
+
+        CurrentMana += Time.deltaTime * manaFillSpeed;
+        Debug.Log(CurrentMana);
+        if (CurrentMana >= criticalMana)
+        {
+            manaSaturationTimer -= Time.deltaTime;
+        }
+        else
+        {
+            manaSaturationTimer = manaSaturationDamageCooldown;
+        }
+
+        if (manaSaturationTimer <= 0)
+        {
+            TakeDamage(1f);
+            CurrentMana = defaultMana;
+        }
     }
 
     public void LockMovement()
@@ -187,13 +223,14 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-        if (!result.canCast)
+        if (!result.canCast && result.manaRelease >= CurrentMana)
         {
             UnlockMovement();
             return;
         }
 
         bossHealth.TakeDamage(result.actualDamage);
+        DeductMana(result.manaRelease);
         UnlockMovement();
     }
 
@@ -214,6 +251,11 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
             Died?.Invoke();
             OutGameManager.LoadGameOver();
         }
+    }
+
+    public void DeductMana(float amount)
+    {
+        CurrentMana -= amount;
     }
 
 #if UNITY_EDITOR
