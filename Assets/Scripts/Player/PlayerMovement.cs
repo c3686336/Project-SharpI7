@@ -1,14 +1,18 @@
 using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
+using System;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IPlayer
 {
     private PlayerInputActions input;
     private Rigidbody2D rb;
     private bool isDashing;
     private bool isDashCooldown;
+    private bool isMovementLocked;
     private Vector2 currentMovement;
+    private float dashCoolDownUntil = 0f;
+    private int hp;
 
     [SerializeField]
     private float speed;
@@ -20,10 +24,10 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 referenceHeading;
 
     [SerializeField]
-    private int dashPreCoolDownMs;
+    private int dashPreCoolDownS;
 
     [SerializeField]
-    private int dashCoolDownMs;
+    private int dashCoolDownS;
 
     [SerializeField]
     private float dashAnimationDurationS;
@@ -31,10 +35,20 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float dashDistance;
 
+    [SerializeField]
+    private int maxHp;
+
+    [SerializeField]
+    private ISpell spellController;
+
+    [SerializeField]
+    private IBoss bossController;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        hp = maxHp;
     }
 
     void Awake()
@@ -58,23 +72,28 @@ public class PlayerMovement : MonoBehaviour
         {
             Dash().Forget();
         }
+
+        if (input.Movement.Spell.IsPressed())
+        {
+            spellController.Begin();
+        }
     }
 
     async UniTaskVoid Dash()
     {
-        if (isDashCooldown || isDashing) return;
+        if (isDashCooldown || isDashing || isMovementLocked) return;
 
         var ct = destroyCancellationToken;
-        
-        isDashCooldown = true;
-        await UniTask.Delay(dashPreCoolDownMs, cancellationToken: ct);
+
+        await UniTask.Delay(TimeSpan.FromSeconds(dashPreCoolDownS), cancellationToken: ct);
         isDashing = true;
-        Debug.Log("adsf123");
+        
         await rb.DOMove(currentMovement * dashDistance, dashAnimationDurationS).SetRelative().SetEase(Ease.InOutQuad).ToUniTask(cancellationToken: ct);
-        Debug.Log("adsf345");
         isDashing = false;
 
-        await UniTask.Delay(dashCoolDownMs, cancellationToken: ct);
+        isDashCooldown = true;
+        dashCoolDownUntil = Time.time + dashPreCoolDownS;
+        await UniTask.Delay(TimeSpan.FromSeconds(dashCoolDownS), cancellationToken: ct);
         isDashCooldown = false;
     }
 
@@ -82,7 +101,7 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         currentMovement = input.Movement.Movement.ReadValue<Vector2>();
-        if (!isDashing) {
+        if (!isDashing && !isMovementLocked) {
             rb.MovePosition(rb.position + speed * currentMovement); // Diagonal movement handled by input action system
         }
 
@@ -90,5 +109,42 @@ public class PlayerMovement : MonoBehaviour
         float angle = Vector2.SignedAngle(referenceHeading, toBoss);
 
         rb.MoveRotation(angle);
+    }
+
+    // IPlayer
+    public float GetDashCooldownUntil()
+    {
+        return dashCoolDownUntil;
+    }
+
+    public void LockMovement()
+    {
+        isMovementLocked = true;
+    }
+
+    public void UnLockMovement()
+    {
+        isMovementLocked = false;
+    }
+
+    public int GetHp()
+    {
+        return hp;
+    }
+
+    public void DealDamage()
+    {
+        spellController.Cancel();
+        hp--;
+    }
+
+    public void SpellSucceeded(float damage)
+    {
+        bossController.DealDamage(damage);
+    }
+
+    public void SpellFailed()
+    {
+        
     }
 }
