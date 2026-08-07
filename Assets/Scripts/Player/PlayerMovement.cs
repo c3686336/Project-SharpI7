@@ -97,15 +97,12 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         input = new PlayerInputActions();
         rigidbody2D = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
-<<<<<<< HEAD
         CurrentMana = defaultMana;
-=======
 
         if (bossHealth == null)
         {
             bossHealth = FindFirstObjectByType<BossHealth>();
         }
->>>>>>> cd1f40b (fix: handle combat end and boss damage feedback)
     }
 
     private void OnEnable()
@@ -264,21 +261,17 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-<<<<<<< HEAD
         if (!result.canCast && result.manaRelease >= CurrentMana)
-=======
         int completedWordCount = CountCompletedWords(result);
         if (completedWordCount <= 0)
->>>>>>> cd1f40b (fix: handle combat end and boss damage feedback)
         {
             UnlockMovement();
             return;
         }
 
-<<<<<<< HEAD
         bossHealth.TakeDamage(result.actualDamage);
         DeductMana(result.manaRelease);
-=======
+
         if (bossHealth == null)
         {
             bossHealth = FindFirstObjectByType<BossHealth>();
@@ -289,7 +282,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
             bossHealth.TakeSpellDamage(completedWordCount);
         }
 
->>>>>>> cd1f40b (fix: handle combat end and boss damage feedback)
         UnlockMovement();
     }
 
