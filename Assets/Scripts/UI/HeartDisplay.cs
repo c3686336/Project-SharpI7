@@ -1,33 +1,69 @@
 using UnityEngine;
+using UnityEngine.UI;
 
-public class HeartDisplay : MonoBehaviour
+public sealed class HeartDisplay : MonoBehaviour
 {
     [SerializeField] private PlayerMovement player;
     [SerializeField] private RectTransform heartPrefab;
     [SerializeField] private float heartSize = 80f;
     [SerializeField] private float spacing = 100f;
 
-    private void Start()
+    private Color fullHeartColor = Color.white;
+
+    private void Awake()
     {
         if (player == null)
         {
-            Debug.LogWarning("[HeartDisplay] PlayerMovement를 찾을 수 없습니다.", this);
+            player = FindAnyObjectByType<PlayerMovement>();
+        }
+
+        if (heartPrefab != null && heartPrefab.TryGetComponent(out Image heartImage))
+        {
+            fullHeartColor = heartImage.color;
+        }
+    }
+
+    private void Start()
+    {
+        if (player == null || heartPrefab == null)
+        {
+            Debug.LogWarning(
+                "[HeartDisplay] PlayerMovement 또는 Heart Prefab을 찾을 수 없습니다.",
+                this
+            );
             return;
         }
 
         Rebuild(Mathf.RoundToInt(player.MaxHealth));
+        UpdateHeartColors(Mathf.RoundToInt(player.CurrentHealth));
     }
 
-    public void OnEnable() {
-        player.HealthChanged += UpdateHealth;
+    private void OnEnable()
+    {
+        if (player != null)
+        {
+            player.HealthChanged += UpdateHealth;
+        }
     }
 
-    public void OnDisable() {
-        player.HealthChanged -= UpdateHealth;
+    private void OnDisable()
+    {
+        if (player != null)
+        {
+            player.HealthChanged -= UpdateHealth;
+        }
     }
 
-    private void UpdateHealth(float current, float max) {
-        Rebuild(Mathf.RoundToInt(current));
+    private void UpdateHealth(float current, float max)
+    {
+        int maxHeartCount = Mathf.Max(0, Mathf.RoundToInt(max));
+
+        if (transform.childCount != maxHeartCount)
+        {
+            Rebuild(maxHeartCount);
+        }
+
+        UpdateHeartColors(Mathf.RoundToInt(current));
     }
 
     public void Rebuild(int maxHealth)
@@ -53,6 +89,21 @@ public class HeartDisplay : MonoBehaviour
             heart.name = $"Heart{i + 1}";
             heart.sizeDelta = new Vector2(heartSize, heartSize);
             heart.anchoredPosition = new Vector2(startX + i * spacing, 0f);
+        }
+    }
+
+    private void UpdateHeartColors(int currentHealth)
+    {
+        int fullHeartCount = Mathf.Clamp(currentHealth, 0, transform.childCount);
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            if (transform.GetChild(i).TryGetComponent(out Image heartImage))
+            {
+                heartImage.color = i < fullHeartCount
+                    ? fullHeartColor
+                    : Color.black;
+            }
         }
     }
 }
