@@ -11,8 +11,11 @@ public sealed class OutGameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private GameObject WinMenu;
     [SerializeField] private Button startGameButton;
+    [SerializeField] private Button configButton;
+    [SerializeField] private Button closeConfigButton;
     [SerializeField] private Button restartButton;
     [SerializeField] private Button winRestartButton;
+    [SerializeField] private GameObject configPanel;
 
     private static OutgameState outgameState;
 
@@ -25,9 +28,11 @@ public sealed class OutGameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (mainMenu == null || gameOverMenu == null)
+        if (mainMenu == null || gameOverMenu == null || WinMenu == null ||
+            startGameButton == null || configButton == null || closeConfigButton == null ||
+            restartButton == null || winRestartButton == null || configPanel == null)
         {
-            Debug.LogError("OutGameManager requires Main Menu and Game Over Menu references.", this);
+            Debug.LogError("OutGameManager has missing menu or button references.", this);
             enabled = false;
             return;
         }
@@ -39,6 +44,8 @@ public sealed class OutGameManager : MonoBehaviour
     public void OnEnable()
     {
         startGameButton.onClick.AddListener(StartGame);
+        configButton.onClick.AddListener(OpenConfig);
+        closeConfigButton.onClick.AddListener(CloseConfig);
         restartButton.onClick.AddListener(ShowMainMenu);
         winRestartButton.onClick.AddListener(ShowMainMenu);
     }
@@ -46,6 +53,8 @@ public sealed class OutGameManager : MonoBehaviour
     public void OnDisable()
     {
         startGameButton.onClick.RemoveListener(StartGame);
+        configButton.onClick.RemoveListener(OpenConfig);
+        closeConfigButton.onClick.RemoveListener(CloseConfig);
         restartButton.onClick.RemoveListener(ShowMainMenu);
         winRestartButton.onClick.RemoveListener(ShowMainMenu);
     }
@@ -61,6 +70,16 @@ public sealed class OutGameManager : MonoBehaviour
     {
         outgameState = OutgameState.Main;
         SetMenuState();
+    }
+
+    public void OpenConfig()
+    {
+        configPanel.SetActive(true);
+    }
+
+    public void CloseConfig()
+    {
+        configPanel.SetActive(false);
     }
 
     public static void LoadGameOver()
@@ -79,6 +98,8 @@ public sealed class OutGameManager : MonoBehaviour
 
     private void SetMenuState()
     {
+        configPanel.SetActive(false);
+
         switch (outgameState)
         {
             case OutgameState.Main:
