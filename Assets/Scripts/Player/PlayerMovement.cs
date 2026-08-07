@@ -10,7 +10,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 {
     private PlayerInputActions input;
     private Rigidbody2D rigidbody2D;
-    private bool isDashing;
     private bool isDashOnCooldown;
     private bool isMovementLocked;
     private Vector2 currentMovement;
@@ -49,6 +48,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     public event Action Died;
 
     public float DashCooldownUntil { get; private set; }
+    public bool IsDashing { get; private set; }
     public float MaxHealth => maxHealth;
     public float CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0f;
@@ -112,12 +112,12 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private async UniTaskVoid Dash()
     {
-        if (isDashOnCooldown || isDashing || isMovementLocked)
+        if (isDashOnCooldown || IsDashing || isMovementLocked)
         {
             return;
         }
 
-        isDashing = true;
+        IsDashing = true;
 
         var ct = destroyCancellationToken;
 
@@ -127,7 +127,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
             .SetRelative()
             .SetEase(Ease.InOutQuad)
             .ToUniTask(cancellationToken: ct);
-        isDashing = false;
+        IsDashing = false;
 
         isDashOnCooldown = true;
         DashCooldownUntil = Time.time + dashCooldownDuration;
@@ -143,7 +143,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         }
 
         currentMovement = input.Movement.Movement.ReadValue<Vector2>();
-        if (!isDashing && !isMovementLocked)
+        if (!IsDashing && !isMovementLocked)
         {
             rigidbody2D.MovePosition(rigidbody2D.position + moveSpeed * currentMovement);
         }
@@ -181,7 +181,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public void TakeDamage(float amount)
     {
-        if (!IsAlive || amount <= 0f || isDashing)
+        if (!IsAlive || amount <= 0f || IsDashing)
         {
             return;
         }

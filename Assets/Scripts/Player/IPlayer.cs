@@ -7,6 +7,7 @@ public interface IPlayer : IDamageable
     event Action Died;
 
     float DashCooldownUntil { get; }
+    bool IsDashing { get; }
     float MaxHealth { get; }
     float CurrentHealth { get; }
 
