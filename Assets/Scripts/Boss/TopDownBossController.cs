@@ -108,6 +108,7 @@ namespace SharpI7.Combat
         private ConeDangerZone activeConeZone;
         private AttackFamily lastAttackFamily = AttackFamily.None;
         private BossDistanceDangerMode nextBossDistanceMode = BossDistanceDangerMode.InnerDanger;
+        private IPlayer subscribedPlayer;
         private bool playerWasAcquired;
         private bool combatStopped;
 
@@ -122,6 +123,7 @@ namespace SharpI7.Combat
         {
             combatStopped = false;
             bossHealth.Died += StopAttacking;
+            ResolvePlayerTarget();
             attackRoutine = StartCoroutine(AttackLoop());
         }
 
@@ -147,6 +149,7 @@ namespace SharpI7.Combat
         private void OnDisable()
         {
             bossHealth.Died -= StopAttacking;
+            UnsubscribeFromPlayerDeath();
 
             if (attackRoutine != null)
             {
@@ -166,9 +169,11 @@ namespace SharpI7.Combat
 
         public void SetPlayerTarget(Transform target)
         {
+            UnsubscribeFromPlayerDeath();
             playerTarget = target;
             bossMovement.SetPlayerTarget(target);
             playerWasAcquired = target != null;
+            SubscribeToPlayerDeath(target);
         }
 
         public void NotifyPlayerDied()
@@ -607,19 +612,60 @@ namespace SharpI7.Combat
         {
             if (playerTarget != null)
             {
+                if (!playerWasAcquired)
+                {
+                    SetPlayerTarget(playerTarget);
+                }
+
                 return;
             }
 
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                playerTarget = player.transform;
-                playerWasAcquired = true;
+                SetPlayerTarget(player.transform);
             }
+        }
+
+        private void SubscribeToPlayerDeath(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
+            foreach (var behaviour in behaviours)
+            {
+                if (!(behaviour is IPlayer player))
+                {
+                    continue;
+                }
+
+                subscribedPlayer = player;
+                subscribedPlayer.Died += StopAttacking;
+                return;
+            }
+        }
+
+        private void UnsubscribeFromPlayerDeath()
+        {
+            if (subscribedPlayer == null)
+            {
+                return;
+            }
+
+            subscribedPlayer.Died -= StopAttacking;
+            subscribedPlayer = null;
         }
 
         private bool IsPlayerAlive()
         {
+            if (subscribedPlayer != null)
+            {
+                return subscribedPlayer.IsAlive;
+            }
+
             if (playerTarget == null || !playerTarget.gameObject.activeInHierarchy)
             {
                 return false;
@@ -669,6 +715,11 @@ namespace SharpI7.Combat
             CancelActiveBossDistanceZone();
             CancelActiveTrailHazards();
             CancelActiveConeZone();
+
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
         }
 
         private void CancelActiveZone()

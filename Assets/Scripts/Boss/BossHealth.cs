@@ -65,12 +65,9 @@ namespace SharpI7.Combat
 
         private void ShowDamagePopup(float amount)
         {
-            if (damagePopupPrefab == null)
-            {
-                return;
-            }
-
-            var popup = Instantiate(damagePopupPrefab, transform.position, Quaternion.identity);
+            var popup = damagePopupPrefab != null
+                ? Instantiate(damagePopupPrefab, transform.position, Quaternion.identity)
+                : new GameObject("DamagePopup").AddComponent<DamagePopup>();
             popup.Begin(transform.position, amount);
         }
 
