@@ -225,13 +225,13 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-        int completedWordCount = CountCompletedWords(result);
-        if (completedWordCount <= 0)
+        if (!result.canCast)
         {
             UnlockMovement();
             return;
         }
 
+<<<<<<< HEAD
         if (bossHealth == null)
         {
             bossHealth = FindFirstObjectByType<BossHealth>();
@@ -239,7 +239,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
         if (bossHealth != null)
         {
-            bossHealth.TakeSpellDamage(completedWordCount);
+            bossHealth.TakeDamage(result.actualDamage);
         }
 
         UnlockMovement();
