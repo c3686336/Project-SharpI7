@@ -11,22 +11,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         Casting
     }
 
-    [Serializable]
-    public struct CastResult
-    {
-        public string targetText;
-        public string typedText;
-
-        public int correctCount;
-        public int typoCount;
-        public int castLevel;
-
-        public float powerMultiplier;
-        public float penaltyMultiplier;
-
-        public bool completed;
-    }
-
     [Header("UI")]
     [SerializeField] private GameObject chantPanel;
     [SerializeField] private TMP_Text targetTextUI;
@@ -163,8 +147,8 @@ public class ChantManager : MonoBehaviour, IChantManager
 
             chantInputField.interactable = true;
 
-            chantInputField.ActivateInputField();
             chantInputField.Select();
+            chantInputField.ActivateInputField();
         }
 
         UpdateUI();
