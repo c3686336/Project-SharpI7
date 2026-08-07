@@ -18,6 +18,18 @@ public class HeartDisplay : MonoBehaviour
         Rebuild(Mathf.RoundToInt(player.MaxHealth));
     }
 
+    public void OnEnable() {
+        player.HealthChanged += UpdateHealth;
+    }
+
+    public void OnDisable() {
+        player.HealthChanged -= UpdateHealth;
+    }
+
+    private void UpdateHealth(float current, float max) {
+        Rebuild(Mathf.RoundToInt(current));
+    }
+
     public void Rebuild(int maxHealth)
     {
         int heartCount = Mathf.Max(0, maxHealth);
