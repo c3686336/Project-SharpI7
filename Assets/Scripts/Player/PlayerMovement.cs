@@ -42,13 +42,16 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     private float defaultMana = 50f;
 
     [SerializeField, Min(0f)]
+    private float manaWarningThreshold = 90f;
+
+    [SerializeField, Min(1f)]
     private float criticalMana = 100f;
 
-    [SerializeField]
-    private float manaFillSpeed = 10.0f;
+    [SerializeField, Min(0f)]
+    private float manaFillSpeed = 10f;
 
-    [SerializeField]
-    private float manaSaturationDamageCooldown = 3.0f;
+    [SerializeField, Min(0.1f)]
+    private float manaSaturationDamageCooldown = 3f;
 
     [SerializeField]
     private ChantManager chantManager;
@@ -57,6 +60,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
     private BossHealth bossHealth;
 
     public event Action<float, float> HealthChanged;
+    public event Action<ManaStatus> ManaStatusChanged;
     public event Action Died;
 
     public float DashCooldownUntil { get; private set; }
@@ -88,6 +92,21 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public float MaxMana => criticalMana;
     public float CurrentMana { get; private set; }
+    public float ManaDisplayMaximum =>
+        criticalMana + manaFillSpeed * manaSaturationDamageCooldown;
+    public float ManaSaturationRemaining =>
+        CurrentMana >= criticalMana ? manaSaturationTimer : 0f;
+    public bool IsManaWarning =>
+        CurrentMana >= manaWarningThreshold && CurrentMana < criticalMana;
+    public bool IsManaSaturated => CurrentMana >= criticalMana;
+    public ManaStatus ManaStatus => new(
+        CurrentMana,
+        manaWarningThreshold,
+        criticalMana,
+        ManaDisplayMaximum,
+        manaSaturationDamageCooldown,
+        ManaSaturationRemaining,
+        GetManaState());
 
     public bool IsAlive => CurrentHealth > 0f;
 
@@ -96,7 +115,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         input = new PlayerInputActions();
         rigidbody2D = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
-        CurrentMana = defaultMana;
+        CurrentMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
+        manaSaturationTimer = manaSaturationDamageCooldown;
     }
 
     private void OnEnable()
@@ -147,6 +167,8 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         {
             chantManager.CancelChant();
         }
+
+        UpdateMana(Time.deltaTime);
     }
 
     private async UniTaskVoid Dash()
@@ -193,22 +215,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
         rigidbody2D.MoveRotation(angle);
 
-        CurrentMana += Time.deltaTime * manaFillSpeed;
-        Debug.Log(CurrentMana);
-        if (CurrentMana >= criticalMana)
-        {
-            manaSaturationTimer -= Time.deltaTime;
-        }
-        else
-        {
-            manaSaturationTimer = manaSaturationDamageCooldown;
-        }
-
-        if (manaSaturationTimer <= 0)
-        {
-            TakeDamage(1f);
-            CurrentMana = defaultMana;
-        }
     }
 
     public void LockMovement()
@@ -223,7 +229,7 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     private void HandleChantCast(CastResult result)
     {
-        if (!result.canCast && result.manaRelease >= CurrentMana)
+        if (!result.canCast || result.manaRelease > CurrentMana)
         {
             UnlockMovement();
             return;
@@ -236,7 +242,69 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
 
     public void TakeDamage(float amount)
     {
-        if (!IsAlive || amount <= 0f || IsDashing)
+        ApplyDamage(amount, false);
+    }
+
+    public void DeductMana(float amount)
+    {
+        if (amount <= 0f)
+        {
+            return;
+        }
+
+        CurrentMana = Mathf.Max(0f, CurrentMana - amount);
+        if (CurrentMana < criticalMana)
+        {
+            manaSaturationTimer = manaSaturationDamageCooldown;
+        }
+
+        PublishManaStatus();
+    }
+
+    private void UpdateMana(float deltaTime)
+    {
+        CurrentMana = Mathf.Min(
+            ManaDisplayMaximum,
+            CurrentMana + deltaTime * manaFillSpeed);
+
+        if (CurrentMana < criticalMana)
+        {
+            manaSaturationTimer = manaSaturationDamageCooldown;
+            PublishManaStatus();
+            return;
+        }
+
+        manaSaturationTimer = Mathf.Max(0f, manaSaturationTimer - deltaTime);
+        if (manaSaturationTimer > 0f)
+        {
+            PublishManaStatus();
+            return;
+        }
+
+        CurrentMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
+        manaSaturationTimer = manaSaturationDamageCooldown;
+        PublishManaStatus();
+        ApplyDamage(1f, true);
+    }
+
+    private ManaState GetManaState()
+    {
+        if (IsManaSaturated)
+        {
+            return ManaState.Saturated;
+        }
+
+        return IsManaWarning ? ManaState.Warning : ManaState.Normal;
+    }
+
+    private void PublishManaStatus()
+    {
+        ManaStatusChanged?.Invoke(ManaStatus);
+    }
+
+    private void ApplyDamage(float amount, bool ignoreDashInvulnerability)
+    {
+        if (!IsAlive || amount <= 0f || (!ignoreDashInvulnerability && IsDashing))
         {
             return;
         }
@@ -253,11 +321,6 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         }
     }
 
-    public void DeductMana(float amount)
-    {
-        CurrentMana -= amount;
-    }
-
 #if UNITY_EDITOR
     private void OnValidate()
     {
@@ -267,6 +330,11 @@ public sealed class PlayerMovement : MonoBehaviour, IPlayer
         dashDuration = Mathf.Max(0f, dashDuration);
         dashDistance = Mathf.Max(0f, dashDistance);
         maxHealth = Mathf.Max(1f, maxHealth);
+        criticalMana = Mathf.Max(1f, criticalMana);
+        manaWarningThreshold = Mathf.Clamp(manaWarningThreshold, 0f, criticalMana);
+        manaFillSpeed = Mathf.Max(0f, manaFillSpeed);
+        manaSaturationDamageCooldown = Mathf.Max(0.1f, manaSaturationDamageCooldown);
+        defaultMana = Mathf.Clamp(defaultMana, 0f, ManaDisplayMaximum);
     }
 #endif
 }
