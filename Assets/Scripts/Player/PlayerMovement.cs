@@ -75,6 +75,7 @@ public class PlayerMovement : MonoBehaviour, IPlayer
 
         if (input.Movement.Spell.IsPressed())
         {
+            LockMovement();
             spellController.Begin();
         }
     }
@@ -141,10 +142,11 @@ public class PlayerMovement : MonoBehaviour, IPlayer
     public void SpellSucceeded(float damage)
     {
         bossController.DealDamage(damage);
+        UnLockMovement();
     }
 
     public void SpellFailed()
     {
-        
+        UnLockMovement();
     }
 }
