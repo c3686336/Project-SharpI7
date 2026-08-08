@@ -5,10 +5,13 @@ public sealed class HeartDisplay : MonoBehaviour
 {
     [SerializeField] private MonoBehaviour player;
     [SerializeField] private RectTransform heartPrefab;
+    [SerializeField] private Sprite emptyHeartSprite;
     [SerializeField] private float heartSize = 80f;
     [SerializeField] private float spacing = 100f;
+    [SerializeField] private Color emptyHeartColor = new Color32(64, 64, 64, 255);
 
     private Color fullHeartColor = Color.white;
+    private Sprite fullHeartSprite;
     private IPlayerHealth playerHealth;
 
     private void Awake()
@@ -18,6 +21,7 @@ public sealed class HeartDisplay : MonoBehaviour
         if (heartPrefab != null && heartPrefab.TryGetComponent(out Image heartImage))
         {
             fullHeartColor = heartImage.color;
+            fullHeartSprite = heartImage.sprite;
         }
     }
 
@@ -33,7 +37,7 @@ public sealed class HeartDisplay : MonoBehaviour
         }
 
         Rebuild(Mathf.RoundToInt(playerHealth.MaxHealth));
-        UpdateHeartColors(Mathf.RoundToInt(playerHealth.CurrentHealth));
+        UpdateHeartVisuals(Mathf.RoundToInt(playerHealth.CurrentHealth));
     }
 
     private void OnEnable()
@@ -61,7 +65,7 @@ public sealed class HeartDisplay : MonoBehaviour
             Rebuild(maxHeartCount);
         }
 
-        UpdateHeartColors(Mathf.RoundToInt(current));
+        UpdateHeartVisuals(Mathf.RoundToInt(current));
     }
 
     public void Rebuild(int maxHealth)
@@ -90,7 +94,7 @@ public sealed class HeartDisplay : MonoBehaviour
         }
     }
 
-    private void UpdateHeartColors(int currentHealth)
+    private void UpdateHeartVisuals(int currentHealth)
     {
         int fullHeartCount = Mathf.Clamp(currentHealth, 0, transform.childCount);
 
@@ -98,9 +102,16 @@ public sealed class HeartDisplay : MonoBehaviour
         {
             if (transform.GetChild(i).TryGetComponent(out Image heartImage))
             {
-                heartImage.color = i < fullHeartCount
+                bool isFull = i < fullHeartCount;
+
+                heartImage.sprite = isFull || emptyHeartSprite == null
+                    ? fullHeartSprite
+                    : emptyHeartSprite;
+                heartImage.color = isFull
                     ? fullHeartColor
-                    : Color.black;
+                    : emptyHeartSprite != null
+                        ? Color.white
+                        : emptyHeartColor;
             }
         }
     }
