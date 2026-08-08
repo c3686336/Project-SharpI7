@@ -12,6 +12,8 @@ internal sealed class FireSpellCaster : ISpellCaster
     private readonly float levelThreeScaleMultiplier;
     private readonly float hitRadius;
     private readonly float lifetime;
+    private readonly AudioSource audioSource;
+    private readonly AudioClip castSFX;
 
     public FireSpellCaster(
         BossHealth target,
@@ -22,7 +24,9 @@ internal sealed class FireSpellCaster : ISpellCaster
         float levelTwoScaleMultiplier,
         float levelThreeScaleMultiplier,
         float hitRadius,
-        float lifetime)
+        float lifetime,
+        AudioSource audioSource,
+        AudioClip castSFX)
     {
         this.target = target;
         this.effectOrigin = effectOrigin;
@@ -33,12 +37,19 @@ internal sealed class FireSpellCaster : ISpellCaster
         this.levelThreeScaleMultiplier = levelThreeScaleMultiplier;
         this.hitRadius = hitRadius;
         this.lifetime = lifetime;
+        this.audioSource = audioSource;
+        this.castSFX = castSFX;
     }
 
     public void Cast(CastResult result)
     {
         if (target == null || !target.IsAlive || effectRegistry == null)
             return;
+
+        if (audioSource != null && castSFX != null)
+        {
+            audioSource.PlayOneShot(castSFX);
+        }
 
         GameObject effect = effectRegistry.SpawnEffect(
             result.effectId,

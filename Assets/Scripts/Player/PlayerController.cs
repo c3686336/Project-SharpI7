@@ -8,7 +8,7 @@ using System.Threading;
 using DG.Tweening;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer), typeof(AudioSource))]
 public sealed class PlayerController : MonoBehaviour,
     IPlayerHealth,
     IPlayerMana,
@@ -30,6 +30,11 @@ public sealed class PlayerController : MonoBehaviour,
     [SerializeField] private SpellEffectRegistry spellEffectRegistry;
     [SerializeField] private Transform spellEffectOrigin;
 
+    [SerializeField] private AudioClip hitSFX;
+    [SerializeField] private AudioClip fireSFX;
+    [SerializeField] private AudioClip lightningSFX;
+    [SerializeField] private AudioClip dashSFX;
+
     private PlayerInputActions input;
     private PlayerHealth health;
     private PlayerMana mana;
@@ -41,6 +46,8 @@ public sealed class PlayerController : MonoBehaviour,
     private bool isMovementLocked;
     private bool combatEnded;
     private SpriteRenderer sr;
+
+    private AudioSource audioPlayer;
 
     public event Action<float, float> HealthChanged;
     public event Action<ManaStatus> ManaStatusChanged;
@@ -106,6 +113,7 @@ public sealed class PlayerController : MonoBehaviour,
             balance.dash.distance,
             destroyCancellationToken);
 
+        audioPlayer = GetComponent<AudioSource>();
         BuildSpellCasters();
         combatEnded = bossHealth == null;
 
@@ -129,6 +137,8 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
 
+        dash.dash += PlayDashSFX;
+
         if (bossHealth != null)
         {
             bossHealth.Died -= HandleBossDied;
@@ -151,6 +161,11 @@ public sealed class PlayerController : MonoBehaviour,
         if (bossHealth != null)
         {
             bossHealth.Died -= HandleBossDied;
+        }
+
+        if (dash != null)
+        {
+            dash.dash -= PlayDashSFX;
         }
     }
 
@@ -227,14 +242,18 @@ public sealed class PlayerController : MonoBehaviour,
                 homingFireProjectileLevelTwoScaleMultiplier,
                 homingFireProjectileLevelThreeScaleMultiplier,
                 homingFireHitRadius,
-                homingFireLifetime));
+                homingFireLifetime,
+                audioPlayer,
+                fireSFX));
         spellCastRouter.Register(
             MagicType.Lightning,
             new LightningSpellCaster(
                 bossHealth,
                 effectOrigin,
                 spellEffectRegistry,
-                destroyCancellationToken));
+                destroyCancellationToken,
+                audioPlayer,
+                lightningSFX));
     }
 
     private void LockMovement()
@@ -329,6 +348,8 @@ public sealed class PlayerController : MonoBehaviour,
         health.TryTakeDamage(amount);
         HealthChanged?.Invoke(health.Current, health.Maximum);
 
+        PlaySFX(hitSFX);
+
         if (!health.IsAlive)
         {
             LockMovement();
@@ -400,6 +421,19 @@ public sealed class PlayerController : MonoBehaviour,
             {
                 sr.color = originalColor;
             }
+        }
+    }
+
+    private void PlayDashSFX()
+    {
+        PlaySFX(dashSFX);
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (audioPlayer != null && clip != null)
+        {
+            audioPlayer.PlayOneShot(clip);
         }
     }
 }
