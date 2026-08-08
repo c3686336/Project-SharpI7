@@ -150,6 +150,7 @@ namespace SharpI7.Combat
 
             spellHitVideoObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
             spellHitVideoObject.name = "Spell Fire Hit Effect";
+            spellHitVideoObject.transform.SetParent(transform, false);
             spellHitVideoObject.transform.localScale = new Vector3(spellHitVideoSize.x, spellHitVideoSize.y, 1f);
 
             var collider = spellHitVideoObject.GetComponent<Collider>();
@@ -192,7 +193,7 @@ namespace SharpI7.Combat
                 return;
             }
 
-            spellHitVideoObject.transform.position = transform.position + spellHitVideoOffset;
+            spellHitVideoObject.transform.localPosition = spellHitVideoOffset;
             var isLevelThreeEffect = spellHitVideoClip == spellHitVideoLevelThreeClip;
             var isEnhancedEffect = spellHitVideoClip == spellHitVideoLevelTwoClip || isLevelThreeEffect;
             var scaleMultiplier = isLevelThreeEffect

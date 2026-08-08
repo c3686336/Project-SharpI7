@@ -31,7 +31,6 @@ public sealed class PlayerController : MonoBehaviour,
     private PlayerMana mana;
     private PlayerLocomotion locomotion;
     private PlayerDash dash;
-    private PlayerSpellCaster spellCaster;
     private PlayerBalance balance;
     private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
@@ -94,7 +93,6 @@ public sealed class PlayerController : MonoBehaviour,
             balance.dash.duration,
             balance.dash.distance,
             destroyCancellationToken);
-        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
         combatEnded = bossHealth == null;
 
     }
@@ -208,7 +206,6 @@ public sealed class PlayerController : MonoBehaviour,
         }
 
         bossHealth = newBossHealth;
-        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
         combatEnded = bossHealth == null;
         isMovementLocked = false;
 
@@ -263,8 +260,6 @@ public sealed class PlayerController : MonoBehaviour,
 
         var projectilePrefab = GetHomingFireProjectilePrefab(result.castLevel);
 
-        // Projectile is purely visual
-        spellCaster?.Cast(result);
 
         var spawnPosition = transform.position;
         spawnPosition.z = 0f;
@@ -273,7 +268,7 @@ public sealed class PlayerController : MonoBehaviour,
         var homingFire = projectile.AddComponent<HomingFireProjectile>();
         homingFire.Initialize(
             bossHealth,
-            result.castLevel,
+            result,
             homingFireProjectileSpeed,
             homingFireHitRadius,
             homingFireLifetime);
