@@ -1,3 +1,5 @@
+using System;
+
 namespace SharpI7.Combat
 {
     /// <summary>
@@ -8,5 +10,7 @@ namespace SharpI7.Combat
         bool IsAlive { get; }
 
         void TakeDamage(float amount);
+
+        event Action<float> tookDamage;
     }
 }

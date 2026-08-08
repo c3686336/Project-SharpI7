@@ -19,6 +19,7 @@ namespace SharpI7.Combat
         public event Action Died;
         public event Action PhaseTwoTransitionStarted;
         public event Action PhaseTwoStarted;
+        public event Action<float> tookDamage;
 
         public float MaxHealth => IsPhaseTwo ? phaseTwoMaxHealth : maxHealth;
         public float CurrentHealth { get; private set; }
@@ -35,6 +36,8 @@ namespace SharpI7.Combat
 
         public void TakeDamage(float amount)
         {
+            tookDamage?.Invoke(amount);
+
             if (!IsAlive || IsTransitioningToPhaseTwo || amount <= 0f)
             {
                 return;

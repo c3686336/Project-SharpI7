@@ -39,6 +39,7 @@ public sealed class PlayerController : MonoBehaviour,
     public event Action<float, float> HealthChanged;
     public event Action<ManaStatus> ManaStatusChanged;
     public event Action Died;
+    public event Action<float> tookDamage;
 
     public float DashCooldownUntil => dash?.CooldownUntil ?? 0f;
     public float DashCooldownProgress => dash?.CooldownProgress ?? 0f;
@@ -193,6 +194,8 @@ public sealed class PlayerController : MonoBehaviour,
 
     public void TakeDamage(float amount)
     {
+        tookDamage?.Invoke(amount);
+
         ApplyDamage(amount, false);
     }
 
