@@ -69,7 +69,7 @@
     },
     {
       "description": "2서클 불 마법 영창 안내",
-      "text": "2서클은 ‘타오르는 불’이야. 이번에는 그대로 입력하고 Enter를 눌러 봐.",
+      "text": "2서클은 ‘타오르는 불’이야. 이번에도 직접 입력하고 Enter를 눌러 봐.",
       "action": "practiceChant",
       "expectedChant": "타오르는 불"
     },
