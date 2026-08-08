@@ -15,9 +15,6 @@ public sealed class PlayerController : MonoBehaviour,
     IPlayerDash
 {
     [SerializeField, Min(0f)] private float spellImpactDelay = 0.1f;
-    [SerializeField] private GameObject homingFireProjectilePrefab;
-    [SerializeField] private GameObject homingFireProjectileLevelTwoPrefab;
-    [SerializeField] private GameObject homingFireProjectileLevelThreePrefab;
     [SerializeField, Min(0.01f)] private float homingFireProjectileSpeed = 12f;
     [SerializeField, Min(0.01f)] private float homingFireProjectileScale = 1.8f;
     [SerializeField, Min(0.01f)] private float homingFireProjectileLevelTwoScaleMultiplier = 1.5f;
@@ -31,15 +28,13 @@ public sealed class PlayerController : MonoBehaviour,
 
     [Header("Spell Effects")]
     [SerializeField] private SpellEffectRegistry spellEffectRegistry;
-    [SerializeField] private Transform lightningEffectOrigin;
+    [SerializeField] private Transform spellEffectOrigin;
 
     private PlayerInputActions input;
     private PlayerHealth health;
     private PlayerMana mana;
     private PlayerLocomotion locomotion;
     private PlayerDash dash;
-    private PlayerSpellCaster fireSpellCaster;
-    private LightningSpellCaster lightningSpellCaster;
     private SpellCastRouter spellCastRouter;
     private PlayerBalance balance;
     private Coroutine chantInterruptRoutine;
@@ -118,7 +113,7 @@ public sealed class PlayerController : MonoBehaviour,
 
         if (spellEffectRegistry == null)
         {
-            Debug.LogWarning("[PlayerController] SpellEffectRegistry가 연결되지 않았습니다. 번개 공격 데미지는 들어가지만 이펙트는 표시되지 않습니다.", this);
+            Debug.LogWarning("[PlayerController] SpellEffectRegistry가 연결되지 않아 주문 이펙트를 생성할 수 없습니다.", this);
         }
     }
 
@@ -161,7 +156,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void OnDestroy()
     {
-        lightningSpellCaster?.Dispose();
+        spellCastRouter?.Dispose();
     }
 
     private void Update()
@@ -210,32 +205,36 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void BuildSpellCasters()
     {
-        lightningSpellCaster?.Dispose();
-
-        fireSpellCaster = null;
-        lightningSpellCaster = null;
+        spellCastRouter?.Dispose();
         spellCastRouter = null;
 
         if (bossHealth == null)
             return;
 
-        fireSpellCaster = new PlayerSpellCaster(bossHealth);
-
-        Transform effectOrigin = lightningEffectOrigin != null
-            ? lightningEffectOrigin
+        Transform effectOrigin = spellEffectOrigin != null
+            ? spellEffectOrigin
             : transform;
 
-        lightningSpellCaster = new LightningSpellCaster(
-            bossHealth,
-            effectOrigin,
-            spellEffectRegistry,
-            destroyCancellationToken
-        );
-
-        spellCastRouter = new SpellCastRouter(
-            fireSpellCaster,
-            lightningSpellCaster
-        );
+        spellCastRouter = new SpellCastRouter();
+        spellCastRouter.Register(
+            MagicType.Fire,
+            new FireSpellCaster(
+                bossHealth,
+                effectOrigin,
+                spellEffectRegistry,
+                homingFireProjectileSpeed,
+                homingFireProjectileScale,
+                homingFireProjectileLevelTwoScaleMultiplier,
+                homingFireProjectileLevelThreeScaleMultiplier,
+                homingFireHitRadius,
+                homingFireLifetime));
+        spellCastRouter.Register(
+            MagicType.Lightning,
+            new LightningSpellCaster(
+                bossHealth,
+                effectOrigin,
+                spellEffectRegistry,
+                destroyCancellationToken));
     }
 
     private void LockMovement()
@@ -288,7 +287,8 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void HandleBossDied()
     {
-        lightningSpellCaster?.Dispose();
+        spellCastRouter?.Dispose();
+        spellCastRouter = null;
 
         if (chantManager.IsCasting)
         {
@@ -317,49 +317,7 @@ public sealed class PlayerController : MonoBehaviour,
             yield break;
         }
 
-        if (result.magicType != "Fire")
-        {
-            spellCastRouter?.Cast(result);
-            yield break;
-        }
-
-        var projectilePrefab = GetHomingFireProjectilePrefab(result.castLevel);
-
-
-        var spawnPosition = transform.position;
-        spawnPosition.z = 0f;
-        var projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
-        projectile.transform.localScale *= homingFireProjectileScale * GetHomingFireProjectileScaleMultiplier(result.castLevel);
-        var homingFire = projectile.AddComponent<HomingFireProjectile>();
-        homingFire.Initialize(
-            bossHealth,
-            result,
-            homingFireProjectileSpeed,
-            homingFireHitRadius,
-            homingFireLifetime);
-    }
-    private float GetHomingFireProjectileScaleMultiplier(int spellLevel)
-    {
-        if (spellLevel >= 3)
-        {
-            return homingFireProjectileLevelThreeScaleMultiplier;
-        }
-
-        return spellLevel >= 2 ? homingFireProjectileLevelTwoScaleMultiplier : 1f;
-    }
-    private GameObject GetHomingFireProjectilePrefab(int spellLevel)
-    {
-        if (spellLevel >= 3 && homingFireProjectileLevelThreePrefab != null)
-        {
-            return homingFireProjectileLevelThreePrefab;
-        }
-
-        if (spellLevel >= 2 && homingFireProjectileLevelTwoPrefab != null)
-        {
-            return homingFireProjectileLevelTwoPrefab;
-        }
-
-        return homingFireProjectilePrefab;
+        spellCastRouter?.Cast(result);
     }
 
     private void ApplyDamage(float amount, bool ignoreDashInvulnerability)

@@ -107,6 +107,8 @@ public class ChantDatabase : MonoBehaviour
                 Debug.LogError($"[ChantDatabase] 중복 주문 ID가 있습니다: {spell.id}");
             }
 
+            spell.ParseMagicType();
+
             if (spell.stages == null || spell.stages.Count == 0)
             {
                 Debug.LogWarning($"[ChantDatabase] 단계가 없는 주문입니다: {spell.id}");

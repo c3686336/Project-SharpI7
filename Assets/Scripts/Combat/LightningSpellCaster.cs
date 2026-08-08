@@ -4,16 +4,13 @@ using Cysharp.Threading.Tasks;
 using SharpI7.Combat;
 using UnityEngine;
 
-internal sealed class LightningSpellCaster : IDisposable
+internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
 {
     private const float LevelThreeTickDamage = 5f;
     private const int LevelThreeTickCount = 5;
     private const float LevelThreeTickInterval = 0.8f;
     private const float EffectLifetime = 1.05f;
 
-    private const string LevelOneEffectId = "FlickingLightning_Lv1";
-    private const string LevelTwoEffectId = "FlickingLightning_Lv2";
-    private const string LevelThreeImpactEffectId = "FlickingLightning_Lv3_Impact";
     private const string LevelThreeTickEffectId = "FlickingLightning_Lv3_Tick";
 
     private readonly BossHealth target;
@@ -39,13 +36,13 @@ internal sealed class LightningSpellCaster : IDisposable
         switch (result.castLevel)
         {
             case 1:
-                CastStandardLightning(result.actualDamage, LevelOneEffectId);
+                CastStandardLightning(result.actualDamage, result.effectId);
                 break;
             case 2:
-                CastStandardLightning(result.actualDamage, LevelTwoEffectId);
+                CastStandardLightning(result.actualDamage, result.effectId);
                 break;
             case 3:
-                CastLevelThreeAsync(result.actualDamage).Forget();
+                CastLevelThreeAsync(result.actualDamage, result.effectId).Forget();
                 break;
             default:
                 Debug.LogWarning($"[LightningSpellCaster] 지원하지 않는 번개 주문 단계입니다: {result.castLevel}");
@@ -74,14 +71,14 @@ internal sealed class LightningSpellCaster : IDisposable
         target.TakeDamageWithoutSpellHitEffect(damage);
     }
 
-    private async UniTask CastLevelThreeAsync(float totalDamage)
+    private async UniTask CastLevelThreeAsync(float totalDamage, string impactEffectId)
     {
         CancellationToken token = cancellationTokenSource.Token;
 
         if (!CanContinueLevelThree())
             return;
 
-        SpawnLevelThreeImpactEffect();
+        SpawnLevelThreeImpactEffect(impactEffectId);
         float strikeDamage = Mathf.Max(0f, totalDamage - LevelThreeTickDamage * LevelThreeTickCount);
         target.TakeDamageWithoutSpellHitEffect(strikeDamage);
 
@@ -111,13 +108,13 @@ internal sealed class LightningSpellCaster : IDisposable
         return true;
     }
 
-    private void SpawnLevelThreeImpactEffect()
+    private void SpawnLevelThreeImpactEffect(string effectId)
     {
         if (effectRegistry == null || target == null)
             return;
 
         GameObject effect = effectRegistry.SpawnEffect(
-            LevelThreeImpactEffectId,
+            effectId,
             target.transform.position,
             Quaternion.identity);
 

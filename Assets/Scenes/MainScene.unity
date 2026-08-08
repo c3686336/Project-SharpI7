@@ -1708,27 +1708,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
   m_PrefabInstance: {fileID: 1095544554}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &859006584
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 859006578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 589aa4c8b97bb8f4780efc9736cb98ab, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::SpellEffectRegistry
-  effects:
-  - effectId: FlickingLightning_Lv1
-    prefab: {fileID: 163929922656029403, guid: becd2d78925c8dd489bf6bb24306b2a7, type: 3}
-  - effectId: FlickingLightning_Lv2
-    prefab: {fileID: 1128445482282891342, guid: d907f0e3620015c4282abc6cf9ce80dc, type: 3}
-  - effectId: FlickingLightning_Lv3_Impact
-    prefab: {fileID: 2532948527499701896, guid: 4d5bcbcb4bfddc84eac954e0e4a63190, type: 3}
-  - effectId: FlickingLightning_Lv3_Tick
-    prefab: {fileID: 7780006044499204285, guid: 32b62f9b62a8ab94fa0c445b549f88fa, type: 3}
 --- !u!1 &864911122
 GameObject:
   m_ObjectHideFlags: 0
@@ -2203,10 +2182,6 @@ PrefabInstance:
       propertyPath: referenceHeading.y
       value: -1
       objectReference: {fileID: 0}
-    - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
-      propertyPath: spellEffectRegistry
-      value:
-      objectReference: {fileID: 859006584}
     - target: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: m_Name
       value: Player
@@ -2270,10 +2245,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 859006584}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
 --- !u!1 &1160547528
 GameObject:

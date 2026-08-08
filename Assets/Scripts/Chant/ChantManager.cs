@@ -710,7 +710,7 @@ public class ChantManager : MonoBehaviour, IChantManager
             actualDamage = CalculateActualDamage(),
             penaltyMultiplier = typoCount == 0 ? 1f : 0f,
             manaCost = currentStage?.manaCost ?? 0f,
-            magicType = currentSpell?.magicType ?? "",
+            magicType = currentSpell?.MagicType ?? MagicType.None,
             effectId = !string.IsNullOrEmpty(currentStage?.effectId) ? currentStage.effectId : currentSpell?.effectId ?? "" ,
             canCast = canCast,
             completed = IsPerfectChant()

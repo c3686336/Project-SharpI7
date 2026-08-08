@@ -1,5 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+
+public enum MagicType
+{
+    None,
+    Fire,
+    Lightning
+}
 
 [Serializable]
 public class ChantSpellDatabaseData
@@ -18,6 +26,21 @@ public class ChantSpellData
     public string magicType;
     public string effectId;
     public List<ChantStageData> stages;
+
+    public MagicType MagicType { get; private set; }
+
+    public void ParseMagicType()
+    {
+        if (!Enum.TryParse(magicType, false, out MagicType parsedMagicType) ||
+            parsedMagicType == MagicType.None ||
+            !Enum.IsDefined(typeof(MagicType), parsedMagicType))
+        {
+            throw new InvalidDataException(
+                $"Invalid magic type. Spell: {id}, Type: {magicType}");
+        }
+
+        MagicType = parsedMagicType;
+    }
 }
 
 [Serializable]

@@ -19,7 +19,7 @@ public struct CastResult
     // 해당 영창 단계에서 실제 소비할 마나
     public float manaCost;
 
-    public string magicType;
+    public MagicType magicType;
     public string effectId;
 
     public bool canCast;

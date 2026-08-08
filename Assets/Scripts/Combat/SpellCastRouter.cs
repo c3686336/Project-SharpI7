@@ -1,17 +1,22 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-internal sealed class SpellCastRouter
+internal interface ISpellCaster
 {
-    private const string FireMagicType = "Fire";
-    private const string LightningMagicType = "Lightning";
+    void Cast(CastResult result);
+}
 
-    private readonly PlayerSpellCaster fireSpellCaster;
-    private readonly LightningSpellCaster lightningSpellCaster;
+internal sealed class SpellCastRouter : IDisposable
+{
+    private readonly Dictionary<MagicType, ISpellCaster> casters = new();
 
-    public SpellCastRouter(PlayerSpellCaster fireSpellCaster, LightningSpellCaster lightningSpellCaster)
+    public void Register(MagicType magicType, ISpellCaster caster)
     {
-        this.fireSpellCaster = fireSpellCaster;
-        this.lightningSpellCaster = lightningSpellCaster;
+        if (magicType == MagicType.None)
+            throw new ArgumentOutOfRangeException(nameof(magicType));
+
+        casters.Add(magicType, caster ?? throw new ArgumentNullException(nameof(caster)));
     }
 
     public void Cast(CastResult result)
@@ -19,17 +24,25 @@ internal sealed class SpellCastRouter
         if (!result.completed || !result.canCast)
             return;
 
-        switch (result.magicType)
+        if (casters.TryGetValue(result.magicType, out ISpellCaster caster))
         {
-            case FireMagicType:
-                fireSpellCaster?.Cast(result);
-                break;
-            case LightningMagicType:
-                lightningSpellCaster?.Cast(result);
-                break;
-            default:
-                Debug.LogWarning($"[SpellCastRouter] 지원하지 않는 마법 타입입니다: {result.magicType}");
-                break;
+            caster.Cast(result);
+            return;
         }
+
+        Debug.LogWarning($"[SpellCastRouter] 지원하지 않는 마법 타입입니다: {result.magicType}");
+    }
+
+    public void Dispose()
+    {
+        foreach (ISpellCaster caster in casters.Values)
+        {
+            if (caster is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        casters.Clear();
     }
 }
