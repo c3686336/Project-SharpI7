@@ -351,6 +351,13 @@ namespace SharpI7.Combat
 
         private IEnumerator PerformBossDistanceAttack()
         {
+            // Both distance patterns are centered on the boss, so keep the
+            // anchor fixed while their warning and damage resolve.
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
+
             var attackPosition = transform.position;
             attackPosition.z = 0f;
             activeBossDistanceZone = Instantiate(
@@ -372,6 +379,11 @@ namespace SharpI7.Combat
 
             yield return new WaitForSeconds(bossDistanceWarningDuration + 0.25f);
             activeBossDistanceZone = null;
+
+            if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
+            {
+                bossMovement.UnlockMovement();
+            }
         }
 
         private IEnumerator PerformOrbFamilyAttack()
