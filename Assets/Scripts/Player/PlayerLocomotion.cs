@@ -34,9 +34,6 @@ internal sealed class PlayerLocomotion
             var nextPosition = rigidbody2D.position + moveSpeed * CurrentMovement;
             rigidbody2D.MovePosition(ArenaBounds.ClampPosition(nextPosition, boundaryPadding));
         }
-
-        Vector2 toTarget = target.position - rigidbody2D.transform.position;
-        rigidbody2D.MoveRotation(Vector2.SignedAngle(referenceHeading, toTarget));
     }
 
     public void Stop()
