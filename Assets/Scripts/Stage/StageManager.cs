@@ -224,11 +224,7 @@ public sealed class StageManager : MonoBehaviour
         }
 
         isChangingStage = true;
-
-        TransitionManager.Instance.Trigger(() =>
-        {
-            LoadStage(nextStage);
-        }).Forget();
+        LoadStage(nextStage);
         isChangingStage = false;
     }
 }

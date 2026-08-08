@@ -92,11 +92,7 @@ public sealed class OutGameManager : MonoBehaviour
     {
         outgameState = OutgameState.Main;
         Time.timeScale = 1f;
-
-        TransitionManager.Instance.Trigger(() =>
-        {
-            SceneManager.LoadScene(MainSceneName);
-        }).Forget();
+        SceneManager.LoadScene(MainSceneName);
     }
 
     public void ShowMainMenu()
@@ -130,30 +126,21 @@ public sealed class OutGameManager : MonoBehaviour
         gameOverStageId = stageId;
 
         Time.timeScale = 1f;
-        TransitionManager.Instance.Trigger(() =>
-        {
-            SceneManager.LoadScene(OutGameSceneName);
-        }).Forget();
+        SceneManager.LoadScene(OutGameSceneName);
     }
 
     public static void LoadTitle()
     {
         outgameState = OutgameState.Main;
         Time.timeScale = 1f;
-        TransitionManager.Instance.Trigger(() =>
-        {
-            SceneManager.LoadScene(OutGameSceneName);
-        }).Forget();
+        SceneManager.LoadScene(OutGameSceneName);
     }
 
     public static void LoadWin()
     {
         outgameState = OutgameState.Win;
         Time.timeScale = 1f;
-        TransitionManager.Instance.Trigger(() =>
-        {
-            SceneManager.LoadScene(OutGameSceneName);
-        }).Forget();
+        SceneManager.LoadScene(OutGameSceneName);
     }
 
     private void SetMenuState()
