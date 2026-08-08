@@ -5026,7 +5026,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BookChantAnimator
   chantManager: {fileID: 1330538459}
-  riseDistance: 750
+  riseDistance: 350
   duration: 0.3
 --- !u!114 &2114229407
 MonoBehaviour:
