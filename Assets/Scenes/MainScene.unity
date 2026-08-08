@@ -457,7 +457,7 @@ Sprite:
       height: 121.84776
     textureRectOffset: {x: 3.0761204, y: 3.0761204}
     atlasRectOffset: {x: -1, y: -1}
-    settingsRaw: 64
+    settingsRaw: 3136
     uvTransform: {x: 53.333332, y: 64, z: 53.333332, w: 64}
     downscaleMultiplier: 1
   m_AtlasRD:
@@ -2746,6 +2746,14 @@ PrefabInstance:
     - target: {fileID: 400000, guid: 66666666666666666666666666666666, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: 66666666666666666666666666666666, type: 3}
+      propertyPath: littleFireHitEffectPrefab
+      value: 
+      objectReference: {fileID: 7005672315119778131, guid: d2e49baec8a1b9c4d83172cd3d44f313, type: 3}
+    - target: {fileID: 11400000, guid: 66666666666666666666666666666666, type: 3}
+      propertyPath: littleFireHitEffectOffset.y
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 11400001, guid: 66666666666666666666666666666666, type: 3}
       propertyPath: playerTarget
