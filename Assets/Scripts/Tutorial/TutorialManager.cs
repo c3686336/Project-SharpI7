@@ -28,6 +28,7 @@ public sealed class TutorialDialogueStep
     public string text;
     public TutorialArrowData[] arrows;
     public string action;
+    public string expectedChant;
 }
 
 [DisallowMultipleComponent]
@@ -38,6 +39,7 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PreviewManaSaturationDamageAction = "previewManaSaturationDamage";
     private const string PreviewManaConsumptionAction = "previewManaConsumption";
     private const string WaitForChantEnterAction = "waitForChantEnter";
+    private const string PracticeChantAction = "practiceChant";
     private const string HideChantPreviewAction = "hideChantPreview";
 
     [SerializeField] private string fileName = DefaultFileName;
@@ -55,6 +57,7 @@ public sealed class TutorialManager : MonoBehaviour
     [Header("Chant Preview UI")]
     [SerializeField] private GameObject chantPreviewPanel;
     [SerializeField] private BookChantAnimator chantPreviewBook;
+    [SerializeField] private ChantManager chantManager;
 
     [Header("Mana Preview UI")]
     [SerializeField] private Image manaFillImage;
@@ -99,10 +102,13 @@ public sealed class TutorialManager : MonoBehaviour
     private bool isTyping;
     private bool isTypingDelayActive;
     private bool isWaitingForChantEnter;
+    private bool isWaitingForChantPractice;
+    private bool chantPracticeActive;
     private bool chantPreviewSnapshotCaptured;
     private bool chantPreviewInitialActive;
     private bool manaPreviewActive;
     private bool healthPreviewActive;
+    private string expectedPracticeChant;
 
     private struct ManaVisualSnapshot
     {
@@ -122,6 +128,7 @@ public sealed class TutorialManager : MonoBehaviour
     {
         StopTyping();
         StopCurrentAction();
+        StopChantPractice(false);
         HideAllArrows();
         RestoreChantPreview();
         RestoreManaVisuals();
@@ -146,6 +153,7 @@ public sealed class TutorialManager : MonoBehaviour
         currentStepIndex = 0;
         inputBlockedThroughFrame = Time.frameCount;
         isWaitingForChantEnter = false;
+        isWaitingForChantPractice = false;
         isRunning = true;
         ShowCurrentStep();
     }
@@ -178,6 +186,12 @@ public sealed class TutorialManager : MonoBehaviour
         if (isWaitingForChantEnter)
         {
             HandleChantEnterInput();
+            return;
+        }
+
+        if (isWaitingForChantPractice)
+        {
+            HandleChantPracticeInput();
             return;
         }
 
@@ -330,7 +344,11 @@ public sealed class TutorialManager : MonoBehaviour
             case WaitForChantEnterAction:
                 isWaitingForChantEnter = true;
                 break;
+            case PracticeChantAction:
+                StartChantPractice(step);
+                break;
             case HideChantPreviewAction:
+                StopChantPractice(false);
                 HideChantPreview();
                 break;
             case PreviewManaProfilesAction:
@@ -374,6 +392,114 @@ public sealed class TutorialManager : MonoBehaviour
     {
         Mouse mouse = Mouse.current;
         return mouse != null && mouse.leftButton.wasPressedThisFrame;
+    }
+
+    private void StartChantPractice(TutorialDialogueStep step)
+    {
+        if (chantManager == null)
+        {
+            Debug.LogError(
+                "[TutorialDialogue] 영창 연습에 사용할 ChantManager가 연결되지 않았습니다.",
+                this);
+            return;
+        }
+
+        expectedPracticeChant = NormalizeChant(step.expectedChant);
+        if (string.IsNullOrEmpty(expectedPracticeChant))
+        {
+            Debug.LogError(
+                "[TutorialDialogue] practiceChant 단계에 expectedChant가 없습니다.",
+                this);
+            return;
+        }
+
+        if (chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        chantManager.StartChant();
+        chantPracticeActive = chantManager.IsCasting;
+        isWaitingForChantPractice = chantPracticeActive;
+
+        if (!chantPracticeActive)
+        {
+            Debug.LogError(
+                "[TutorialDialogue] 영창 연습 모드를 시작하지 못했습니다.",
+                chantManager);
+        }
+    }
+
+    private void HandleChantPracticeInput()
+    {
+        if (!WasEnterPressedThisFrame())
+        {
+            return;
+        }
+
+        string submittedChant = NormalizeChant(chantManager?.CurrentInput);
+        if (!string.Equals(
+                submittedChant,
+                expectedPracticeChant,
+                StringComparison.Ordinal))
+        {
+            RestartChantPractice();
+            ShowChantPracticeRetryMessage();
+            return;
+        }
+
+        StopChantPractice(true);
+        AdvanceDialogue();
+    }
+
+    private void RestartChantPractice()
+    {
+        if (chantManager == null)
+        {
+            isWaitingForChantPractice = false;
+            chantPracticeActive = false;
+            return;
+        }
+
+        if (chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        chantManager.StartChant();
+        chantPracticeActive = chantManager.IsCasting;
+        isWaitingForChantPractice = chantPracticeActive;
+    }
+
+    private void ShowChantPracticeRetryMessage()
+    {
+        StopTyping();
+        dialogueText.text = $"‘{expectedPracticeChant}’이라고 정확히 입력해 봐.";
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+    }
+
+    private void StopChantPractice(bool keepPreviewVisible)
+    {
+        if (chantPracticeActive && chantManager != null && chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        chantPracticeActive = false;
+        isWaitingForChantPractice = false;
+        expectedPracticeChant = string.Empty;
+
+        if (keepPreviewVisible)
+        {
+            ShowChantPreview();
+        }
+    }
+
+    private static string NormalizeChant(string chant)
+    {
+        return string.IsNullOrEmpty(chant)
+            ? string.Empty
+            : chant.Replace("\u200B", string.Empty).Trim();
     }
 
     private void ShowChantPreview()
@@ -837,11 +963,13 @@ public sealed class TutorialManager : MonoBehaviour
     {
         StopTyping();
         StopCurrentAction();
+        StopChantPractice(false);
         RestoreChantPreview();
         RestoreManaVisuals();
         RestoreHealthVisuals();
         isRunning = false;
         isWaitingForChantEnter = false;
+        isWaitingForChantPractice = false;
         currentStepIndex = -1;
 
         HideAllArrows();

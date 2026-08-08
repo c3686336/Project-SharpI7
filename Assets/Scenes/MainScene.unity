@@ -2206,6 +2206,7 @@ MonoBehaviour:
   arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}
   chantPreviewBook: {fileID: 2114229406}
+  chantManager: {fileID: 1330538459}
   manaFillImage: {fileID: 1160547530}
   portraitImage: {fileID: 649426900}
   warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}

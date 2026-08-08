@@ -24,7 +24,7 @@ internal sealed class PlayerHealth
     public bool IsAlive => Current > 0f;
 
     public event Action<CancellationToken> InvincibilityStarted;
-    private CancellationTokenSource? InvincibilityEnd;
+    private CancellationTokenSource InvincibilityEnd;
 
     private bool isInvincible = false;
 

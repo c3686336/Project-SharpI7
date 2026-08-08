@@ -58,15 +58,33 @@
     },
     {
       "description": "1서클 불 마법 영창 안내",
-      "text": "1서클 마법을 쓰고 싶다면 ‘불’이라고 영창하면 돼."
+      "text": "1서클은 ‘불’이야. 직접 ‘불’을 입력하고 Enter를 눌러 봐.",
+      "action": "practiceChant",
+      "expectedChant": "불"
+    },
+    {
+      "description": "1서클 영창 성공 칭찬",
+      "text": "잘했어! 이게 1서클 영창이야."
     },
     {
       "description": "2서클 불 마법 영창 안내",
-      "text": "2서클은 ‘타오르는 불’이야. 1서클보다 영창이 길어진 만큼 더 강해져."
+      "text": "2서클은 ‘타오르는 불’이야. 이번에는 그대로 입력하고 Enter를 눌러 봐.",
+      "action": "practiceChant",
+      "expectedChant": "타오르는 불"
+    },
+    {
+      "description": "2서클 영창 성공 칭찬",
+      "text": "잘했어! 2서클도 문제없네."
     },
     {
       "description": "3서클 불 마법 영창 안내",
-      "text": "3서클은 ‘영원히 타오르는 불’이야. 가장 길고 어려운 영창이지."
+      "text": "마지막 3서클은 ‘영원히 타오르는 불’이야. 이것도 직접 입력하고 Enter를 눌러 봐.",
+      "action": "practiceChant",
+      "expectedChant": "영원히 타오르는 불"
+    },
+    {
+      "description": "3서클 영창 성공 칭찬",
+      "text": "잘했어! 3서클까지 제대로 해냈어."
     },
     {
       "description": "서클에 따른 마나 소비량과 데미지 안내",
