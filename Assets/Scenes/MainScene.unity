@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &25466707 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8601143963866763762, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+  m_PrefabInstance: {fileID: 353332707}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &91097558
 GameObject:
   m_ObjectHideFlags: 0
@@ -651,6 +662,14 @@ PrefabInstance:
       propertyPath: spellNameUI
       value: 
       objectReference: {fileID: 239821034}
+    - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: typoCountUI
+      value: 
+      objectReference: {fileID: 619468967}
+    - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: chantLevelUI
+      value: 
+      objectReference: {fileID: 25466707}
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: actualDamageUI
       value: 
@@ -1458,6 +1477,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &619468967 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8857971485166742872, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+  m_PrefabInstance: {fileID: 353332707}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &644082119
 GameObject:
   m_ObjectHideFlags: 0
