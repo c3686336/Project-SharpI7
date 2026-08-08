@@ -37,9 +37,6 @@ public class ChantManager : MonoBehaviour, IChantManager
     private GameObject chantPanel;
 
     [SerializeField]
-    private TMP_Text spellNameUI;
-
-    [SerializeField]
     private TMP_Text targetTextUI;
 
     [SerializeField]
@@ -752,8 +749,6 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void UpdateUI()
     {
-        UpdateSpellNameUI();
-
         UpdateTargetTextUI();
 
         /*
@@ -786,21 +781,6 @@ public class ChantManager : MonoBehaviour, IChantManager
          * 필요한 외부 UI에서는
          * OnChantPreviewChanged를 구독해서 사용한다.
          */
-    }
-
-    private void UpdateSpellNameUI()
-    {
-        if (spellNameUI == null)
-            return;
-
-        if (currentSpell == null)
-        {
-            spellNameUI.text = "";
-
-            return;
-        }
-
-        spellNameUI.text = currentSpell.spellName;
     }
 
     private void UpdateTargetTextUI()
