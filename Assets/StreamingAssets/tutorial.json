@@ -64,7 +64,8 @@
     },
     {
       "description": "1서클 영창 성공 칭찬",
-      "text": "잘했어! 이게 1서클 영창이야."
+      "text": "잘했어! 이게 1서클 영창이야.",
+      "action": "advanceWithEnter"
     },
     {
       "description": "2서클 불 마법 영창 안내",
@@ -74,7 +75,8 @@
     },
     {
       "description": "2서클 영창 성공 칭찬",
-      "text": "잘했어! 2서클도 문제없네."
+      "text": "잘했어! 2서클도 문제없네.",
+      "action": "advanceWithEnter"
     },
     {
       "description": "3서클 불 마법 영창 안내",
@@ -84,7 +86,8 @@
     },
     {
       "description": "3서클 영창 성공 칭찬",
-      "text": "잘했어! 3서클까지 제대로 해냈어."
+      "text": "잘했어! 3서클까지 제대로 해냈어.",
+      "action": "advanceWithEnter"
     },
     {
       "description": "서클에 따른 마나 소비량과 데미지 안내",

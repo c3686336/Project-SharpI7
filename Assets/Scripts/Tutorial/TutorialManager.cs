@@ -40,6 +40,7 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PreviewManaConsumptionAction = "previewManaConsumption";
     private const string WaitForChantEnterAction = "waitForChantEnter";
     private const string PracticeChantAction = "practiceChant";
+    private const string AdvanceWithEnterAction = "advanceWithEnter";
     private const string HideChantPreviewAction = "hideChantPreview";
 
     [SerializeField] private string fileName = DefaultFileName;
@@ -104,6 +105,7 @@ public sealed class TutorialManager : MonoBehaviour
     private bool isWaitingForChantEnter;
     private bool isWaitingForChantPractice;
     private bool chantPracticeActive;
+    private bool canAdvanceWithEnter;
     private bool chantPreviewSnapshotCaptured;
     private bool chantPreviewInitialActive;
     private bool manaPreviewActive;
@@ -195,6 +197,12 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
+        if (!isTyping && canAdvanceWithEnter && WasEnterPressedThisFrame())
+        {
+            AdvanceDialogue();
+            return;
+        }
+
         if (isTyping || !WasLeftClickPressedThisFrame())
         {
             return;
@@ -255,6 +263,7 @@ public sealed class TutorialManager : MonoBehaviour
     private void ShowCurrentStep()
     {
         TutorialDialogueStep step = steps[currentStepIndex];
+        canAdvanceWithEnter = false;
         float typingDelay = currentStepIndex == 0
             ? Mathf.Max(0f, firstDialogueDelay)
             : 0f;
@@ -346,6 +355,9 @@ public sealed class TutorialManager : MonoBehaviour
                 break;
             case PracticeChantAction:
                 StartChantPractice(step);
+                break;
+            case AdvanceWithEnterAction:
+                canAdvanceWithEnter = true;
                 break;
             case HideChantPreviewAction:
                 StopChantPractice(false);
@@ -449,6 +461,7 @@ public sealed class TutorialManager : MonoBehaviour
         }
 
         StopChantPractice(true);
+        inputBlockedThroughFrame = Time.frameCount;
         AdvanceDialogue();
     }
 
@@ -970,6 +983,7 @@ public sealed class TutorialManager : MonoBehaviour
         isRunning = false;
         isWaitingForChantEnter = false;
         isWaitingForChantPractice = false;
+        canAdvanceWithEnter = false;
         currentStepIndex = -1;
 
         HideAllArrows();
