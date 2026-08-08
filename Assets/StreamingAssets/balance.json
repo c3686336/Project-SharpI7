@@ -25,7 +25,7 @@
       "enablePhaseTwo": true,
       "phaseTwoMaxHealth": 300.0,
       "phaseTwoTransitionDelay": 2.0,
-      "spellDamageByStage": [10.0, 30.0, 70.0]
+      "spellDamageByStage": [ 10.0, 30.0, 70.0 ]
     },
     "movement": {
       "moveSpeed": 1.25,
@@ -65,7 +65,10 @@
     "safeZoneAttack": {
       "enabled": true,
       "warningDuration": 4.0,
-      "fieldSize": { "x": 30.0, "y": 18.0 },
+      "fieldSize": {
+        "x": 30.0,
+        "y": 18.0
+      },
       "radius": 3.0,
       "minDistance": 5.0,
       "maxDistance": 9.0,
@@ -84,7 +87,10 @@
     },
     "dashLaserWall": {
       "enabled": true,
-      "fieldSize": { "x": 45.0, "y": 27.0 },
+      "fieldSize": {
+        "x": 45.0,
+        "y": 27.0
+      },
       "thickness": 1.4,
       "warningDuration": 1.0,
       "travelDuration": 2.7,
@@ -99,12 +105,18 @@
       "wobbleFrequency": 0.6,
       "collisionRadius": 0.3,
       "damage": 1.0,
-      "playAreaSize": { "x": 30.0, "y": 18.0 }
+      "playAreaSize": {
+        "x": 30.0,
+        "y": 18.0
+      }
     },
     "distanceAttack": {
       "enabled": true,
       "warningDuration": 4.0,
-      "fieldSize": { "x": 30.0, "y": 18.0 },
+      "fieldSize": {
+        "x": 30.0,
+        "y": 18.0
+      },
       "radius": 6.0,
       "postAttackDelay": 0.25
     }

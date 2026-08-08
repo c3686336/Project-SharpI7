@@ -6,6 +6,7 @@ public sealed class LightningProjectile : MonoBehaviour
     [SerializeField] private float destroyDistance = 0.1f;
     [SerializeField] private float maxLifetime = 3f;
     [SerializeField] private bool rotateTowardTarget = true;
+    [SerializeField] private int sortingOrderOffset = 1;
 
     private Transform target;
 
@@ -30,7 +31,11 @@ public sealed class LightningProjectile : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        transform.position = Vector3.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            target.position,
+            moveSpeed * Time.deltaTime
+        );
 
         if (Vector3.Distance(transform.position, target.position) <= destroyDistance)
         {
@@ -41,5 +46,21 @@ public sealed class LightningProjectile : MonoBehaviour
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+
+        if (target == null)
+            return;
+
+        SpriteRenderer targetRenderer = target.GetComponent<SpriteRenderer>();
+
+        if (targetRenderer == null)
+            return;
+
+        SpriteRenderer[] effectRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+
+        foreach (SpriteRenderer effectRenderer in effectRenderers)
+        {
+            effectRenderer.sortingLayerID = targetRenderer.sortingLayerID;
+            effectRenderer.sortingOrder = targetRenderer.sortingOrder + sortingOrderOffset;
+        }
     }
 }
