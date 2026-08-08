@@ -17,6 +17,7 @@ public sealed class OutGameManager : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private Button winRestartButton;
     [SerializeField] private GameObject configPanel;
+    [SerializeField] private TutorialSelectionPanel tutorialSelectionPanel;
 
     private static OutgameState outgameState;
 
@@ -32,7 +33,8 @@ public sealed class OutGameManager : MonoBehaviour
         if (mainMenu == null || gameOverMenu == null || WinMenu == null ||
             startGameButton == null || configButton == null || exitGameButton == null ||
             closeConfigButton == null ||
-            restartButton == null || winRestartButton == null || configPanel == null)
+            restartButton == null || winRestartButton == null || configPanel == null ||
+            tutorialSelectionPanel == null)
         {
             Debug.LogError("OutGameManager has missing menu or button references.", this);
             enabled = false;
@@ -45,7 +47,8 @@ public sealed class OutGameManager : MonoBehaviour
 
     public void OnEnable()
     {
-        startGameButton.onClick.AddListener(StartGame);
+        startGameButton.onClick.AddListener(tutorialSelectionPanel.Open);
+        tutorialSelectionPanel.NormalGameSelected += StartGame;
         configButton.onClick.AddListener(OpenConfig);
         exitGameButton.onClick.AddListener(QuitGame);
         closeConfigButton.onClick.AddListener(CloseConfig);
@@ -55,7 +58,8 @@ public sealed class OutGameManager : MonoBehaviour
 
     public void OnDisable()
     {
-        startGameButton.onClick.RemoveListener(StartGame);
+        startGameButton.onClick.RemoveListener(tutorialSelectionPanel.Open);
+        tutorialSelectionPanel.NormalGameSelected -= StartGame;
         configButton.onClick.RemoveListener(OpenConfig);
         exitGameButton.onClick.RemoveListener(QuitGame);
         closeConfigButton.onClick.RemoveListener(CloseConfig);
@@ -119,6 +123,7 @@ public sealed class OutGameManager : MonoBehaviour
     private void SetMenuState()
     {
         configPanel.SetActive(false);
+        tutorialSelectionPanel.Close();
 
         switch (outgameState)
         {
