@@ -11,24 +11,21 @@
       "stages": [
         {
           "chantLevel": 1,
-          "chantText": "f",
+          "chantText": "불",
           "damageMultiplier": 5,
-          "manaCost":  10,
-          "effectId": "EternalFlame_Lv1"
+          "manaCost":  10
         },
         {
           "chantLevel": 2,
-          "chantText": "qq",
+          "chantText": "타오르는 불",
           "damageMultiplier": 30,
-          "manaCost": 30,
-          "effectId": "EternalFlame_Lv2"
+          "manaCost": 30
         },
         {
           "chantLevel": 3,
-          "chantText": "jjj",
+          "chantText": "영원히 타오르는 불",
           "damageMultiplier": 70,
-          "manaCost": 50,
-          "effectId": "EternalFlame_Lv3"
+          "manaCost": 50
         }
       ]
     },
@@ -43,21 +40,21 @@
       "stages": [
         {
           "chantLevel": 1,
-          "chantText": "d",
+          "chantText": "번개",
           "damageMultiplier": 1.0,
           "manaCost": 10,
           "effectId": "FlickingLightning_Lv1"
         },
         {
           "chantLevel": 2,
-          "chantText": "ss",
+          "chantText": "내리치는 번개",
           "damageMultiplier": 1.5,
           "manaCost": 30,
           "effectId": "FlickingLightning_Lv2"
         },
         {
           "chantLevel": 3,
-          "chantText": "aaa",
+          "chantText": "끝없이 내리치는 번개",
           "damageMultiplier": 2.0,
           "manaCost": 50,
           "effectId": "FlickingLightning_Lv3_Impact"

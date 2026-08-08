@@ -21,9 +21,9 @@
   },
   "boss": {
     "health": {
-      "maxHealth": 30.0,
+      "maxHealth": 150.0,
       "enablePhaseTwo": true,
-      "phaseTwoMaxHealth": 30.0,
+      "phaseTwoMaxHealth": 300.0,
       "phaseTwoTransitionDelay": 2.0,
       "spellDamageByStage": [10.0, 30.0, 70.0]
     },
