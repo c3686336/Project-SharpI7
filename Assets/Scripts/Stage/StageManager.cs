@@ -161,6 +161,8 @@ public sealed class StageManager : MonoBehaviour
         if (nextStage == null)
         {
             Debug.Log("[StageManager] 마지막 스테이지입니다.", this);
+            OutGameManager.LoadWin();
+            
             return;
         }
 
