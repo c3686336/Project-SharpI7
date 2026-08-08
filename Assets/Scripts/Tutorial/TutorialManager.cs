@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -96,7 +97,10 @@ public sealed class TutorialManager : MonoBehaviour
     private readonly List<Vector2> arrowBasePositions = new();
     private readonly List<Vector2> arrowMoveAxes = new();
     private InGameManager inGameManager;
+    private ChantInputField chantPracticeInputField;
     private Coroutine actionRoutine;
+    private Coroutine chantInputCleanupRoutine;
+    private Coroutine chantPracticeRestartRoutine;
     private Coroutine typingRoutine;
     private ManaVisualSnapshot manaVisualSnapshot;
     private HeartVisualSnapshot heartVisualSnapshot;
@@ -189,6 +193,12 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
+        if (isWaitingForChantPractice)
+        {
+            HandleChantPracticeInput();
+            return;
+        }
+
         if (isTyping && WasLeftClickPressedThisFrame())
         {
             CompleteTyping();
@@ -198,12 +208,6 @@ public sealed class TutorialManager : MonoBehaviour
         if (isWaitingForChantEnter)
         {
             HandleChantEnterInput();
-            return;
-        }
-
-        if (isWaitingForChantPractice)
-        {
-            HandleChantPracticeInput();
             return;
         }
 
@@ -227,7 +231,6 @@ public sealed class TutorialManager : MonoBehaviour
     {
         if (isActionPlaying)
         {
-            CompleteCurrentAction();
             return;
         }
 
@@ -448,6 +451,15 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void StartChantPractice(TutorialDialogueStep step)
     {
+        StopChantInputCleanup();
+        StopChantPracticeRestart();
+
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
         if (chantManager == null)
         {
             Debug.LogError(
@@ -484,12 +496,28 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void HandleChantPracticeInput()
     {
+        if (chantPracticeRestartRoutine != null)
+        {
+            return;
+        }
+
+        if (WasLeftClickPressedThisFrame())
+        {
+            if (!IsPointerOverChantInputField())
+            {
+                ShowToastWithCooldown(FollowInstructionsMessage);
+            }
+
+            return;
+        }
+
         if (!WasEnterPressedThisFrame())
         {
             return;
         }
 
-        string submittedChant = NormalizeChant(chantManager?.CurrentInput);
+        string submittedChant = NormalizeChant(
+            chantManager?.CommitImeCompositionAndGetInput());
         if (!string.Equals(
                 submittedChant,
                 expectedPracticeChant,
@@ -503,6 +531,34 @@ public sealed class TutorialManager : MonoBehaviour
         StopChantPractice(true);
         inputBlockedThroughFrame = Time.frameCount;
         AdvanceDialogue();
+    }
+
+    private bool IsPointerOverChantInputField()
+    {
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        Mouse mouse = Mouse.current;
+        if (chantPracticeInputField == null || mouse == null)
+        {
+            return false;
+        }
+
+        RectTransform inputRect =
+            chantPracticeInputField.GetComponent<RectTransform>();
+        Canvas inputCanvas = chantPracticeInputField.GetComponentInParent<Canvas>();
+        Camera eventCamera = inputCanvas != null &&
+                             inputCanvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? inputCanvas.worldCamera
+            : null;
+
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            inputRect,
+            mouse.position.ReadValue(),
+            eventCamera);
     }
 
     private void RestartChantPractice()
@@ -519,9 +575,34 @@ public sealed class TutorialManager : MonoBehaviour
             chantManager.CancelChant();
         }
 
+        chantPracticeActive = false;
+        chantPracticeRestartRoutine =
+            StartCoroutine(RestartChantPracticeAfterImeEnds());
+    }
+
+    private IEnumerator RestartChantPracticeAfterImeEnds()
+    {
+        while (chantPracticeInputField != null &&
+               chantPracticeInputField.HasActiveImeComposition)
+        {
+            yield return null;
+        }
+
         chantManager.StartChant();
         chantPracticeActive = chantManager.IsCasting;
         isWaitingForChantPractice = chantPracticeActive;
+        chantPracticeRestartRoutine = null;
+    }
+
+    private void StopChantPracticeRestart()
+    {
+        if (chantPracticeRestartRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantPracticeRestartRoutine);
+        chantPracticeRestartRoutine = null;
     }
 
     private void ShowChantPracticeRetryMessage()
@@ -533,9 +614,17 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void StopChantPractice(bool keepPreviewVisible)
     {
+        StopChantInputCleanup();
+        StopChantPracticeRestart();
+
         if (chantPracticeActive && chantManager != null && chantManager.IsCasting)
         {
             chantManager.CancelChant();
+        }
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         chantPracticeActive = false;
@@ -545,7 +634,54 @@ public sealed class TutorialManager : MonoBehaviour
         if (keepPreviewVisible)
         {
             ShowChantPreview();
+            StartChantInputCleanup();
         }
+    }
+
+    private void StartChantInputCleanup()
+    {
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        if (chantPracticeInputField == null)
+        {
+            return;
+        }
+
+        chantPracticeInputField.ClearVisibleText();
+        chantInputCleanupRoutine = StartCoroutine(ClearChantInputAfterImeEnds());
+    }
+
+    private IEnumerator ClearChantInputAfterImeEnds()
+    {
+        while (chantPracticeInputField != null &&
+               chantPracticeInputField.HasActiveImeComposition)
+        {
+            chantPracticeInputField.ClearVisibleText();
+            yield return null;
+        }
+
+        if (chantPracticeInputField != null)
+        {
+            chantPracticeInputField.ClearVisibleText();
+            chantPracticeInputField.ForceLabelUpdate();
+        }
+
+        chantInputCleanupRoutine = null;
+    }
+
+    private void StopChantInputCleanup()
+    {
+        if (chantInputCleanupRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantInputCleanupRoutine);
+        chantInputCleanupRoutine = null;
     }
 
     private static string NormalizeChant(string chant)
