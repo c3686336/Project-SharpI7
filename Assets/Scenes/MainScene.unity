@@ -2200,6 +2200,7 @@ MonoBehaviour:
   fileName: tutorial.json
   dialogueText: {fileID: 1073754081}
   tutorialArrow: {fileID: 559770629}
+  charactersPerSecond: 30
   arrowMoveDistance: 8
   arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}

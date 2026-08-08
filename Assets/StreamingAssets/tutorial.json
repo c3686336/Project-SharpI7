@@ -2,12 +2,8 @@
   "tutorialId": "tutorial_stage1",
   "steps": [
     {
-      "description": "튜토리얼 도입",
-      "text": "어, 내 목소리 들려? 지금부터 내 몸을 움직이는 건 네 몫이야."
-    },
-    {
       "description": "WASD 이동 조작 안내",
-      "text": "WASD로 움직일 수 있어. 공격이 날아오면 가만히 있지 말고 피해."
+      "text": "지금부터 내 몸을 움직이는 건 네 몫이야. WASD로 움직일 수 있어."
     },
     {
       "description": "Shift 대시 조작 안내",
@@ -40,7 +36,7 @@
     },
     {
       "description": "영창 입력과 마법 사용 안내",
-      "text": "화면에 뜬 문장을 그대로 입력하고 Enter를 다시 누르면 마법이 나가.",
+      "text": "아래 있는 영창들 중 원하는 영창을 입력하고 Enter를 다시 누르면 마법이 나가.",
       "arrows": [
         {
           "position": { "x": 0, "y": -300 },
