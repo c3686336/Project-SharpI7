@@ -35,7 +35,7 @@ namespace SharpI7.Combat
         [Header("Line Ground Attack")]
         [SerializeField] private bool enableLineGroundAttack = true;
         [SerializeField, Min(0.05f)] private float lineWarningDuration = 2.5f;
-        [SerializeField, Min(0.1f)] private float lineAttackLength = 16f;
+        [SerializeField, Min(0.1f)] private float lineAttackLength = 55f;
         [SerializeField, Min(0.1f)] private float lineAttackWidth = 2f;
 
         [Header("Safe Zone Attack")]
