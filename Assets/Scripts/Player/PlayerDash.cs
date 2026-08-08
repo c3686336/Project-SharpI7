@@ -13,6 +13,7 @@ internal sealed class PlayerDash
     private readonly float duration;
     private readonly float distance;
     private readonly CancellationToken cancellationToken;
+    private readonly Action<Vector2> dashStarted;
 
     private bool isOnCooldown;
     private float cooldownStartedAt;
@@ -24,7 +25,8 @@ internal sealed class PlayerDash
         float cooldownDuration,
         float duration,
         float distance,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<Vector2> dashStarted)
     {
         this.rigidbody2D = rigidbody2D;
         this.directionProvider = directionProvider;
@@ -33,6 +35,7 @@ internal sealed class PlayerDash
         this.duration = duration;
         this.distance = distance;
         this.cancellationToken = cancellationToken;
+        this.dashStarted = dashStarted;
     }
 
     public float CooldownUntil { get; private set; }
@@ -70,7 +73,13 @@ internal sealed class PlayerDash
             TimeSpan.FromSeconds(windupDuration),
             cancellationToken: cancellationToken);
 
-        await rigidbody2D.DOMove(directionProvider() * distance, duration)
+        var dashDirection = directionProvider();
+        if (dashDirection.sqrMagnitude > 0.001f)
+        {
+            dashStarted?.Invoke(dashDirection.normalized);
+        }
+
+        await rigidbody2D.DOMove(dashDirection * distance, duration)
             .SetRelative()
             .SetEase(Ease.InOutQuad)
             .ToUniTask(cancellationToken: cancellationToken);

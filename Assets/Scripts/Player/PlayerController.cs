@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using SharpI7.Combat;
+using SharpI7.Visuals;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -31,6 +32,7 @@ public sealed class PlayerController : MonoBehaviour,
     private PlayerLocomotion locomotion;
     private PlayerDash dash;
     private PlayerSpellCaster spellCaster;
+    private PlayerDashEffect dashEffectPrefab;
     private bool isMovementLocked;
     private bool combatEnded;
 
@@ -81,8 +83,14 @@ public sealed class PlayerController : MonoBehaviour,
             dashCooldownDuration,
             dashDuration,
             dashDistance,
-            destroyCancellationToken);
+            destroyCancellationToken,
+            SpawnDashEffect);
         spellCaster = new PlayerSpellCaster(bossHealth);
+
+        // Load the prefab and its animation frames before input starts so the
+        // first Shift press never has to synchronously load Resources assets.
+        dashEffectPrefab = Resources.Load<PlayerDashEffect>("DashEffect");
+        PlayerDashEffect.Prewarm();
     }
 
     private void OnEnable()
@@ -194,6 +202,20 @@ public sealed class PlayerController : MonoBehaviour,
         {
             PublishManaStatus();
         }
+    }
+
+    private void SpawnDashEffect(Vector2 dashDirection)
+    {
+        if (dashEffectPrefab == null)
+        {
+            return;
+        }
+
+        // Follow the player's position without inheriting its boss-facing
+        // rotation, which keeps the trail opposite to the dash direction.
+        var dashEffect = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+        dashEffect.Follow(transform);
+        dashEffect.Play(dashDirection);
     }
 
     private void HandleBossDied()
