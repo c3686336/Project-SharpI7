@@ -43,7 +43,7 @@ public class ChantManager : MonoBehaviour, IChantManager
     private TMP_Text targetTextUI;
 
     [SerializeField]
-    private TMP_InputField chantInputField;
+    private ChantInputField chantInputField;
 
     [SerializeField]
     private TMP_Text correctCountUI;
@@ -483,9 +483,14 @@ public class ChantManager : MonoBehaviour, IChantManager
     // Input
     // =========================================================
 
-    private void OnImeChanged(IMECompositionString _)
+    private void OnImeChanged(IMECompositionString composition)
     {
-        OnInputChanged(chantInputField.textComponent.text);
+        var composing = composition.ToString();
+
+        if (composing.Length == 0)
+            return;
+
+        OnInputChanged(chantInputField.GetActualText(composing));
     }
 
     private void OnInputChanged(string value)
