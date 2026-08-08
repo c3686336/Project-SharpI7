@@ -102,6 +102,13 @@ public sealed class OutGameManager : MonoBehaviour
         SceneManager.LoadScene(OutGameSceneName);
     }
 
+    public static void LoadTitle()
+    {
+        outgameState = OutgameState.Main;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(OutGameSceneName);
+    }
+
     public static void LoadWin()
     {
         outgameState = OutgameState.Win;
