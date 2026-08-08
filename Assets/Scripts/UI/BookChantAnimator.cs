@@ -47,6 +47,16 @@ public sealed class BookChantAnimator : MonoBehaviour
         MoveTo(restingY + riseDistance);
     }
 
+    public void ShowTutorialPreview()
+    {
+        Raise();
+    }
+
+    public void HideTutorialPreview()
+    {
+        Lower();
+    }
+
     private void Lower()
     {
         MoveTo(restingY);

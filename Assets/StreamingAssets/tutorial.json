@@ -1,0 +1,134 @@
+{
+  "tutorialId": "tutorial_stage1",
+  "steps": [
+    {
+      "description": "튜토리얼 도입",
+      "text": "어, 내 목소리 들려? 지금부터 내 몸을 움직이는 건 네 몫이야."
+    },
+    {
+      "description": "WASD 이동 조작 안내",
+      "text": "WASD로 움직일 수 있어. 공격이 날아오면 가만히 있지 말고 피해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "Shift 대시 조작 안내",
+      "text": "이동하면서 Shift를 누르면 그 방향으로 빠르게 대시해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "대시 무적과 쿨타임 UI 안내",
+      "text": "대시하는 동안에는 공격을 맞지 않아. 오른쪽 아래 표시가 다시 차오르면 또 사용할 수 있어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "플레이어 체력 UI와 사망 안내",
+      "text": "왼쪽 아래 하트 세 개가 내 목숨이야. 공격을 맞을 때마다 하나씩 사라지고, 전부 잃으면 끝이야.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "Enter 영창 시작 안내",
+      "text": "영창 모드에 들어가려면 Enter를 눌러. 직접 한 번 눌러 봐.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right",
+      "action": "waitForChantEnter"
+    },
+    {
+      "description": "영창 입력과 마법 사용 안내",
+      "text": "화면에 뜬 문장을 그대로 입력하고 Enter를 다시 누르면 스킬이 나가.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "영창 중 이동 제한 안내",
+      "text": "영창하는 동안에는 움직일 수 없어. 자리를 잘 잡고 시작해야 해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "1~3서클 마법 구조 안내",
+      "text": "마법에는 1서클부터 3서클까지 있어. 같은 마법도 영창을 길게 이어서 더 높은 서클로 만들 수 있어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "1서클 불 마법 영창 안내",
+      "text": "1서클 마법을 쓰고 싶다면 ‘불’이라고 영창하면 돼."
+    },
+    {
+      "description": "2서클 불 마법 영창 안내",
+      "text": "2서클은 ‘타오르는 불’이야. 1서클보다 영창이 길어진 만큼 더 강해져."
+    },
+    {
+      "description": "3서클 불 마법 영창 안내",
+      "text": "3서클은 ‘영원히 타오르는 불’이야. 가장 길고 어려운 영창이지."
+    },
+    {
+      "description": "서클에 따른 마나 소비량과 데미지 안내",
+      "text": "더 어려운 영창을 시도할수록 마나 소비량도 많아지지만, 그만큼 데미지도 강해져!",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "피격 시 영창 취소 경고",
+      "text": "하지만 영창하는 도중 보스의 패턴에 맞으면 영창이 취소되니까 주의해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 체질 이야기 도입",
+      "text": "그리고 나한테는 조금 성가신 체질이 하나 있어.",
+      "action": "hideChantPreview"
+    },
+    {
+      "description": "마나 자동 증가와 플라스크 UI 안내",
+      "text": "나는 가만히 있어도 마나가 계속 차올라. 내 초상화를 감싼 플라스크가 현재 마나를 보여줘.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 증가에 따른 무아지경과 프로필 변화 시연",
+      "text": "마나가 넘칠수록 난 점점 무아지경에 빠져. 내 표정이 이렇게 달라지면 위험하다는 뜻이야.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right",
+      "action": "previewManaProfiles"
+    },
+    {
+      "description": "마나 포화와 체력 손실 안내",
+      "text": "플라스크가 완전히 차면 정신을 놓치고 하트 하나를 잃어. 그 뒤 마나는 처음 상태로 돌아와.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right",
+      "action": "previewManaSaturationDamage"
+    },
+    {
+      "description": "스킬을 통한 마나 소비 안내",
+      "text": "그걸 막으려면 스킬을 계속 사용해서 마나를 소비해 줘. 영창을 성공시키면 마나가 줄어들어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right",
+      "action": "previewManaConsumption"
+    },
+    {
+      "description": "마나 관리 핵심 정리",
+      "text": "피하기만 해서는 결국 마나에 삼켜져. 공격할 기회가 생기면 놓치지 마."
+    },
+    {
+      "description": "보스 패턴 색상 안내 도입",
+      "text": "마지막으로, 보스의 공격 패턴은 색을 보면 위험한 순간을 알 수 있어."
+    },
+    {
+      "description": "빨간색 보스 패턴 예고 안내",
+      "text": "패턴이 빨간색일 때는 공격이 오기 전 예고야. 보이면 바로 피할 준비를 해."
+    },
+    {
+      "description": "초록색 보스 패턴 안전 안내",
+      "text": "초록색은 공격이 끝난 안전한 상태야. 다시 움직이거나 공격할 기회를 잡아."
+    },
+    {
+      "description": "튜토리얼 설명 종료",
+      "text": "설명은 여기까지야. 자, 이제 같이 살아남아 보자."
+    }
+  ]
+}

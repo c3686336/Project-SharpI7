@@ -1,10 +1,18 @@
 using SharpI7.Combat;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public sealed class StageManager : MonoBehaviour
 {
     [SerializeField] private StageData stageData;
     [SerializeField] private SpriteRenderer backgroundRenderer;
+    [FormerlySerializedAs("tutorialDialogueController")]
+    [SerializeField] private TutorialManager tutorialManager;
+    [SerializeField] private InGameManager inGameManager;
+
+    private static StageData initialStageOverride;
+    private static bool showTutorialOnStart;
+    private static bool hasInitialStageRequest;
 
     private PlayerController player;
     private BossHealthBar bossHealthBar;
@@ -13,18 +21,65 @@ public sealed class StageManager : MonoBehaviour
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
 
+    public static void SetInitialStage(StageData initialStage, bool showTutorial)
+    {
+        initialStageOverride = initialStage;
+        showTutorialOnStart = showTutorial;
+        hasInitialStageRequest = true;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetInitialStage()
+    {
+        initialStageOverride = null;
+        showTutorialOnStart = false;
+        hasInitialStageRequest = false;
+    }
+
     private void Start()
     {
         player = FindAnyObjectByType<PlayerController>();
         bossHealthBar = FindAnyObjectByType<BossHealthBar>(FindObjectsInactive.Include);
 
-        LoadStage(stageData);
+        StageData initialStage = initialStageOverride != null
+            ? initialStageOverride
+            : stageData;
+        bool shouldShowTutorial = hasInitialStageRequest && showTutorialOnStart;
+        initialStageOverride = null;
+        showTutorialOnStart = false;
+        hasInitialStageRequest = false;
+
+        bool stageLoaded = LoadStage(initialStage);
+        SetTutorialMode(stageLoaded && shouldShowTutorial);
     }
 
     private void OnDestroy()
     {
         UnbindBoss();
         DestroyStageExit();
+    }
+
+    private void SetTutorialMode(bool enabled)
+    {
+        if (tutorialManager == null || inGameManager == null)
+        {
+            Debug.LogError(
+                "[StageManager] TutorialManager or InGameManager reference is missing.",
+                this);
+            return;
+        }
+
+        tutorialManager.gameObject.SetActive(enabled);
+
+        if (enabled)
+        {
+            inGameManager.PauseGameplay();
+            tutorialManager.Begin(inGameManager);
+        }
+        else
+        {
+            inGameManager.ResumeGameplay();
+        }
     }
 
     private void ApplyStageData()
