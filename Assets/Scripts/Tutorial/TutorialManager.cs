@@ -42,6 +42,10 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PracticeChantAction = "practiceChant";
     private const string AdvanceWithEnterAction = "advanceWithEnter";
     private const string HideChantPreviewAction = "hideChantPreview";
+    private const string ClickToContinueMessage =
+        "마우스 좌클릭으로 튜토리얼을 진행할 수 있습니다.";
+    private const string FollowInstructionsMessage =
+        "튜토리얼의 지시사항을 확인해주세요.";
 
     [SerializeField] private string fileName = DefaultFileName;
     [SerializeField] private TMP_Text dialogueText;
@@ -50,6 +54,10 @@ public sealed class TutorialManager : MonoBehaviour
     [Header("Dialogue Typing")]
     [SerializeField, Min(1f)] private float charactersPerSecond = 35f;
     [SerializeField, Min(0f)] private float firstDialogueDelay = 0.5f;
+    [SerializeField, Min(0f)] private float inputHintCooldown = 1.5f;
+
+    [Header("Tutorial Feedback")]
+    [SerializeField] private ToastMessageManager toastMessageManager;
 
     [Header("Arrow Animation")]
     [SerializeField, Min(0f)] private float arrowMoveDistance = 8f;
@@ -95,6 +103,7 @@ public sealed class TutorialManager : MonoBehaviour
     private Image previewHeartImage;
     private float actionFinalFillAmount;
     private float arrowAnimationElapsed;
+    private float nextInputHintTime;
     private int activeArrowCount;
     private int currentStepIndex = -1;
     private int inputBlockedThroughFrame = -1;
@@ -156,6 +165,7 @@ public sealed class TutorialManager : MonoBehaviour
         inputBlockedThroughFrame = Time.frameCount;
         isWaitingForChantEnter = false;
         isWaitingForChantPractice = false;
+        nextInputHintTime = 0f;
         isRunning = true;
         ShowCurrentStep();
     }
@@ -202,6 +212,8 @@ public sealed class TutorialManager : MonoBehaviour
             AdvanceDialogue();
             return;
         }
+
+        ShowClickHintForKeyboardInput();
 
         if (isTyping || !WasLeftClickPressedThisFrame())
         {
@@ -382,14 +394,18 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void HandleChantEnterInput()
     {
-        if (!WasEnterPressedThisFrame())
+        if (WasEnterPressedThisFrame())
         {
+            isWaitingForChantEnter = false;
+            ShowChantPreview();
+            AdvanceDialogue();
             return;
         }
 
-        isWaitingForChantEnter = false;
-        ShowChantPreview();
-        AdvanceDialogue();
+        if (WasLeftClickPressedThisFrame())
+        {
+            ShowToastWithCooldown(FollowInstructionsMessage);
+        }
     }
 
     private static bool WasEnterPressedThisFrame()
@@ -404,6 +420,30 @@ public sealed class TutorialManager : MonoBehaviour
     {
         Mouse mouse = Mouse.current;
         return mouse != null && mouse.leftButton.wasPressedThisFrame;
+    }
+
+    private void ShowClickHintForKeyboardInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (canAdvanceWithEnter || keyboard == null ||
+            !keyboard.anyKey.wasPressedThisFrame ||
+            toastMessageManager == null || Time.unscaledTime < nextInputHintTime)
+        {
+            return;
+        }
+
+        ShowToastWithCooldown(ClickToContinueMessage);
+    }
+
+    private void ShowToastWithCooldown(string message)
+    {
+        if (toastMessageManager == null || Time.unscaledTime < nextInputHintTime)
+        {
+            return;
+        }
+
+        toastMessageManager.Show(message);
+        nextInputHintTime = Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
     }
 
     private void StartChantPractice(TutorialDialogueStep step)
