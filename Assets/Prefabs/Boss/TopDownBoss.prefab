@@ -84,13 +84,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22222222222222222222222222222222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 500
-  enablePhaseTwo: 1
-  phaseTwoMaxHealth: 1000
-  phaseTwoTransitionDelay: 2
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
-  damagePerWord: 15
-  maxWordDamageStage: 3
 --- !u!114 &11400001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,55 +105,6 @@ MonoBehaviour:
   slowWobbleOrbPrefab: {fileID: 11400000, guid: ffffffffffffffffffffffffffffffff, type: 3}
   bossDistanceDangerPrefab: {fileID: 11400000, guid: bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc, type: 3}
   dashLaserWallDangerPrefab: {fileID: 11400000, guid: 2468ace13579bdf02468ace13579bdf0, type: 3}
-  firstAttackDelay: 3
-  recoveryDuration: 5
-  chantOpportunityDuration: 1
-  attackDamage: 1
-  enableTrackingBarrage: 1
-  minTrackingStrikes: 3
-  maxTrackingStrikes: 3
-  trackingAttackRadius: 2.25
-  trackingWarningDuration: 1.5
-  trackingStrikeInterval: 0.35
-  enableLineGroundAttack: 1
-  lineWarningDuration: 2.5
-  lineAttackLength: 55
-  lineAttackWidth: 2
-  enableSafeZoneAttack: 1
-  safeZoneWarningDuration: 4
-  safeZoneFieldSize: {x: 30, y: 18}
-  safeZoneRadius: 3
-  safeZoneMinDistance: 5
-  safeZoneMaxDistance: 9
-  enableRotatingLaserAttack: 1
-  laserWarningDuration: 2
-  laserActiveDuration: 5
-  laserLength: 14
-  laserWidth: 1.2
-  laserDamagePerTick: 1
-  laserPlayerDamageInvulnerabilityDuration: 1
-  enableDashLaserWallAttack: 1
-  dashLaserWallFieldSize: {x: 45, y: 27}
-  dashLaserWallThickness: 1.4
-  dashLaserWallWarningDuration: 1.2
-  dashLaserWallTravelDuration: 2.7
-  dashLaserWallDamage: 1
-  contactDamage: 1
-  contactDamageInterval: 1
-  phaseTwoAttackDelayMultiplier: 0.7
-  phaseTwoMoveSpeedMultiplier: 1.5
-  enableRadialWobbleOrbAttack: 1
-  radialOrbCount: 12
-  orbMovementSpeed: 1.2
-  orbWobbleAmplitude: 0.8
-  orbWobbleFrequency: 0.6
-  orbCollisionRadius: 0.3
-  orbDamage: 1
-  orbPlayAreaSize: {x: 30, y: 18}
-  enableBossDistanceAttack: 1
-  bossDistanceWarningDuration: 4
-  bossDistanceFieldSize: {x: 30, y: 18}
-  bossDistanceRadius: 6
 --- !u!114 &11400002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,8 +118,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTarget: {fileID: 0}
-  moveSpeed: 1.25
-  stoppingDistance: 1.5
 --- !u!212 &21200000
 SpriteRenderer:
   serializedVersion: 3

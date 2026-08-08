@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Cysharp.Threading.Tasks;
+using SharpI7.Balance;
 using SharpI7.Combat;
 using SharpI7.Visuals;
 using UnityEngine;
@@ -12,18 +13,7 @@ public sealed class PlayerController : MonoBehaviour,
     IPlayerMana,
     IPlayerDash
 {
-    [SerializeField, Min(0f)] private float moveSpeed;
-    [SerializeField, Min(0f)] private float dashWindupDuration;
-    [SerializeField, Min(0f)] private float dashCooldownDuration;
-    [SerializeField, Min(0f)] private float dashDuration;
-    [SerializeField, Min(0f)] private float dashDistance;
     [SerializeField] private Vector2 referenceHeading;
-    [SerializeField, Min(1f)] private float maxHealth = 3f;
-    [SerializeField] private float defaultMana = 50f;
-    [SerializeField, Min(0f)] private float manaWarningThreshold = 90f;
-    [SerializeField, Min(1f)] private float criticalMana = 100f;
-    [SerializeField, Min(0f)] private float manaFillSpeed = 10f;
-    [SerializeField, Min(0.1f)] private float manaSaturationDamageCooldown = 3f;
     [SerializeField] private ChantManager chantManager;
     [SerializeField] private BossHealth bossHealth;
 
@@ -33,6 +23,7 @@ public sealed class PlayerController : MonoBehaviour,
     private PlayerLocomotion locomotion;
     private PlayerDash dash;
     private PlayerSpellCaster spellCaster;
+    private PlayerBalance balance;
     private PlayerDashEffect dashEffectPrefab;
     private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
@@ -51,23 +42,24 @@ public sealed class PlayerController : MonoBehaviour,
     public Vector2 MoveDirection => locomotion?.CurrentMovement ?? Vector2.zero;
     public bool IsMoving => locomotion != null && locomotion.CurrentMovement.sqrMagnitude > 0.001f &&
                             !isMovementLocked && !IsDashing && !combatEnded && health != null && health.IsAlive;
-    public float MaxHealth => health?.Maximum ?? maxHealth;
+    public float MaxHealth => health?.Maximum ?? balance?.maxHealth ?? 0f;
     public float CurrentHealth => health?.Current ?? 0f;
     public bool IsAlive => health?.IsAlive ?? false;
-    public float MaxMana => mana?.SaturationThreshold ?? criticalMana;
+    public float MaxMana => mana?.SaturationThreshold ?? balance?.mana?.saturationThreshold ?? 0f;
     public float CurrentMana => mana?.Current ?? 0f;
     public ManaStatus ManaStatus => mana?.Status ?? default;
 
     private void Awake()
     {
+        balance = BalanceDataLoader.Current.player;
         input = new PlayerInputActions();
-        health = new PlayerHealth(maxHealth);
+        health = new PlayerHealth(balance.maxHealth);
         mana = new PlayerMana(
-            defaultMana,
-            manaWarningThreshold,
-            criticalMana,
-            manaFillSpeed,
-            manaSaturationDamageCooldown);
+            balance.mana.defaultValue,
+            balance.mana.warningThreshold,
+            balance.mana.saturationThreshold,
+            balance.mana.fillSpeed,
+            balance.mana.saturationDuration);
 
         if (chantManager == null || bossHealth == null)
         {
@@ -84,15 +76,15 @@ public sealed class PlayerController : MonoBehaviour,
         locomotion = new PlayerLocomotion(
             rigidbody2D,
             bossHealth.transform,
-            moveSpeed,
+            balance.moveSpeed,
             referenceHeading);
         dash = new PlayerDash(
             rigidbody2D,
             () => locomotion.CurrentMovement,
-            dashWindupDuration,
-            dashCooldownDuration,
-            dashDuration,
-            dashDistance,
+            balance.dash.windupDuration,
+            balance.dash.cooldownDuration,
+            balance.dash.duration,
+            balance.dash.distance,
             destroyCancellationToken,
             SpawnDashEffect);
         spellCaster = new PlayerSpellCaster(bossHealth);
@@ -165,7 +157,7 @@ public sealed class PlayerController : MonoBehaviour,
         PublishManaStatus();
         if (overloadDamageDue)
         {
-            ApplyDamage(1f, true);
+            ApplyDamage(balance.overloadDamage, true);
         }
     }
 
@@ -293,21 +285,4 @@ public sealed class PlayerController : MonoBehaviour,
         ManaStatusChanged?.Invoke(mana.Status);
     }
 
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        moveSpeed = Mathf.Max(0f, moveSpeed);
-        dashWindupDuration = Mathf.Max(0f, dashWindupDuration);
-        dashCooldownDuration = Mathf.Max(0f, dashCooldownDuration);
-        dashDuration = Mathf.Max(0f, dashDuration);
-        dashDistance = Mathf.Max(0f, dashDistance);
-        maxHealth = Mathf.Max(1f, maxHealth);
-        criticalMana = Mathf.Max(1f, criticalMana);
-        manaWarningThreshold = Mathf.Clamp(manaWarningThreshold, 0f, criticalMana);
-        manaFillSpeed = Mathf.Max(0f, manaFillSpeed);
-        manaSaturationDamageCooldown = Mathf.Max(0.1f, manaSaturationDamageCooldown);
-        float displayMaximum = criticalMana + manaFillSpeed * manaSaturationDamageCooldown;
-        defaultMana = Mathf.Clamp(defaultMana, 0f, displayMaximum);
-    }
-#endif
 }

@@ -1,3 +1,4 @@
+using SharpI7.Balance;
 using UnityEngine;
 
 namespace SharpI7.Combat
@@ -7,16 +8,16 @@ namespace SharpI7.Combat
     public sealed class BossMovement : MonoBehaviour
     {
         [SerializeField] private Transform playerTarget;
-        [SerializeField, Min(0f)] private float moveSpeed = 1.25f;
-        [SerializeField, Min(0f)] private float stoppingDistance = 1.5f;
 
         private BossHealth bossHealth;
+        private BossMovementBalance balance;
         private bool movementLocked;
         private float speedMultiplier = 1f;
         private float boundaryPadding;
 
         private void Awake()
         {
+            balance = BalanceDataLoader.Current.boss.movement;
             bossHealth = GetComponent<BossHealth>();
             var collider = GetComponent<Collider2D>();
             boundaryPadding = collider == null
@@ -41,7 +42,7 @@ namespace SharpI7.Combat
             var targetPosition = playerTarget.position;
             targetPosition.z = currentPosition.z;
             var offset = targetPosition - currentPosition;
-            if (offset.sqrMagnitude <= stoppingDistance * stoppingDistance)
+            if (offset.sqrMagnitude <= balance.stoppingDistance * balance.stoppingDistance)
             {
                 return;
             }
@@ -49,7 +50,7 @@ namespace SharpI7.Combat
             var nextPosition = Vector3.MoveTowards(
                 currentPosition,
                 targetPosition,
-                moveSpeed * speedMultiplier * Time.deltaTime);
+                balance.moveSpeed * speedMultiplier * Time.deltaTime);
             transform.position = ArenaBounds.ClampPosition(nextPosition, boundaryPadding);
         }
 
@@ -87,12 +88,5 @@ namespace SharpI7.Combat
             }
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            moveSpeed = Mathf.Max(0f, moveSpeed);
-            stoppingDistance = Mathf.Max(0f, stoppingDistance);
-        }
-#endif
     }
 }

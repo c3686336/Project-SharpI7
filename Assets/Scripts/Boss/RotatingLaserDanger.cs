@@ -29,7 +29,8 @@ namespace SharpI7.Combat
             float warningDuration,
             float activeDuration,
             float damagePerTick,
-            float damageInvulnerabilityDuration)
+            float damageInvulnerabilityDuration,
+            float sweepDegrees)
         {
             followTarget = anchor;
             damageTarget = target;
@@ -42,11 +43,10 @@ namespace SharpI7.Combat
             CreateLaserVisual();
             AimAtTarget();
 
-            const float clockwiseSweepDegrees = -350f;
             laserRoutine = StartCoroutine(LaserRoutine(
                 Mathf.Max(0.05f, warningDuration),
                 Mathf.Max(0.05f, activeDuration),
-                clockwiseSweepDegrees));
+                sweepDegrees));
         }
 
         public void Cancel()
