@@ -555,15 +555,29 @@ namespace SharpI7.Combat
             }
 
             var fieldCenter = (Vector2)transform.position;
-            var safePosition = ChooseSafeZonePosition(fieldCenter);
-            var attackPosition = transform.position;
-            attackPosition.z = 0f;
+            var fieldSize = safeZoneFieldSize;
+            if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldCenter = (Vector2)arenaBounds.center;
+                fieldSize = (Vector2)arenaBounds.size;
+            }
+
+            var safeZoneBoundsCenter = fieldCenter;
+            var safeZoneBoundsSize = fieldSize;
+            if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                safeZoneBoundsCenter = (Vector2)wallInteriorBounds.center;
+                safeZoneBoundsSize = (Vector2)wallInteriorBounds.size;
+            }
+
+            var safePosition = ChooseSafeZonePosition(safeZoneBoundsCenter, safeZoneBoundsSize);
+            var attackPosition = new Vector3(fieldCenter.x, fieldCenter.y, 0f);
 
             activeSafeZone = Instantiate(safeZoneDangerPrefab, attackPosition, Quaternion.identity);
             activeSafeZone.Begin(
                 playerTarget,
                 safePosition,
-                safeZoneFieldSize,
+                fieldSize + Vector2.one * 0.1f,
                 safeZoneRadius,
                 safeZoneWarningDuration,
                 attackDamage);
@@ -577,7 +591,7 @@ namespace SharpI7.Combat
             }
         }
 
-        private Vector2 ChooseSafeZonePosition(Vector2 fieldCenter)
+        private Vector2 ChooseSafeZonePosition(Vector2 fieldCenter, Vector2 fieldSize)
         {
             var direction = Random.insideUnitCircle;
             if (direction.sqrMagnitude < 0.001f)
@@ -588,8 +602,8 @@ namespace SharpI7.Combat
             direction.Normalize();
             var distance = Random.Range(safeZoneMinDistance, safeZoneMaxDistance);
             var desiredPosition = (Vector2)playerTarget.position + direction * distance;
-            var availableHalfWidth = Mathf.Max(0f, safeZoneFieldSize.x * 0.5f - safeZoneRadius);
-            var availableHalfHeight = Mathf.Max(0f, safeZoneFieldSize.y * 0.5f - safeZoneRadius);
+            var availableHalfWidth = Mathf.Max(0f, fieldSize.x * 0.5f - safeZoneRadius);
+            var availableHalfHeight = Mathf.Max(0f, fieldSize.y * 0.5f - safeZoneRadius);
 
             desiredPosition.x = Mathf.Clamp(
                 desiredPosition.x,

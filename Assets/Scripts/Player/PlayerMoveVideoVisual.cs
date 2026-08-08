@@ -7,18 +7,23 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
     [SerializeField] private Sprite[] movementFrames;
     [SerializeField, Min(0.01f)] private float framesPerSecond = 10f;
     [SerializeField] private Sprite[] dashFrames;
-    [SerializeField, Min(0.01f)] private float dashFramesPerSecond = 20f;
+    [SerializeField, Min(0.01f)] private float dashFramesPerSecond = 10f;
+    [SerializeField, Min(0.01f)] private float dashFrameBlendDuration = 0.1f;
 
     private PlayerController playerController;
     private SpriteRenderer spriteRenderer;
+    private SpriteRenderer previousDashRenderer;
     private float elapsed;
+    private float previousDashFadeRemaining;
     private int frameIndex;
+    private int dashFrameIndex = -1;
     private bool wasDashing;
 
     private void Awake()
     {
         playerController = GetComponent<PlayerController>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        CreatePreviousDashRenderer();
     }
 
     private void Update()
@@ -34,7 +39,13 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
             return;
         }
 
+        if (wasDashing)
+        {
+            BeginPreviousDashFade(spriteRenderer.sprite);
+        }
+
         wasDashing = false;
+        UpdatePreviousDashFade();
 
         if (movementFrames == null || movementFrames.Length == 0)
         {
@@ -71,8 +82,9 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         if (!wasDashing)
         {
             elapsed = 0f;
-            frameIndex = 0;
+            dashFrameIndex = -1;
             wasDashing = true;
+            HidePreviousDashFrame();
         }
 
         var dashDirection = playerController.DashDirection;
@@ -82,7 +94,71 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         }
 
         elapsed += Time.deltaTime;
-        frameIndex = Mathf.Min(Mathf.FloorToInt(elapsed * dashFramesPerSecond), dashFrames.Length - 1);
-        spriteRenderer.sprite = dashFrames[frameIndex];
+        var nextDashFrameIndex = Mathf.Min(
+            Mathf.FloorToInt(elapsed * dashFramesPerSecond),
+            dashFrames.Length - 1);
+
+        if (nextDashFrameIndex != dashFrameIndex)
+        {
+            if (dashFrameIndex >= 0)
+            {
+                BeginPreviousDashFade(spriteRenderer.sprite);
+            }
+
+            dashFrameIndex = nextDashFrameIndex;
+            spriteRenderer.sprite = dashFrames[dashFrameIndex];
+        }
+
+        UpdatePreviousDashFade();
+    }
+
+    private void CreatePreviousDashRenderer()
+    {
+        var previousFrameObject = new GameObject("Previous Dash Frame");
+        previousFrameObject.transform.SetParent(transform, false);
+
+        previousDashRenderer = previousFrameObject.AddComponent<SpriteRenderer>();
+        previousDashRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
+        previousDashRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+        previousDashRenderer.enabled = false;
+    }
+
+    private void BeginPreviousDashFade(Sprite sprite)
+    {
+        if (previousDashRenderer == null || sprite == null)
+        {
+            return;
+        }
+
+        previousDashRenderer.sprite = sprite;
+        previousDashRenderer.flipX = spriteRenderer.flipX;
+        previousDashRenderer.color = Color.white;
+        previousDashRenderer.enabled = true;
+        previousDashFadeRemaining = dashFrameBlendDuration;
+    }
+
+    private void UpdatePreviousDashFade()
+    {
+        if (previousDashRenderer == null || !previousDashRenderer.enabled)
+        {
+            return;
+        }
+
+        previousDashFadeRemaining -= Time.deltaTime;
+        var alpha = Mathf.Clamp01(previousDashFadeRemaining / dashFrameBlendDuration);
+        previousDashRenderer.color = new Color(1f, 1f, 1f, alpha);
+
+        if (previousDashFadeRemaining <= 0f)
+        {
+            HidePreviousDashFrame();
+        }
+    }
+
+    private void HidePreviousDashFrame()
+    {
+        if (previousDashRenderer != null)
+        {
+            previousDashRenderer.enabled = false;
+        }
     }
 }

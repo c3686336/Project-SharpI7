@@ -50,6 +50,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
   spellHitVideoClip: {fileID: 32900000, guid: 02e86ba80e8e0de40bce835eaa87cb53, type: 3}
+  spellHitVideoLevelTwoClip: {fileID: 32900000, guid: 0d5845cdcb46a6f41b1052b4ffee4c6d, type: 3}
+  spellHitVideoLevelTwoScale: 1.25
+  spellHitVideoLevelTwoIntensity: 2
   spellHitVideoOffset: {x: 0, y: -0.35, z: -0.1}
   spellHitVideoSize: {x: 4.8, y: 4.8}
 --- !u!114 &11400001

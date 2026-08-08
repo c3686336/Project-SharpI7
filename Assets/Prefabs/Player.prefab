@@ -213,6 +213,7 @@ MonoBehaviour:
   - {fileID: -4911446307247983195, guid: a7abe162e26bb20428ab3f17d8093b69, type: 3}
   - {fileID: 979358755696017567, guid: 01566745429bbb047bad55f00188265e, type: 3}
   dashFramesPerSecond: 20
+  dashFrameBlendDuration: 0.4
 --- !u!114 &845918742311000002
 MonoBehaviour:
   m_ObjectHideFlags: 0

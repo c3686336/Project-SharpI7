@@ -14,18 +14,17 @@
     "dash": {
       "windupDuration": 0.0,
       "cooldownDuration": 3.0,
-      "duration": 0.3,
+      "duration": 0.4,
       "distance": 5.0
     }
   },
   "boss": {
     "health": {
-      "maxHealth": 500.0,
+      "maxHealth": 150.0,
       "enablePhaseTwo": true,
-      "phaseTwoMaxHealth": 1000.0,
+      "phaseTwoMaxHealth": 300.0,
       "phaseTwoTransitionDelay": 2.0,
-      "damagePerWord": 15.0,
-      "maxWordDamageStage": 3
+      "spellDamageByStage": [10.0, 30.0, 70.0]
     },
     "movement": {
       "moveSpeed": 1.25,

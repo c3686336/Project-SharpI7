@@ -64,8 +64,7 @@ namespace SharpI7.Balance
         public bool enablePhaseTwo;
         public float phaseTwoMaxHealth;
         public float phaseTwoTransitionDelay;
-        public float damagePerWord;
-        public int maxWordDamageStage;
+        public float[] spellDamageByStage;
     }
 
     [Serializable]

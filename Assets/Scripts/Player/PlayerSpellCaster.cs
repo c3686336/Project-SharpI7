@@ -2,15 +2,15 @@ using SharpI7.Combat;
 
 internal sealed class PlayerSpellCaster
 {
-    private readonly IDamageable target;
+    private readonly BossHealth target;
 
-    public PlayerSpellCaster(IDamageable target)
+    public PlayerSpellCaster(BossHealth target)
     {
         this.target = target;
     }
 
     public void Cast(CastResult result)
     {
-        target.TakeDamage(result.actualDamage);
+        target.TakeSpellDamage(result.castLevel);
     }
 }

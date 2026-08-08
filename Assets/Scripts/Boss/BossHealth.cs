@@ -12,6 +12,9 @@ namespace SharpI7.Combat
 
         [Header("Hit Effect")]
         [SerializeField] private VideoClip spellHitVideoClip;
+        [SerializeField] private VideoClip spellHitVideoLevelTwoClip;
+        [SerializeField, Min(1f)] private float spellHitVideoLevelTwoScale = 1.25f;
+        [SerializeField, Min(1f)] private float spellHitVideoLevelTwoIntensity = 2f;
         [SerializeField] private Vector3 spellHitVideoOffset = new(0f, -0.35f, -0.1f);
         [SerializeField] private Vector2 spellHitVideoSize = new(4.8f, 4.8f);
 
@@ -83,13 +86,25 @@ namespace SharpI7.Combat
                 return;
             }
 
+            var levelOneClip = spellHitVideoClip;
+            if (completedWordCount >= 2 && spellHitVideoLevelTwoClip != null)
+            {
+                spellHitVideoClip = spellHitVideoLevelTwoClip;
+            }
+
             TakeDamage(GetSpellDamage(completedWordCount));
+            spellHitVideoClip = levelOneClip;
         }
 
         public float GetSpellDamage(int completedWordCount)
         {
-            var damageStage = Mathf.Clamp(completedWordCount, 0, balance.maxWordDamageStage);
-            return damageStage * balance.damagePerWord;
+            if (balance.spellDamageByStage == null || balance.spellDamageByStage.Length == 0)
+            {
+                return 0f;
+            }
+
+            var damageIndex = Mathf.Clamp(completedWordCount - 1, 0, balance.spellDamageByStage.Length - 1);
+            return balance.spellDamageByStage[damageIndex];
         }
 
         public void RestoreFullHealth()
@@ -113,8 +128,20 @@ namespace SharpI7.Combat
 
         private void PrepareSpellHitVideo()
         {
-            if (spellHitVideoClip == null || spellHitVideoObject != null)
+            if (spellHitVideoClip == null)
             {
+                return;
+            }
+
+            if (spellHitVideoObject != null)
+            {
+                if (spellHitVideoPlayer != null && spellHitVideoPlayer.clip != spellHitVideoClip)
+                {
+                    spellHitVideoPlayer.Stop();
+                    spellHitVideoPlayer.clip = spellHitVideoClip;
+                    spellHitVideoPlayer.Prepare();
+                }
+
                 return;
             }
 
@@ -169,6 +196,13 @@ namespace SharpI7.Combat
             }
 
             spellHitVideoObject.transform.position = transform.position + spellHitVideoOffset;
+            var isLevelTwoEffect = spellHitVideoClip == spellHitVideoLevelTwoClip;
+            var scaleMultiplier = isLevelTwoEffect ? spellHitVideoLevelTwoScale : 1f;
+            spellHitVideoObject.transform.localScale = new Vector3(
+                spellHitVideoSize.x * scaleMultiplier,
+                spellHitVideoSize.y * scaleMultiplier,
+                1f);
+            spellHitVideoMaterial.SetFloat("_Intensity", isLevelTwoEffect ? spellHitVideoLevelTwoIntensity : 1f);
             spellHitVideoRenderer.enabled = true;
             spellHitVideoPlayer.Stop();
             spellHitVideoPlayer.time = 0d;
@@ -179,12 +213,12 @@ namespace SharpI7.Combat
                 StopCoroutine(hideSpellHitVideoRoutine);
             }
 
-            hideSpellHitVideoRoutine = StartCoroutine(HideSpellHitVideoAfterPlayback());
+            hideSpellHitVideoRoutine = StartCoroutine(HideSpellHitVideoAfterPlayback((float)spellHitVideoClip.length));
         }
 
-        private IEnumerator HideSpellHitVideoAfterPlayback()
+        private IEnumerator HideSpellHitVideoAfterPlayback(float playbackLength)
         {
-            yield return new WaitForSeconds((float)spellHitVideoClip.length + 0.05f);
+            yield return new WaitForSeconds(playbackLength + 0.05f);
             if (spellHitVideoRenderer != null)
             {
                 spellHitVideoRenderer.enabled = false;
@@ -230,7 +264,7 @@ namespace SharpI7.Combat
         }
 
 #if UNITY_EDITOR
-        [ContextMenu("Test Spell Damage/1 Word (15)")]
+        [ContextMenu("Test Spell Damage/1 Word (10)")]
         private void TestOneWordDamage()
         {
             if (Application.isPlaying)
@@ -248,7 +282,7 @@ namespace SharpI7.Combat
             }
         }
 
-        [ContextMenu("Test Spell Damage/3 Words (45)")]
+        [ContextMenu("Test Spell Damage/3 Words (70)")]
         private void TestThreeWordDamage()
         {
             if (Application.isPlaying)
