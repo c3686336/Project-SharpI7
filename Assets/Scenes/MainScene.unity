@@ -292,6 +292,7 @@ GameObject:
   m_Component:
   - component: {fileID: 207577490}
   - component: {fileID: 207577491}
+  - component: {fileID: 207577492}
   m_Layer: 5
   m_Name: ToastLayer
   m_TagString: Untagged
@@ -406,6 +407,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 222325129}
   m_CullTransparentMesh: 1
+--- !u!95 &207577492
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207577489}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &337123496
 GameObject:
   m_ObjectHideFlags: 0
@@ -974,7 +997,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
   m_PrefabInstance: {fileID: 1095544554}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 859006578}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81eaf8fc5f20f789b8023e5bf32dfe4a, type: 3}
@@ -1680,6 +1703,32 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 649426898}
   m_CullTransparentMesh: 1
+--- !u!1 &859006578 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
+  m_PrefabInstance: {fileID: 1095544554}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &859006584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859006578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589aa4c8b97bb8f4780efc9736cb98ab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SpellEffectRegistry
+  effects:
+  - effectId: FlickingLightning_Lv1
+    prefab: {fileID: 163929922656029403, guid: becd2d78925c8dd489bf6bb24306b2a7, type: 3}
+  - effectId: FlickingLightning_Lv2
+    prefab: {fileID: 1128445482282891342, guid: d907f0e3620015c4282abc6cf9ce80dc, type: 3}
+  - effectId: FlickingLightning_Lv3_Impact
+    prefab: {fileID: 2532948527499701896, guid: 4d5bcbcb4bfddc84eac954e0e4a63190, type: 3}
+  - effectId: FlickingLightning_Lv3_Tick
+    prefab: {fileID: 7780006044499204285, guid: 32b62f9b62a8ab94fa0c445b549f88fa, type: 3}
 --- !u!1 &864911122
 GameObject:
   m_ObjectHideFlags: 0
@@ -2154,6 +2203,10 @@ PrefabInstance:
       propertyPath: referenceHeading.y
       value: -1
       objectReference: {fileID: 0}
+    - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
+      propertyPath: spellEffectRegistry
+      value:
+      objectReference: {fileID: 859006584}
     - target: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: m_Name
       value: Player
@@ -2217,7 +2270,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 859006584}
   m_SourcePrefab: {fileID: 100100000, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
 --- !u!1 &1160547528
 GameObject:
@@ -3222,7 +3278,7 @@ Transform:
   m_GameObject: {fileID: 1711106415}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalPosition: {x: 0.01, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

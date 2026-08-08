@@ -29,11 +29,18 @@ public sealed class PlayerController : MonoBehaviour,
     [SerializeField] private BossHealth bossHealth;
     [SerializeField] private Color flashColor;
 
+    [Header("Spell Effects")]
+    [SerializeField] private SpellEffectRegistry spellEffectRegistry;
+    [SerializeField] private Transform lightningEffectOrigin;
+
     private PlayerInputActions input;
     private PlayerHealth health;
     private PlayerMana mana;
     private PlayerLocomotion locomotion;
     private PlayerDash dash;
+    private PlayerSpellCaster fireSpellCaster;
+    private LightningSpellCaster lightningSpellCaster;
+    private SpellCastRouter spellCastRouter;
     private PlayerBalance balance;
     private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
@@ -80,9 +87,7 @@ public sealed class PlayerController : MonoBehaviour,
 
         if (chantManager == null)
         {
-            Debug.LogError(
-                "PlayerController requires a ChantManager reference.",
-                this);
+            Debug.LogError("PlayerController requires a ChantManager reference.", this);
             enabled = false;
             return;
         }
@@ -90,10 +95,13 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.SetManaSource(this);
 
         Rigidbody2D rigidbody2D = GetComponent<Rigidbody2D>();
+
         locomotion = new PlayerLocomotion(
             rigidbody2D,
             balance.moveSpeed,
-            referenceHeading);
+            referenceHeading
+        );
+
         dash = new PlayerDash(
             rigidbody2D,
             () => input.Movement.Movement.ReadValue<Vector2>(),
@@ -102,17 +110,22 @@ public sealed class PlayerController : MonoBehaviour,
             balance.dash.duration,
             balance.dash.distance,
             destroyCancellationToken);
+
+        BuildSpellCasters();
         combatEnded = bossHealth == null;
 
         sr = GetComponent<SpriteRenderer>();
+
+        if (spellEffectRegistry == null)
+        {
+            Debug.LogWarning("[PlayerController] SpellEffectRegistry가 연결되지 않았습니다. 번개 공격 데미지는 들어가지만 이펙트는 표시되지 않습니다.", this);
+        }
     }
 
     private void OnEnable()
     {
         if (input == null || chantManager == null || dash == null)
-        {
             return;
-        }
 
         input.Movement.Enable();
 
@@ -146,6 +159,11 @@ public sealed class PlayerController : MonoBehaviour,
         }
     }
 
+    private void OnDestroy()
+    {
+        lightningSpellCaster?.Dispose();
+    }
+
     private void Update()
     {
         if (InGameManager.GameplayInputBlocked || !health.IsAlive || combatEnded)
@@ -170,6 +188,7 @@ public sealed class PlayerController : MonoBehaviour,
 
         bool overloadDamageDue = mana.Tick(Time.deltaTime);
         PublishManaStatus();
+
         if (overloadDamageDue)
         {
             ApplyDamage(balance.overloadDamage, true);
@@ -185,7 +204,38 @@ public sealed class PlayerController : MonoBehaviour,
 
         locomotion.FixedTick(
             input.Movement.Movement.ReadValue<Vector2>(),
-            !dash.IsDashing && !isMovementLocked);
+            !dash.IsDashing && !isMovementLocked
+        );
+    }
+
+    private void BuildSpellCasters()
+    {
+        lightningSpellCaster?.Dispose();
+
+        fireSpellCaster = null;
+        lightningSpellCaster = null;
+        spellCastRouter = null;
+
+        if (bossHealth == null)
+            return;
+
+        fireSpellCaster = new PlayerSpellCaster(bossHealth);
+
+        Transform effectOrigin = lightningEffectOrigin != null
+            ? lightningEffectOrigin
+            : transform;
+
+        lightningSpellCaster = new LightningSpellCaster(
+            bossHealth,
+            effectOrigin,
+            spellEffectRegistry,
+            destroyCancellationToken
+        );
+
+        spellCastRouter = new SpellCastRouter(
+            fireSpellCaster,
+            lightningSpellCaster
+        );
     }
 
     private void LockMovement()
@@ -204,7 +254,6 @@ public sealed class PlayerController : MonoBehaviour,
     public void TakeDamage(float amount)
     {
         tookDamage?.Invoke(amount);
-
         ApplyDamage(amount, false);
     }
 
@@ -216,6 +265,8 @@ public sealed class PlayerController : MonoBehaviour,
         }
 
         bossHealth = newBossHealth;
+        BuildSpellCasters();
+
         combatEnded = bossHealth == null;
         isMovementLocked = false;
 
@@ -238,6 +289,8 @@ public sealed class PlayerController : MonoBehaviour,
     private void HandleBossDied()
     {
         combatEnded = true;
+        lightningSpellCaster?.Dispose();
+
         locomotion.Stop();
         dash.Stop();
 
@@ -265,6 +318,12 @@ public sealed class PlayerController : MonoBehaviour,
 
         if (bossHealth == null || !bossHealth.IsAlive)
         {
+            yield break;
+        }
+
+        if (result.magicType != "Fire")
+        {
+            spellCastRouter?.Cast(result);
             yield break;
         }
 
@@ -306,13 +365,11 @@ public sealed class PlayerController : MonoBehaviour,
 
         return homingFireProjectilePrefab;
     }
+
     private void ApplyDamage(float amount, bool ignoreDashInvulnerability)
     {
-        if (!health.IsAlive || amount <= 0f ||
-            (!ignoreDashInvulnerability && dash.IsDashing))
-        {
+        if (!health.IsAlive || amount <= 0f || (!ignoreDashInvulnerability && dash.IsDashing))
             return;
-        }
 
         RequestChantInterrupt();
         health.TryTakeDamage(amount);
@@ -329,9 +386,7 @@ public sealed class PlayerController : MonoBehaviour,
     private void RequestChantInterrupt()
     {
         if (!chantManager.IsCasting || chantInterruptRoutine != null)
-        {
             return;
-        }
 
         chantInterruptRoutine = StartCoroutine(InterruptChantNextFrame());
     }

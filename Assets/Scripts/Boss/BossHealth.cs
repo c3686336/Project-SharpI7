@@ -50,6 +50,16 @@ namespace SharpI7.Combat
 
         public void TakeDamage(float amount)
         {
+            ApplyDamage(amount, true);
+        }
+
+        public void TakeDamageWithoutSpellHitEffect(float amount)
+        {
+            ApplyDamage(amount, false);
+        }
+
+        private void ApplyDamage(float amount, bool showSpellHitEffect)
+        {
             tookDamage?.Invoke(amount);
 
             if (!IsAlive || IsTransitioningToPhaseTwo || amount <= 0f)
@@ -57,7 +67,11 @@ namespace SharpI7.Combat
                 return;
             }
 
-            ShowSpellHitEffect();
+            if (showSpellHitEffect)
+            {
+                ShowSpellHitEffect();
+            }
+
             ShowDamagePopup(amount);
 
             CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
