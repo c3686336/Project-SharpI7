@@ -97,12 +97,12 @@ public sealed class BossHealthBar : MonoBehaviour
 
         if (phaseOneImage != null)
         {
-            phaseOneImage.color = isPhaseTwo ? Color.black : Color.white;
+            phaseOneImage.color = Color.red;
         }
 
         if (phaseTwoImage != null)
         {
-            phaseTwoImage.color = Color.white;
+            phaseTwoImage.color = isPhaseTwo ? Color.black : Color.red;
         }
     }
 

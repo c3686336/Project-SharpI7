@@ -341,7 +341,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -986,7 +986,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8467319052841663203, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: m_Color.a
-      value: 1
+      value: 0.84313726
+      objectReference: {fileID: 0}
+    - target: {fileID: 8467319052841663203, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: m_Color.b
+      value: 0.5882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 8467319052841663203, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 8467319052841663203, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: m_Color.r
+      value: 0.5882353
       objectReference: {fileID: 0}
     - target: {fileID: 8506059314193299861, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -1302,7 +1314,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2339,8 +2351,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 270, y: 325}
-  m_SizeDelta: {x: 920, y: 140}
+  m_AnchoredPosition: {x: 264.57983, y: 359.14734}
+  m_SizeDelta: {x: 644.6533, y: 160.5968}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &994139411
 GameObject:
