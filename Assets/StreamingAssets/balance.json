@@ -86,7 +86,7 @@
       "enabled": true,
       "fieldSize": { "x": 45.0, "y": 27.0 },
       "thickness": 1.4,
-      "warningDuration": 1.2,
+      "warningDuration": 1.0,
       "travelDuration": 2.7,
       "damage": 1.0,
       "postAttackDelay": 0.1

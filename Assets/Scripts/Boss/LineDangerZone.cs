@@ -16,7 +16,7 @@ namespace SharpI7.Combat
     public sealed class LineDangerZone : MonoBehaviour
     {
         [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.35f);
-        [SerializeField] private Color explosionColor = new(1f, 0.65f, 0.1f, 0.85f);
+        [SerializeField] private Color explosionColor = new(1f, 0.08f, 0.02f, 0.72f);
 
         private readonly List<ZonePart> zoneParts = new();
         private Sprite runtimeSprite;

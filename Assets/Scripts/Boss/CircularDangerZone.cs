@@ -7,7 +7,10 @@ namespace SharpI7.Combat
     public sealed class CircularDangerZone : MonoBehaviour
     {
         [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.35f);
-        [SerializeField] private Color explosionColor = new(1f, 0.65f, 0.1f, 0.85f);
+        [SerializeField] private Color explosionColor = new(1f, 0.08f, 0.02f, 0.72f);
+        [SerializeField] private GameObject explosionEffectPrefab;
+        [SerializeField, Min(0.01f)] private float explosionEffectScale = 0.7f;
+        [SerializeField, Min(0.1f)] private float explosionEffectLifetime = 3f;
         [SerializeField, Range(16, 128)] private int circleResolution = 64;
 
         private SpriteRenderer zoneRenderer;
@@ -90,6 +93,7 @@ namespace SharpI7.Combat
 
             finished = true;
             zoneRenderer.color = explosionColor;
+            SpawnExplosionEffect();
 
             if (damageTarget != null)
             {
@@ -103,6 +107,30 @@ namespace SharpI7.Combat
             Destroy(gameObject, 0.15f);
         }
 
+        private void SpawnExplosionEffect()
+        {
+            if (explosionEffectPrefab == null)
+            {
+                return;
+            }
+
+            var effectPosition = transform.position;
+            effectPosition.z = -0.2f;
+            var effect = Instantiate(explosionEffectPrefab, effectPosition, Quaternion.identity);
+            effect.transform.localScale *= explosionEffectScale;
+
+            // The source prefab is configured as a looping demonstration effect.
+            // A danger zone must only produce one burst at its own explosion time.
+            foreach (var particle in effect.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var main = particle.main;
+                main.loop = false;
+                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                particle.Play(true);
+            }
+
+            Destroy(effect, explosionEffectLifetime);
+        }
         private static void ApplyDamage(Transform target, float amount)
         {
             var behaviours = target.GetComponentsInParent<MonoBehaviour>(true);

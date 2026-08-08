@@ -6,8 +6,8 @@ namespace SharpI7.Combat
     [DisallowMultipleComponent]
     public sealed class SafeZoneDanger : MonoBehaviour
     {
-        [SerializeField] private Color dangerColor = new(0.85f, 0.02f, 0.02f, 0.32f);
-        [SerializeField] private Color explosionColor = new(1f, 0.08f, 0.02f, 0.62f);
+        [SerializeField] private Color dangerColor = new(1f, 0.08f, 0.08f, 0.35f);
+        [SerializeField] private Color explosionColor = new(1f, 0.08f, 0.02f, 0.72f);
         [SerializeField] private Color safeColor = new(0.1f, 1f, 0.35f, 0.42f);
         [SerializeField, Range(64, 256)] private int textureResolution = 128;
 

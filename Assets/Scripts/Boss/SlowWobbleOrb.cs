@@ -5,7 +5,7 @@ namespace SharpI7.Combat
     [DisallowMultipleComponent]
     public sealed class SlowWobbleOrb : MonoBehaviour
     {
-        [SerializeField] private Color orbColor = new(1f, 0.78f, 0.05f, 1f);
+        [SerializeField] private Color orbColor = new(1f, 0.08f, 0.02f, 0.72f);
         [SerializeField, Range(32, 128)] private int circleResolution = 64;
 
         private Sprite runtimeSprite;

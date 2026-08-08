@@ -44,6 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abababababababababababababababab, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  warningColor: {r: 0.9, g: 0.02, b: 0.02, a: 0.38}
-  explosionColor: {r: 1, g: 0.12, b: 0.02, a: 0.75}
+  warningColor: {r: 1, g: 0.08, b: 0.08, a: 0.35}
+  explosionColor: {r: 1, g: 0.08, b: 0.02, a: 0.72}
   textureResolution: 128

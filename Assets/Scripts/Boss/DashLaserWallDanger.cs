@@ -6,46 +6,46 @@ namespace SharpI7.Combat
     public enum DashLaserWallDirection
     {
         LeftToRight,
-        RightToLeft,
-        BottomToTop,
-        TopToBottom
+        RightToLeft
     }
 
     [DisallowMultipleComponent]
     public sealed class DashLaserWallDanger : MonoBehaviour
     {
-        [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.3f);
-        [SerializeField] private Color activeColor = new(1f, 0.2f, 0.02f, 0.95f);
+        [SerializeField] private Material laserMaterial;
 
-        private SpriteRenderer wallRenderer;
-        private Sprite runtimeSprite;
-        private Texture2D runtimeTexture;
-        private Coroutine attackRoutine;
+        private GameObject activeLaser;
         private Transform damageTarget;
-        private Vector2 wallSize;
+        private Bounds playArea;
         private float damage;
+        private float hitWidth;
         private bool hasDamaged;
         private bool finished;
+        private Coroutine attackRoutine;
+        private GameObject warningObject;
 
         public void Begin(
             Transform target,
-            Bounds playArea,
+            Bounds arenaBounds,
             DashLaserWallDirection direction,
             float thickness,
             float warningDuration,
             float travelDuration,
             float attackDamage)
         {
-            damageTarget = target;
-            damage = Mathf.Max(0f, attackDamage);
+            if (laserMaterial == null)
+            {
+                Debug.LogWarning("Dash laser attack requires a LineRenderer laser material.", this);
+                Destroy(gameObject);
+                return;
+            }
 
-            var travel = GetTravelPositions(playArea, direction, Mathf.Max(0.1f, thickness));
-            wallSize = travel.wallSize;
-            CreateVisual();
-            transform.position = travel.startPosition;
+            damageTarget = target;
+            playArea = arenaBounds;
+            damage = Mathf.Max(0f, attackDamage);
+            hitWidth = Mathf.Max(0.1f, thickness);
             attackRoutine = StartCoroutine(AttackRoutine(
-                travel.startPosition,
-                travel.endPosition,
+                direction,
                 Mathf.Max(0.05f, warningDuration),
                 Mathf.Max(0.05f, travelDuration)));
         }
@@ -63,34 +63,34 @@ namespace SharpI7.Combat
                 StopCoroutine(attackRoutine);
             }
 
+            Cleanup();
             Destroy(gameObject);
         }
 
         private IEnumerator AttackRoutine(
-            Vector2 startPosition,
-            Vector2 endPosition,
+            DashLaserWallDirection direction,
             float warningDuration,
             float travelDuration)
         {
-            var elapsed = 0f;
-            while (elapsed < warningDuration)
-            {
-                elapsed += Time.deltaTime;
-                var pulse = 0.55f + Mathf.PingPong(elapsed * 3f, 0.45f);
-                var color = warningColor;
-                color.a *= pulse;
-                wallRenderer.color = color;
-                yield return null;
-            }
+            var fromLeft = direction == DashLaserWallDirection.LeftToRight;
+            warningObject = CreateSideWarning(playArea, fromLeft);
+            yield return new WaitForSeconds(warningDuration);
+            Destroy(warningObject);
+            warningObject = null;
 
-            wallRenderer.color = activeColor;
-            elapsed = 0f;
+            activeLaser = CreateLaser();
+
+            var halfWidth = hitWidth * 0.5f;
+            var startX = fromLeft ? playArea.min.x - halfWidth : playArea.max.x + halfWidth;
+            var endX = fromLeft ? playArea.max.x + halfWidth : playArea.min.x - halfWidth;
+            var elapsed = 0f;
             while (elapsed < travelDuration)
             {
                 elapsed += Time.deltaTime;
-                transform.position = Vector2.Lerp(startPosition, endPosition, elapsed / travelDuration);
+                var x = Mathf.Lerp(startX, endX, Mathf.Clamp01(elapsed / travelDuration));
+                activeLaser.transform.position = new Vector3(x, playArea.center.y, 0f);
 
-                if (!hasDamaged && damageTarget != null && ContainsPoint(damageTarget.position))
+                if (!hasDamaged && IsTouchingPlayer(x))
                 {
                     hasDamaged = ApplyDamage(damageTarget, damage);
                 }
@@ -99,65 +99,77 @@ namespace SharpI7.Combat
             }
 
             finished = true;
+            Cleanup();
             Destroy(gameObject);
         }
 
-        private bool ContainsPoint(Vector3 point)
+        private GameObject CreateLaser()
         {
-            var offset = (Vector2)(point - transform.position);
-            return Mathf.Abs(offset.x) <= wallSize.x * 0.5f &&
-                   Mathf.Abs(offset.y) <= wallSize.y * 0.5f;
+            var laser = new GameObject("Runtime Dash Laser");
+            laser.transform.position = new Vector3(playArea.center.x, playArea.center.y, 0f);
+
+            var line = laser.AddComponent<LineRenderer>();
+            line.material = laserMaterial;
+            line.useWorldSpace = false;
+            line.positionCount = 2;
+            line.startWidth = hitWidth;
+            line.endWidth = hitWidth;
+            line.startColor = new Color(1f, 0.08f, 0.02f, 0.72f);
+            line.endColor = new Color(1f, 0.08f, 0.02f, 0.72f);
+            line.numCapVertices = 4;
+            line.sortingOrder = 210;
+            var halfHeight = playArea.extents.y + 0.5f;
+            line.SetPosition(0, new Vector3(0f, -halfHeight, 0f));
+            line.SetPosition(1, new Vector3(0f, halfHeight, 0f));
+            return laser;
         }
 
-        private void CreateVisual()
+        private bool IsTouchingPlayer(float laserX)
         {
-            runtimeTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false)
+            if (damageTarget == null)
             {
-                name = "Runtime Dash Laser Wall",
-                filterMode = FilterMode.Bilinear,
-                wrapMode = TextureWrapMode.Clamp
-            };
-            runtimeTexture.SetPixel(0, 0, Color.white);
-            runtimeTexture.Apply();
+                return false;
+            }
 
-            runtimeSprite = Sprite.Create(runtimeTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
-            var wallObject = new GameObject("Dash Laser Wall");
-            wallObject.transform.SetParent(transform, false);
-            wallObject.transform.localScale = new Vector3(wallSize.x, wallSize.y, 1f);
-            wallRenderer = wallObject.AddComponent<SpriteRenderer>();
-            wallRenderer.sprite = runtimeSprite;
-            wallRenderer.color = warningColor;
-            wallRenderer.sortingOrder = 105;
+            var playerPosition = damageTarget.position;
+            return Mathf.Abs(playerPosition.x - laserX) <= hitWidth * 0.5f &&
+                   playerPosition.y >= playArea.min.y &&
+                   playerPosition.y <= playArea.max.y;
         }
 
-        private static (Vector2 startPosition, Vector2 endPosition, Vector2 wallSize) GetTravelPositions(
-            Bounds playArea,
-            DashLaserWallDirection direction,
-            float thickness)
+        private static GameObject CreateSideWarning(Bounds arenaBounds, bool onLeft)
         {
-            var center = (Vector2)playArea.center;
-            var halfSize = (Vector2)playArea.extents;
-            var horizontal = direction == DashLaserWallDirection.LeftToRight || direction == DashLaserWallDirection.RightToLeft;
-            var wallSize = horizontal
-                ? new Vector2(thickness, playArea.size.y + thickness * 2f)
-                : new Vector2(playArea.size.x + thickness * 2f, thickness);
+            var warning = new GameObject(onLeft ? "Left Laser Warning" : "Right Laser Warning");
+            warning.transform.position = new Vector3(
+                onLeft ? arenaBounds.min.x + 1f : arenaBounds.max.x - 1f,
+                arenaBounds.max.y - 1.5f,
+                0f);
 
-            var start = center;
-            var end = center;
-            if (horizontal)
+            var text = warning.AddComponent<TextMesh>();
+            text.text = "!";
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.characterSize = 0.35f;
+            text.fontSize = 120;
+            text.color = new Color(1f, 0.08f, 0.08f, 0.65f);
+
+            warning.GetComponent<MeshRenderer>().sortingOrder = 250;
+            return warning;
+        }
+
+        private void Cleanup()
+        {
+            if (warningObject != null)
             {
-                var fromLeft = direction == DashLaserWallDirection.LeftToRight;
-                start.x += fromLeft ? -halfSize.x - thickness : halfSize.x + thickness;
-                end.x += fromLeft ? halfSize.x + thickness : -halfSize.x - thickness;
-            }
-            else
-            {
-                var fromBottom = direction == DashLaserWallDirection.BottomToTop;
-                start.y += fromBottom ? -halfSize.y - thickness : halfSize.y + thickness;
-                end.y += fromBottom ? halfSize.y + thickness : -halfSize.y - thickness;
+                Destroy(warningObject);
+                warningObject = null;
             }
 
-            return (start, end, wallSize);
+            if (activeLaser != null)
+            {
+                Destroy(activeLaser);
+                activeLaser = null;
+            }
         }
 
         private static bool ApplyDamage(Transform target, float amount)
@@ -185,15 +197,7 @@ namespace SharpI7.Combat
 
         private void OnDestroy()
         {
-            if (runtimeSprite != null)
-            {
-                Destroy(runtimeSprite);
-            }
-
-            if (runtimeTexture != null)
-            {
-                Destroy(runtimeTexture);
-            }
+            Cleanup();
         }
     }
 }

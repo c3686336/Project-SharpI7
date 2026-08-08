@@ -6,20 +6,22 @@ public sealed class HomingFireProjectile : MonoBehaviour
 {
     private BossHealth target;
     private Collider2D[] targetColliders;
-    private int spellLevel;
+    private CastResult castResult;
     private float speed;
     private float hitRadius;
     private float remainingLifetime;
     private bool initialized;
+    private bool hasHit;
 
-    public void Initialize(BossHealth bossTarget, int castLevel, float travelSpeed, float contactRadius, float lifetime)
+    public void Initialize(BossHealth bossTarget, CastResult result, float travelSpeed, float contactRadius, float lifetime)
     {
         target = bossTarget;
         targetColliders = target == null ? null : target.GetComponentsInChildren<Collider2D>();
-        spellLevel = Mathf.Max(1, castLevel);
+        castResult = result;
         speed = Mathf.Max(0.01f, travelSpeed);
         hitRadius = Mathf.Max(0.01f, contactRadius);
         remainingLifetime = Mathf.Max(0.01f, lifetime);
+        hasHit = false;
         initialized = true;
     }
 
@@ -50,8 +52,20 @@ public sealed class HomingFireProjectile : MonoBehaviour
 
         if (HasReachedBoss(nextPosition))
         {
+            ApplySpellHit();
             Destroy(gameObject);
         }
+    }
+
+    private void ApplySpellHit()
+    {
+        if (hasHit || target == null || !target.IsAlive)
+        {
+            return;
+        }
+
+        hasHit = true;
+        target.TakeSpellDamage(castResult);
     }
 
     private Vector2 FindClosestTargetPoint(Vector2 from)

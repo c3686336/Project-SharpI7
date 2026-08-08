@@ -111,8 +111,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   spellImpactDelay: 0.1
   homingFireProjectilePrefab: {fileID: 7251879486380165639, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
-  homingFireProjectileLevelTwoPrefab: {fileID: 3599447086356864173, guid: 56f02590ce7db2347803864c84dd78d3, type: 3}
-  homingFireProjectileLevelThreePrefab: {fileID: 5712219488875869251, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
+  homingFireProjectileLevelTwoPrefab: {fileID: 1700001683036918955, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
+  homingFireProjectileLevelThreePrefab: {fileID: 8330006320348072208, guid: 6e4b6c99591848e4ca95111a6f384e71, type: 3}
   homingFireProjectileSpeed: 12
   homingFireProjectileScale: 1.8
   homingFireProjectileLevelTwoScaleMultiplier: 1.5
@@ -148,7 +148,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!61 &2284924980614982524
 BoxCollider2D:
   m_ObjectHideFlags: 0
