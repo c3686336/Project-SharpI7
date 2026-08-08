@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8874307864428633949}
   - component: {fileID: 1959080158869791558}
   - component: {fileID: 2228947544055556300}
+  - component: {fileID: 8475633115215758469}
   m_Layer: 0
   m_Name: Lightning_Level3_Impact
   m_TagString: Untagged
@@ -28,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 1}
+  m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -115,3 +116,16 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8475633115215758469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2532948527499701896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d3bcbe1a2fb78a4c913dfea207578b1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::EffectSortingOrder
+  sortingOrder: 110
