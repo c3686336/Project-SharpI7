@@ -33,7 +33,7 @@
     },
     "phaseTwo": {
       "attackDelayMultiplier": 0.7,
-      "moveSpeedMultiplier": 1.5
+      "moveSpeedMultiplier": 1.65
     },
     "attackTiming": {
       "firstAttackDelay": 3.0,

@@ -7,11 +7,18 @@ namespace SharpI7.Combat
     public sealed class BossMovementAnimator : MonoBehaviour
     {
         [SerializeField] private Sprite[] walkFrames;
+        [SerializeField] private Sprite phaseTwoIdleSprite;
+        [SerializeField] private Sprite[] phaseTwoWalkFrames;
+        [SerializeField] private Vector3 phaseTwoScaleMultiplier = new(1.24f, 1.11f, 1f);
         [SerializeField, Min(0.01f)] private float frameDuration = 0.08f;
         [SerializeField, Min(0.0001f)] private float movementThreshold = 0.001f;
 
         private SpriteRenderer spriteRenderer;
+        private BossHealth bossHealth;
+        private Sprite phaseOneIdleSprite;
         private Sprite idleSprite;
+        private Sprite[] activeWalkFrames;
+        private Vector3 phaseOneScale;
         private Vector3 previousPosition;
         private float frameTimer;
         private int currentFrame;
@@ -20,8 +27,32 @@ namespace SharpI7.Combat
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
-            idleSprite = spriteRenderer.sprite;
+            bossHealth = GetComponent<BossHealth>();
+            phaseOneIdleSprite = spriteRenderer.sprite;
+            phaseOneScale = transform.localScale;
+            SetPhaseVisual(bossHealth != null && bossHealth.IsPhaseTwo);
             previousPosition = transform.position;
+        }
+
+        private void OnEnable()
+        {
+            if (bossHealth == null)
+            {
+                bossHealth = GetComponent<BossHealth>();
+            }
+
+            if (bossHealth != null)
+            {
+                bossHealth.PhaseTwoStarted += OnPhaseTwoStarted;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (bossHealth != null)
+            {
+                bossHealth.PhaseTwoStarted -= OnPhaseTwoStarted;
+            }
         }
 
         private void LateUpdate()
@@ -30,7 +61,7 @@ namespace SharpI7.Combat
             previousPosition = transform.position;
             var isMoving = movement.sqrMagnitude >= movementThreshold * movementThreshold;
 
-            if (!isMoving || walkFrames == null || walkFrames.Length == 0)
+            if (!isMoving || activeWalkFrames == null || activeWalkFrames.Length == 0)
             {
                 StopWalking();
                 return;
@@ -46,7 +77,7 @@ namespace SharpI7.Combat
                 isWalking = true;
                 frameTimer = 0f;
                 currentFrame = 0;
-                spriteRenderer.sprite = walkFrames[currentFrame];
+                spriteRenderer.sprite = activeWalkFrames[currentFrame];
                 return;
             }
 
@@ -54,8 +85,8 @@ namespace SharpI7.Combat
             while (frameTimer >= frameDuration)
             {
                 frameTimer -= frameDuration;
-                currentFrame = (currentFrame + 1) % walkFrames.Length;
-                spriteRenderer.sprite = walkFrames[currentFrame];
+                currentFrame = (currentFrame + 1) % activeWalkFrames.Length;
+                spriteRenderer.sprite = activeWalkFrames[currentFrame];
             }
         }
 
@@ -70,6 +101,30 @@ namespace SharpI7.Combat
             frameTimer = 0f;
             currentFrame = 0;
             spriteRenderer.sprite = idleSprite;
+        }
+
+        private void OnPhaseTwoStarted()
+        {
+            SetPhaseVisual(true);
+        }
+
+        private void SetPhaseVisual(bool usePhaseTwoVisual)
+        {
+            var hasPhaseTwoVisual = phaseTwoIdleSprite != null;
+            idleSprite = usePhaseTwoVisual && hasPhaseTwoVisual ? phaseTwoIdleSprite : phaseOneIdleSprite;
+            activeWalkFrames = usePhaseTwoVisual && phaseTwoWalkFrames != null && phaseTwoWalkFrames.Length > 0
+                ? phaseTwoWalkFrames
+                : walkFrames;
+
+            isWalking = false;
+            frameTimer = 0f;
+            currentFrame = 0;
+            transform.localScale = Vector3.Scale(phaseOneScale, usePhaseTwoVisual ? phaseTwoScaleMultiplier : Vector3.one);
+
+            if (spriteRenderer != null && idleSprite != null)
+            {
+                spriteRenderer.sprite = idleSprite;
+            }
         }
     }
 }

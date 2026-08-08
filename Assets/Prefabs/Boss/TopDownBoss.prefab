@@ -117,6 +117,18 @@ MonoBehaviour:
   - {fileID: -7244507966289389119, guid: 50cf6f8934a5c7d47b9faec1aadb6ccc, type: 3}
   - {fileID: -2605779105812968907, guid: 2ade7ae754170914abe4c5fd68a6b27b, type: 3}
   - {fileID: 2435866311996458916, guid: 36b1e62d0e6d06d47a4a95500b20a17a, type: 3}
+  phaseTwoIdleSprite: {fileID: 2395171169746166628, guid: 4c77a80b2e101b946bc0475baa3e341c, type: 3}
+  phaseTwoWalkFrames:
+  - {fileID: 2395171169746166628, guid: e2774f8df28e2d148a475bae1818a25d, type: 3}
+  - {fileID: -3451814149263678230, guid: cb473e619c9ea8644b9ba9cf7336a2eb, type: 3}
+  - {fileID: 3535422003912807925, guid: d5e0720e7d580b949a826501e9898528, type: 3}
+  - {fileID: -1523415334552674976, guid: 48fd0656620c9dc468fb7ff382558b78, type: 3}
+  - {fileID: -3547462953489778252, guid: 852feb641de03f748a554c3a32dc7712, type: 3}
+  - {fileID: -7244507966289389119, guid: 24ac89718bf376044953edbc802fb456, type: 3}
+  - {fileID: -632606181858438199, guid: a248721b1e90f8a4a8c6e7fbd5f8ef36, type: 3}
+  - {fileID: -2605779105812968907, guid: 3354c829550ba4a4e9d2452495229a32, type: 3}
+  - {fileID: 5802593164879300466, guid: 124403c464c62c841b3e3e6bd58b09e1, type: 3}
+  phaseTwoScaleMultiplier: {x: 1.2351, y: 1.1063, z: 1}
   frameDuration: 0.12
   movementThreshold: 0.001
 --- !u!212 &21200000

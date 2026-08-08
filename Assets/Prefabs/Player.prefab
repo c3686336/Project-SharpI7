@@ -298,9 +298,9 @@ MonoBehaviour:
   - effectId: EternalFlame
     prefab: {fileID: 7251879486380165639, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
   - effectId: EternalFlame_Lv1
-    prefab: {fileID: 7251879486380165639, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
-  - effectId: EternalFlame_Lv2
     prefab: {fileID: 1700001683036918955, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
+  - effectId: EternalFlame_Lv2
+    prefab: {fileID: 7251879486380165639, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
   - effectId: EternalFlame_Lv3
     prefab: {fileID: 8330006320348072208, guid: 6e4b6c99591848e4ca95111a6f384e71, type: 3}
   - effectId: FlickingLightning

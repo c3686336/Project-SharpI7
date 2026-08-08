@@ -13,19 +13,22 @@
           "chantLevel": 1,
           "chantText": "불",
           "damageMultiplier": 5,
-          "manaCost":  10
+          "manaCost": 10,
+          "effectId": "EternalFlame_Lv1"
         },
         {
           "chantLevel": 2,
           "chantText": "타오르는 불",
           "damageMultiplier": 30,
-          "manaCost": 30
+          "manaCost": 30,
+          "effectId": "EternalFlame_Lv2"
         },
         {
           "chantLevel": 3,
           "chantText": "영원히 타오르는 불",
           "damageMultiplier": 70,
-          "manaCost": 50
+          "manaCost": 50,
+          "effectId": "EternalFlame_Lv3"
         }
       ]
     },
