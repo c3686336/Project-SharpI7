@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 845918742311000001}
   - component: {fileID: 845918742311000002}
   - component: {fileID: 845918742311000003}
+  - component: {fileID: 845918742311000004}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -306,7 +307,7 @@ MonoBehaviour:
   chantAuraTexture: {fileID: 2800000, guid: 6084ea577a3fb9047aeaf00b15b04b74, type: 3}
   chantAuraColor: {r: 1, g: 0.1, b: 0.01, a: 0.62}
   chantAuraSize: {x: 2.2, y: 1.5}
---- !u!114 &845918742311000003
+--- !u!114 &845918742311000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
