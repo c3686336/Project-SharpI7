@@ -9,6 +9,10 @@ public sealed class BossHealthBar : MonoBehaviour
     [SerializeField] private Slider healthSlider;
     [SerializeField] private TMP_Text healthText;
 
+    [Header("Phase UI")]
+    [SerializeField] private Image phaseOneImage;
+    [SerializeField] private Image phaseTwoImage;
+
     private void Start()
     {
         EnsureReferences();
@@ -30,6 +34,7 @@ public sealed class BossHealthBar : MonoBehaviour
         if (bossHealth != null)
         {
             bossHealth.HealthChanged -= UpdateHealth;
+            bossHealth.PhaseTwoStarted -= HandlePhaseTwoStarted;
             bossHealth.Died -= Hide;
         }
 
@@ -43,9 +48,13 @@ public sealed class BossHealthBar : MonoBehaviour
         }
 
         gameObject.SetActive(true);
+
         bossHealth.HealthChanged += UpdateHealth;
+        bossHealth.PhaseTwoStarted += HandlePhaseTwoStarted;
         bossHealth.Died += Hide;
+
         UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
+        UpdatePhaseUI();
     }
 
     private void EnsureReferences()
@@ -72,7 +81,28 @@ public sealed class BossHealthBar : MonoBehaviour
 
         if (healthText != null)
         {
-            healthText.text = $"{current:0}/{max:0}";
+            float healthPercent = max > 0f ? (current / max) * 100f : 0f;
+            healthText.text = $"{healthPercent:0.0}%";
+        }
+    }
+
+    private void HandlePhaseTwoStarted()
+    {
+        UpdatePhaseUI();
+    }
+
+    private void UpdatePhaseUI()
+    {
+        bool isPhaseTwo = bossHealth != null && bossHealth.IsPhaseTwo;
+
+        if (phaseOneImage != null)
+        {
+            phaseOneImage.color = Color.red;
+        }
+
+        if (phaseTwoImage != null)
+        {
+            phaseTwoImage.color = isPhaseTwo ? Color.black : Color.red;
         }
     }
 
@@ -86,6 +116,7 @@ public sealed class BossHealthBar : MonoBehaviour
         if (bossHealth != null)
         {
             bossHealth.HealthChanged -= UpdateHealth;
+            bossHealth.PhaseTwoStarted -= HandlePhaseTwoStarted;
             bossHealth.Died -= Hide;
         }
     }
