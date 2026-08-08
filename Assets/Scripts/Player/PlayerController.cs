@@ -317,6 +317,8 @@ public sealed class PlayerController : MonoBehaviour,
                 this
             );
 
+            chantManager.CancelChant();
+
             return;
         }
 
