@@ -4,7 +4,7 @@
       "id": "eternal_flame",
       "spellName": "영원한 불",
       "fullChantText": "영원히 타오르는 불",
-      "baseDamage": 100.0,
+      "baseDamage": 1.0,
       "manaRelease": 30.0,
       "magicType": "Fire",
       "effectId": "EternalFlame",
@@ -12,19 +12,19 @@
         {
           "chantLevel": 1,
           "chantText": "f",
-          "damageMultiplier": 1.0,
+          "damageMultiplier": 5,
           "manaCost":  10
         },
         {
           "chantLevel": 2,
           "chantText": "qq",
-          "damageMultiplier": 1.5,
+          "damageMultiplier": 30,
           "manaCost": 30
         },
         {
           "chantLevel": 3,
           "chantText": "jjj",
-          "damageMultiplier": 2.0,
+          "damageMultiplier": 70,
           "manaCost": 50
         }
       ]
