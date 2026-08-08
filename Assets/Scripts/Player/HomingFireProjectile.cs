@@ -50,7 +50,7 @@ public sealed class HomingFireProjectile : MonoBehaviour
 
         if (HasReachedBoss(nextPosition))
         {
-            target.TakeSpellDamage(spellLevel);
+            // target.TakeSpellDamage(spellLevel);
             Destroy(gameObject);
         }
     }

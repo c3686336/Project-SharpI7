@@ -255,30 +255,30 @@ namespace SharpI7.Combat
         }
 
 #if UNITY_EDITOR
-        [ContextMenu("Test Spell Damage/1 Word (10)")]
+        [ContextMenu("Test damage (10)")]
         private void TestOneWordDamage()
         {
             if (Application.isPlaying)
             {
-                TakeSpellDamage(1);
+                TakeDamage(10);
             }
         }
 
-        [ContextMenu("Test Spell Damage/2 Words (30)")]
+        [ContextMenu("Test damage (30)")]
         private void TestTwoWordDamage()
         {
             if (Application.isPlaying)
             {
-                TakeSpellDamage(2);
+                TakeDamage(30);
             }
         }
 
-        [ContextMenu("Test Spell Damage/3 Words (70)")]
+        [ContextMenu("Test damage (70)")]
         private void TestThreeWordDamage()
         {
             if (Application.isPlaying)
             {
-                TakeSpellDamage(3);
+                TakeDamage(70);
             }
         }
 
