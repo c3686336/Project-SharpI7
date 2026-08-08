@@ -230,6 +230,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ringPrefab: {fileID: 428174, guid: 37e803394624a5c48ae5f13fd212ac0b, type: 3}
   ringColor: {r: 1, g: 0.08, b: 0.08, a: 1}
-  hoverRadius: 0.14
-  hoverHeight: 0.1
-  hoverSpeed: 1.5
+  footOffset: {x: 0, y: -0.48, z: 0.1}
+  chantAuraTexture: {fileID: 2800000, guid: 6084ea577a3fb9047aeaf00b15b04b74, type: 3}
+  chantAuraColor: {r: 1, g: 0.1, b: 0.01, a: 0.62}
+  chantAuraSize: {x: 2.2, y: 1.5}
