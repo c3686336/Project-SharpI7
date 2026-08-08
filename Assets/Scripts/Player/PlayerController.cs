@@ -5,9 +5,10 @@ using SharpI7.Balance;
 using SharpI7.Combat;
 using UnityEngine;
 using System.Threading;
+using DG.Tweening;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
 public sealed class PlayerController : MonoBehaviour,
     IPlayerHealth,
     IPlayerMana,
@@ -26,6 +27,7 @@ public sealed class PlayerController : MonoBehaviour,
     [SerializeField] private Vector2 referenceHeading;
     [SerializeField] private ChantManager chantManager;
     [SerializeField] private BossHealth bossHealth;
+    [SerializeField] private Color flashColor;
 
     private PlayerInputActions input;
     private PlayerHealth health;
@@ -37,6 +39,7 @@ public sealed class PlayerController : MonoBehaviour,
     private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
     private bool combatEnded;
+    private SpriteRenderer sr;
 
     public event Action<float, float> HealthChanged;
     public event Action<ManaStatus> ManaStatusChanged;
@@ -63,7 +66,10 @@ public sealed class PlayerController : MonoBehaviour,
     {
         balance = BalanceDataLoader.Current.player;
         input = new PlayerInputActions();
-        health = new PlayerHealth(balance.maxHealth, balance.invincibilityDuration);
+        health = new PlayerHealth(
+            balance.maxHealth,
+            balance.invincibilityDuration,
+            destroyCancellationToken);
         health.InvincibilityStarted += OnInvincibilityStarted;
 
         mana = new PlayerMana(
@@ -100,6 +106,7 @@ public sealed class PlayerController : MonoBehaviour,
         spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
         combatEnded = bossHealth == null;
 
+        sr = GetComponent<SpriteRenderer>();
     }
 
     private void OnEnable()
@@ -358,26 +365,37 @@ public sealed class PlayerController : MonoBehaviour,
 
     private async UniTaskVoid FlashRed(CancellationToken token)
     {
+        if (sr == null)
+        {
+            return;
+        }
+
+        Color originalColor = sr.color;
+        Sequence flashTween = DOTween.Sequence()
+            .Append(sr
+                .DOColor(flashColor, 0.1f)
+                .SetEase(Ease.InOutSine))
+            .Append(sr
+                .DOColor(originalColor, 0.1f)
+                .SetEase(Ease.InOutSine))
+            .SetLoops(-1, LoopType.Restart)
+            .SetLink(gameObject, LinkBehaviour.KillOnDestroy);
+
         try
         {
-            while (true)
-            {
-                Debug.Log("asdf");
-                await UniTask.Delay(
-                    TimeSpan.FromMilliseconds(100),
-                    cancellationToken: token);
-
-                Debug.Log("asdf1");
-                await UniTask.Delay(
-                    TimeSpan.FromMilliseconds(100),
-                    cancellationToken: token);
-            }
-        }
-        catch (OperationCanceledException)
-        {
+            await UniTask.WaitUntilCanceled(token);
         }
         finally
         {
+            if (flashTween.IsActive())
+            {
+                flashTween.Kill();
+            }
+
+            if (sr != null)
+            {
+                sr.color = originalColor;
+            }
         }
     }
 }

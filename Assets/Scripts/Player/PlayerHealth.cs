@@ -5,15 +5,20 @@ using System;
 
 internal sealed class PlayerHealth
 {
-    public PlayerHealth(float maximum, float invincibilityTime)
+    public PlayerHealth(
+        float maximum,
+        float invincibilityTime,
+        CancellationToken lifetimeToken)
     {
         Maximum = maximum;
         Current = maximum;
 
         this.invincibilityTime = invincibilityTime;
+        this.lifetimeToken = lifetimeToken;
     }
 
     private readonly float invincibilityTime;
+    private readonly CancellationToken lifetimeToken;
     public float Maximum { get; }
     public float Current { get; private set; }
     public bool IsAlive => Current > 0f;
@@ -36,31 +41,35 @@ internal sealed class PlayerHealth
         return true;
     }
 
-    private async UniTaskVoid StartInvincibility(TimeSpan duration)
+    private async UniTask StartInvincibility(TimeSpan duration)
     {
         InvincibilityEnd?.Cancel();
-        InvincibilityEnd?.Dispose();
 
-        var cts = new CancellationTokenSource();
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken);
         InvincibilityEnd = cts;
-
-        InvincibilityStarted?.Invoke(cts.Token);
+        isInvincible = true;
 
         try
         {
-            isInvincible = true;
-
-            await UniTask.Delay(duration, cancellationToken: cts.Token);
+            InvincibilityStarted?.Invoke(cts.Token);
+            await UniTask
+                .Delay(duration, cancellationToken: cts.Token)
+                .SuppressCancellationThrow();
         }
         finally
         {
             if (InvincibilityEnd == cts)
             {
                 isInvincible = false;
-
-                InvincibilityEnd.Dispose();
                 InvincibilityEnd = null;
+
+                if (!cts.IsCancellationRequested)
+                {
+                    cts.Cancel();
+                }
             }
+
+            cts.Dispose();
         }
     }
 }
