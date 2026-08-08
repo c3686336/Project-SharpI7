@@ -1394,9 +1394,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7924620603926770452}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Script: {fileID: 11500000, guid: 2659caf80bb848a2b4fd3e70282878bb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
+  m_EditorClassIdentifier: Assembly-CSharp::ChantInputField
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0
