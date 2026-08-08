@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Cysharp.Threading.Tasks;
 using SharpI7.Combat;
 using SharpI7.Visuals;
@@ -33,6 +34,7 @@ public sealed class PlayerController : MonoBehaviour,
     private PlayerDash dash;
     private PlayerSpellCaster spellCaster;
     private PlayerDashEffect dashEffectPrefab;
+    private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
     private bool combatEnded;
 
@@ -247,7 +249,7 @@ public sealed class PlayerController : MonoBehaviour,
             return;
         }
 
-        chantManager.InterruptChant();
+        RequestChantInterrupt();
         health.TryTakeDamage(amount);
         HealthChanged?.Invoke(health.Current, health.Maximum);
 
@@ -256,6 +258,28 @@ public sealed class PlayerController : MonoBehaviour,
             LockMovement();
             Died?.Invoke();
             OutGameManager.LoadGameOver();
+        }
+    }
+
+    private void RequestChantInterrupt()
+    {
+        if (!chantManager.IsCasting || chantInterruptRoutine != null)
+        {
+            return;
+        }
+
+        chantInterruptRoutine = StartCoroutine(InterruptChantNextFrame());
+    }
+
+    private IEnumerator InterruptChantNextFrame()
+    {
+        yield return null;
+
+        chantInterruptRoutine = null;
+
+        if (chantManager != null && chantManager.IsCasting)
+        {
+            chantManager.InterruptChant();
         }
     }
 

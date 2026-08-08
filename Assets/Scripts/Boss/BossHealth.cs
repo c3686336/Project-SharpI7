@@ -15,6 +15,10 @@ namespace SharpI7.Combat
         [SerializeField, Min(0f)] private float damagePerWord = 15f;
         [SerializeField, Min(1)] private int maxWordDamageStage = 3;
 
+        [Header("Hit Effect")]
+        [SerializeField] private GameObject littleFireHitEffectPrefab;
+        [SerializeField] private Vector3 littleFireHitEffectOffset;
+
         public event Action<float, float> HealthChanged;
         public event Action Died;
         public event Action PhaseTwoTransitionStarted;
@@ -43,7 +47,9 @@ namespace SharpI7.Combat
                 return;
             }
 
+            ShowLittleFireHitEffect();
             ShowDamagePopup(amount);
+
             CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
 
             if (!IsAlive && enablePhaseTwo && !IsPhaseTwo)
@@ -90,6 +96,19 @@ namespace SharpI7.Combat
             IsTransitioningToPhaseTwo = false;
             CurrentHealth = maxHealth;
             HealthChanged?.Invoke(CurrentHealth, maxHealth);
+        }
+
+        private void ShowLittleFireHitEffect()
+        {
+            if (littleFireHitEffectPrefab == null)
+            {
+                return;
+            }
+
+            Instantiate(
+                littleFireHitEffectPrefab,
+                transform.position + littleFireHitEffectOffset,
+                Quaternion.identity);
         }
 
         private void BeginPhaseTwoTransition()
