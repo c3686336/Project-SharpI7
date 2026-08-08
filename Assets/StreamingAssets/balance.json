@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "player": {
+    "maxHealth": 3.0,
+    "moveSpeed": 0.1,
+    "overloadDamage": 1.0,
+    "mana": {
+      "defaultValue": 30.0,
+      "warningThreshold": 100.0,
+      "saturationThreshold": 150.0,
+      "fillSpeed": 5.0,
+      "saturationDuration": 3.0
+    },
+    "dash": {
+      "windupDuration": 0.0,
+      "cooldownDuration": 3.0,
+      "duration": 0.2,
+      "distance": 5.0
+    }
+  },
+  "boss": {
+    "health": {
+      "maxHealth": 500.0,
+      "enablePhaseTwo": true,
+      "phaseTwoMaxHealth": 1000.0,
+      "phaseTwoTransitionDelay": 2.0,
+      "damagePerWord": 15.0,
+      "maxWordDamageStage": 3
+    },
+    "movement": {
+      "moveSpeed": 1.25,
+      "stoppingDistance": 1.5
+    },
+    "phaseTwo": {
+      "attackDelayMultiplier": 0.7,
+      "moveSpeedMultiplier": 1.5
+    },
+    "attackTiming": {
+      "firstAttackDelay": 3.0,
+      "recoveryDuration": 5.0,
+      "chantOpportunityDuration": 1.0,
+      "attackDamage": 1.0,
+      "unavailableAttackRetryDelay": 0.25
+    },
+    "contact": {
+      "damage": 1.0,
+      "interval": 1.0
+    },
+    "trackingBarrage": {
+      "enabled": true,
+      "minStrikes": 3,
+      "maxStrikes": 3,
+      "radius": 2.25,
+      "warningDuration": 1.5,
+      "strikeInterval": 0.35,
+      "postStrikeDelay": 0.2
+    },
+    "lineAttack": {
+      "enabled": true,
+      "warningDuration": 2.5,
+      "length": 55.0,
+      "width": 2.0,
+      "postAttackDelay": 0.2
+    },
+    "safeZoneAttack": {
+      "enabled": true,
+      "warningDuration": 4.0,
+      "fieldSize": { "x": 30.0, "y": 18.0 },
+      "radius": 3.0,
+      "minDistance": 5.0,
+      "maxDistance": 9.0,
+      "postAttackDelay": 0.25
+    },
+    "rotatingLaser": {
+      "enabled": true,
+      "warningDuration": 2.0,
+      "activeDuration": 5.0,
+      "length": 14.0,
+      "width": 1.2,
+      "damagePerTick": 1.0,
+      "damageInvulnerabilityDuration": 1.0,
+      "sweepDegrees": -350.0,
+      "postAttackDelay": 0.15
+    },
+    "dashLaserWall": {
+      "enabled": true,
+      "fieldSize": { "x": 45.0, "y": 27.0 },
+      "thickness": 1.4,
+      "warningDuration": 1.2,
+      "travelDuration": 2.7,
+      "damage": 1.0,
+      "postAttackDelay": 0.1
+    },
+    "radialOrb": {
+      "enabled": true,
+      "count": 12,
+      "movementSpeed": 1.2,
+      "wobbleAmplitude": 0.8,
+      "wobbleFrequency": 0.6,
+      "collisionRadius": 0.3,
+      "damage": 1.0,
+      "playAreaSize": { "x": 30.0, "y": 18.0 }
+    },
+    "distanceAttack": {
+      "enabled": true,
+      "warningDuration": 4.0,
+      "fieldSize": { "x": 30.0, "y": 18.0 },
+      "radius": 6.0,
+      "postAttackDelay": 0.25
+    }
+  }
+}

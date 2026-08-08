@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using SharpI7.Balance;
 using UnityEngine;
 
 namespace SharpI7.Combat
@@ -18,74 +19,63 @@ namespace SharpI7.Combat
         [SerializeField] private BossDistanceDanger bossDistanceDangerPrefab;
         [SerializeField] private DashLaserWallDanger dashLaserWallDangerPrefab;
 
-        [Header("Attack Timing")]
-        [SerializeField, Min(0f)] private float firstAttackDelay = 3f;
-        [SerializeField, Min(0f)] private float recoveryDuration = 5f;
-        [SerializeField, Min(0f)] private float chantOpportunityDuration = 1f;
-        [SerializeField, Min(0f)] private float attackDamage = 1f;
-
-        [Header("Tracking Barrage")]
-        [SerializeField] private bool enableTrackingBarrage = true;
-        [SerializeField, Min(1)] private int minTrackingStrikes = 3;
-        [SerializeField, Min(1)] private int maxTrackingStrikes = 5;
-        [SerializeField, Min(0.1f)] private float trackingAttackRadius = 2.25f;
-        [SerializeField, Min(0.05f)] private float trackingWarningDuration = 1.5f;
-        [SerializeField, Min(0f)] private float trackingStrikeInterval = 0.35f;
-
-        [Header("Line Ground Attack")]
-        [SerializeField] private bool enableLineGroundAttack = true;
-        [SerializeField, Min(0.05f)] private float lineWarningDuration = 2.5f;
-        [SerializeField, Min(0.1f)] private float lineAttackLength = 55f;
-        [SerializeField, Min(0.1f)] private float lineAttackWidth = 2f;
-
-        [Header("Safe Zone Attack")]
-        [SerializeField] private bool enableSafeZoneAttack = true;
-        [SerializeField, Min(0.05f)] private float safeZoneWarningDuration = 4f;
-        [SerializeField] private Vector2 safeZoneFieldSize = new(30f, 18f);
-        [SerializeField, Min(0.1f)] private float safeZoneRadius = 3f;
-        [SerializeField, Min(0f)] private float safeZoneMinDistance = 5f;
-        [SerializeField, Min(0f)] private float safeZoneMaxDistance = 9f;
-
-        [Header("Rotating Laser Attack")]
-        [SerializeField] private bool enableRotatingLaserAttack = true;
-        [SerializeField, Min(0.05f)] private float laserWarningDuration = 2f;
-        [SerializeField, Min(0.05f)] private float laserActiveDuration = 5f;
-        [SerializeField, Min(0.1f)] private float laserLength = 14f;
-        [SerializeField, Min(0.1f)] private float laserWidth = 1.2f;
-        [SerializeField, Min(0f)] private float laserDamagePerTick = 1f;
-        [SerializeField, Min(0.05f)] private float laserPlayerDamageInvulnerabilityDuration = 1f;
-
-        [Header("Dash Laser Wall Attack")]
-        [SerializeField] private bool enableDashLaserWallAttack = true;
-        [SerializeField] private Vector2 dashLaserWallFieldSize = new(45f, 27f);
-        [SerializeField, Min(0.1f)] private float dashLaserWallThickness = 1.4f;
-        [SerializeField, Min(0.05f)] private float dashLaserWallWarningDuration = 1.2f;
-        [SerializeField, Min(0.05f)] private float dashLaserWallTravelDuration = 2.7f;
-        [SerializeField, Min(0f)] private float dashLaserWallDamage = 1f;
-
-        [Header("Contact Damage")]
-        [SerializeField, Min(0f)] private float contactDamage = 1f;
-        [SerializeField, Min(0.05f)] private float contactDamageInterval = 1f;
-
-        [Header("Phase Two")]
-        [SerializeField, Range(0.1f, 1f)] private float phaseTwoAttackDelayMultiplier = 0.7f;
-        [SerializeField, Min(0f)] private float phaseTwoMoveSpeedMultiplier = 1.5f;
-
-        [Header("Radial Wobble Orb Attack")]
-        [SerializeField] private bool enableRadialWobbleOrbAttack = true;
-        [SerializeField, Min(3)] private int radialOrbCount = 12;
-        [SerializeField, Min(0.01f)] private float orbMovementSpeed = 1.2f;
-        [SerializeField, Min(0f)] private float orbWobbleAmplitude = 0.8f;
-        [SerializeField, Min(0f)] private float orbWobbleFrequency = 0.6f;
-        [SerializeField, Min(0.05f)] private float orbCollisionRadius = 0.55f;
-        [SerializeField, Min(0f)] private float orbDamage = 1f;
-        [SerializeField] private Vector2 orbPlayAreaSize = new(30f, 18f);
-
-        [Header("Boss Distance Attack")]
-        [SerializeField] private bool enableBossDistanceAttack = true;
-        [SerializeField, Min(0.05f)] private float bossDistanceWarningDuration = 4f;
-        [SerializeField] private Vector2 bossDistanceFieldSize = new(30f, 18f);
-        [SerializeField, Min(0.1f)] private float bossDistanceRadius = 6f;
+        private float firstAttackDelay;
+        private float recoveryDuration;
+        private float chantOpportunityDuration;
+        private float attackDamage;
+        private float unavailableAttackRetryDelay;
+        private bool enableTrackingBarrage;
+        private int minTrackingStrikes;
+        private int maxTrackingStrikes;
+        private float trackingAttackRadius;
+        private float trackingWarningDuration;
+        private float trackingStrikeInterval;
+        private float trackingPostStrikeDelay;
+        private bool enableLineGroundAttack;
+        private float lineWarningDuration;
+        private float lineAttackLength;
+        private float lineAttackWidth;
+        private float linePostAttackDelay;
+        private bool enableSafeZoneAttack;
+        private float safeZoneWarningDuration;
+        private Vector2 safeZoneFieldSize;
+        private float safeZoneRadius;
+        private float safeZoneMinDistance;
+        private float safeZoneMaxDistance;
+        private float safeZonePostAttackDelay;
+        private bool enableRotatingLaserAttack;
+        private float laserWarningDuration;
+        private float laserActiveDuration;
+        private float laserLength;
+        private float laserWidth;
+        private float laserDamagePerTick;
+        private float laserPlayerDamageInvulnerabilityDuration;
+        private float laserSweepDegrees;
+        private float laserPostAttackDelay;
+        private bool enableDashLaserWallAttack;
+        private Vector2 dashLaserWallFieldSize;
+        private float dashLaserWallThickness;
+        private float dashLaserWallWarningDuration;
+        private float dashLaserWallTravelDuration;
+        private float dashLaserWallDamage;
+        private float dashLaserWallPostAttackDelay;
+        private float contactDamage;
+        private float contactDamageInterval;
+        private float phaseTwoAttackDelayMultiplier;
+        private float phaseTwoMoveSpeedMultiplier;
+        private bool enableRadialWobbleOrbAttack;
+        private int radialOrbCount;
+        private float orbMovementSpeed;
+        private float orbWobbleAmplitude;
+        private float orbWobbleFrequency;
+        private float orbCollisionRadius;
+        private float orbDamage;
+        private Vector2 orbPlayAreaSize;
+        private bool enableBossDistanceAttack;
+        private float bossDistanceWarningDuration;
+        private Vector2 bossDistanceFieldSize;
+        private float bossDistanceRadius;
+        private float bossDistancePostAttackDelay;
 
         private BossHealth bossHealth;
         private BossMovement bossMovement;
@@ -109,9 +99,87 @@ namespace SharpI7.Combat
 
         private void Awake()
         {
+            ApplyBalance(BalanceDataLoader.Current.boss);
             bossHealth = GetComponent<BossHealth>();
             bossMovement = GetComponent<BossMovement>();
             bossVisual = GetComponent<BossVisual>();
+        }
+
+        private void ApplyBalance(BossBalance data)
+        {
+            BossAttackTimingBalance timing = data.attackTiming;
+            firstAttackDelay = timing.firstAttackDelay;
+            recoveryDuration = timing.recoveryDuration;
+            chantOpportunityDuration = timing.chantOpportunityDuration;
+            attackDamage = timing.attackDamage;
+            unavailableAttackRetryDelay = timing.unavailableAttackRetryDelay;
+
+            TrackingBarrageBalance tracking = data.trackingBarrage;
+            enableTrackingBarrage = tracking.enabled;
+            minTrackingStrikes = tracking.minStrikes;
+            maxTrackingStrikes = tracking.maxStrikes;
+            trackingAttackRadius = tracking.radius;
+            trackingWarningDuration = tracking.warningDuration;
+            trackingStrikeInterval = tracking.strikeInterval;
+            trackingPostStrikeDelay = tracking.postStrikeDelay;
+
+            LineAttackBalance line = data.lineAttack;
+            enableLineGroundAttack = line.enabled;
+            lineWarningDuration = line.warningDuration;
+            lineAttackLength = line.length;
+            lineAttackWidth = line.width;
+            linePostAttackDelay = line.postAttackDelay;
+
+            SafeZoneAttackBalance safeZone = data.safeZoneAttack;
+            enableSafeZoneAttack = safeZone.enabled;
+            safeZoneWarningDuration = safeZone.warningDuration;
+            safeZoneFieldSize = safeZone.fieldSize;
+            safeZoneRadius = safeZone.radius;
+            safeZoneMinDistance = safeZone.minDistance;
+            safeZoneMaxDistance = safeZone.maxDistance;
+            safeZonePostAttackDelay = safeZone.postAttackDelay;
+
+            RotatingLaserBalance laser = data.rotatingLaser;
+            enableRotatingLaserAttack = laser.enabled;
+            laserWarningDuration = laser.warningDuration;
+            laserActiveDuration = laser.activeDuration;
+            laserLength = laser.length;
+            laserWidth = laser.width;
+            laserDamagePerTick = laser.damagePerTick;
+            laserPlayerDamageInvulnerabilityDuration = laser.damageInvulnerabilityDuration;
+            laserSweepDegrees = laser.sweepDegrees;
+            laserPostAttackDelay = laser.postAttackDelay;
+
+            DashLaserWallBalance wall = data.dashLaserWall;
+            enableDashLaserWallAttack = wall.enabled;
+            dashLaserWallFieldSize = wall.fieldSize;
+            dashLaserWallThickness = wall.thickness;
+            dashLaserWallWarningDuration = wall.warningDuration;
+            dashLaserWallTravelDuration = wall.travelDuration;
+            dashLaserWallDamage = wall.damage;
+            dashLaserWallPostAttackDelay = wall.postAttackDelay;
+
+            contactDamage = data.contact.damage;
+            contactDamageInterval = data.contact.interval;
+            phaseTwoAttackDelayMultiplier = data.phaseTwo.attackDelayMultiplier;
+            phaseTwoMoveSpeedMultiplier = data.phaseTwo.moveSpeedMultiplier;
+
+            RadialOrbBalance orb = data.radialOrb;
+            enableRadialWobbleOrbAttack = orb.enabled;
+            radialOrbCount = orb.count;
+            orbMovementSpeed = orb.movementSpeed;
+            orbWobbleAmplitude = orb.wobbleAmplitude;
+            orbWobbleFrequency = orb.wobbleFrequency;
+            orbCollisionRadius = orb.collisionRadius;
+            orbDamage = orb.damage;
+            orbPlayAreaSize = orb.playAreaSize;
+
+            BossDistanceAttackBalance distance = data.distanceAttack;
+            enableBossDistanceAttack = distance.enabled;
+            bossDistanceWarningDuration = distance.warningDuration;
+            bossDistanceFieldSize = distance.fieldSize;
+            bossDistanceRadius = distance.radius;
+            bossDistancePostAttackDelay = distance.postAttackDelay;
         }
 
         private void OnEnable()
@@ -198,14 +266,14 @@ namespace SharpI7.Combat
 
                 if (playerTarget == null)
                 {
-                    yield return new WaitForSeconds(0.25f);
+                    yield return new WaitForSeconds(unavailableAttackRetryDelay);
                     continue;
                 }
 
                 BuildAvailableAttacks();
                 if (availableAttacks.Count == 0)
                 {
-                    yield return new WaitForSeconds(0.25f);
+                    yield return new WaitForSeconds(unavailableAttackRetryDelay);
                     continue;
                 }
 
@@ -377,7 +445,7 @@ namespace SharpI7.Combat
                 ? BossDistanceDangerMode.OuterDanger
                 : BossDistanceDangerMode.InnerDanger;
 
-            yield return new WaitForSeconds(bossDistanceWarningDuration + 0.25f);
+            yield return new WaitForSeconds(bossDistanceWarningDuration + bossDistancePostAttackDelay);
             activeBossDistanceZone = null;
 
             if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
@@ -446,9 +514,11 @@ namespace SharpI7.Combat
                 laserWarningDuration,
                 laserActiveDuration,
                 laserDamagePerTick,
-                laserPlayerDamageInvulnerabilityDuration);
+                laserPlayerDamageInvulnerabilityDuration,
+                laserSweepDegrees);
 
-            yield return new WaitForSeconds(laserWarningDuration + laserActiveDuration + 0.15f);
+            yield return new WaitForSeconds(
+                laserWarningDuration + laserActiveDuration + laserPostAttackDelay);
             activeLaserZone = null;
         }
 
@@ -471,7 +541,9 @@ namespace SharpI7.Combat
                 dashLaserWallTravelDuration,
                 dashLaserWallDamage);
 
-            yield return new WaitForSeconds(dashLaserWallWarningDuration + dashLaserWallTravelDuration + 0.1f);
+            yield return new WaitForSeconds(
+                dashLaserWallWarningDuration + dashLaserWallTravelDuration +
+                dashLaserWallPostAttackDelay);
             activeDashLaserWall = null;
         }
 
@@ -496,7 +568,7 @@ namespace SharpI7.Combat
                 safeZoneWarningDuration,
                 attackDamage);
 
-            yield return new WaitForSeconds(safeZoneWarningDuration + 0.25f);
+            yield return new WaitForSeconds(safeZoneWarningDuration + safeZonePostAttackDelay);
             activeSafeZone = null;
 
             if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
@@ -547,7 +619,7 @@ namespace SharpI7.Combat
                 lineWarningDuration,
                 attackDamage);
 
-            yield return new WaitForSeconds(lineWarningDuration + 0.2f);
+            yield return new WaitForSeconds(lineWarningDuration + linePostAttackDelay);
             activeLineZone = null;
         }
 
@@ -566,7 +638,8 @@ namespace SharpI7.Combat
                 // The position is sampled again for every strike, so the warnings
                 // form a trail that follows a moving player instead of stacking.
                 SpawnDangerZone(trackingWarningDuration);
-                yield return new WaitForSeconds(trackingWarningDuration + 0.2f);
+                yield return new WaitForSeconds(
+                    trackingWarningDuration + trackingPostStrikeDelay);
                 activeZone = null;
 
                 if (trackingStrikeInterval > 0f && strikeIndex < strikeCount - 1)
@@ -775,62 +848,6 @@ namespace SharpI7.Combat
             activeBossDistanceZone.Cancel();
             activeBossDistanceZone = null;
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            firstAttackDelay = Mathf.Max(0f, firstAttackDelay);
-            recoveryDuration = Mathf.Max(0f, recoveryDuration);
-            chantOpportunityDuration = Mathf.Max(0f, chantOpportunityDuration);
-            attackDamage = Mathf.Max(0f, attackDamage);
-            minTrackingStrikes = Mathf.Max(1, minTrackingStrikes);
-            maxTrackingStrikes = Mathf.Max(minTrackingStrikes, maxTrackingStrikes);
-            trackingAttackRadius = Mathf.Max(0.1f, trackingAttackRadius);
-            trackingWarningDuration = Mathf.Max(0.05f, trackingWarningDuration);
-            trackingStrikeInterval = Mathf.Max(0f, trackingStrikeInterval);
-            lineWarningDuration = Mathf.Max(0.05f, lineWarningDuration);
-            lineAttackLength = Mathf.Max(0.1f, lineAttackLength);
-            lineAttackWidth = Mathf.Clamp(lineAttackWidth, 0.1f, lineAttackLength);
-            safeZoneWarningDuration = Mathf.Max(0.05f, safeZoneWarningDuration);
-            safeZoneRadius = Mathf.Max(0.1f, safeZoneRadius);
-            safeZoneFieldSize.x = Mathf.Max(safeZoneRadius * 2f, safeZoneFieldSize.x);
-            safeZoneFieldSize.y = Mathf.Max(safeZoneRadius * 2f, safeZoneFieldSize.y);
-            safeZoneMinDistance = Mathf.Max(0f, safeZoneMinDistance);
-            safeZoneMaxDistance = Mathf.Max(safeZoneMinDistance, safeZoneMaxDistance);
-            laserWarningDuration = Mathf.Max(0.05f, laserWarningDuration);
-            laserActiveDuration = Mathf.Max(0.05f, laserActiveDuration);
-            laserLength = Mathf.Max(0.1f, laserLength);
-            laserWidth = Mathf.Clamp(laserWidth, 0.1f, laserLength);
-            laserDamagePerTick = Mathf.Max(0f, laserDamagePerTick);
-            laserPlayerDamageInvulnerabilityDuration = Mathf.Max(0.05f, laserPlayerDamageInvulnerabilityDuration);
-            dashLaserWallFieldSize.x = Mathf.Max(0.1f, dashLaserWallFieldSize.x);
-            dashLaserWallFieldSize.y = Mathf.Max(0.1f, dashLaserWallFieldSize.y);
-            dashLaserWallThickness = Mathf.Max(0.1f, dashLaserWallThickness);
-            dashLaserWallWarningDuration = Mathf.Max(0.05f, dashLaserWallWarningDuration);
-            dashLaserWallTravelDuration = Mathf.Max(0.05f, dashLaserWallTravelDuration);
-            dashLaserWallDamage = Mathf.Max(0f, dashLaserWallDamage);
-            contactDamage = Mathf.Max(0f, contactDamage);
-            contactDamageInterval = Mathf.Max(0.05f, contactDamageInterval);
-            phaseTwoAttackDelayMultiplier = Mathf.Clamp(phaseTwoAttackDelayMultiplier, 0.1f, 1f);
-            phaseTwoMoveSpeedMultiplier = Mathf.Max(0f, phaseTwoMoveSpeedMultiplier);
-            radialOrbCount = Mathf.Max(3, radialOrbCount);
-            orbMovementSpeed = Mathf.Max(0.01f, orbMovementSpeed);
-            orbWobbleAmplitude = Mathf.Max(0f, orbWobbleAmplitude);
-            orbWobbleFrequency = Mathf.Max(0f, orbWobbleFrequency);
-            orbCollisionRadius = Mathf.Max(0.05f, orbCollisionRadius);
-            orbDamage = Mathf.Max(0f, orbDamage);
-            orbPlayAreaSize.x = Mathf.Max(orbCollisionRadius * 2f, orbPlayAreaSize.x);
-            orbPlayAreaSize.y = Mathf.Max(orbCollisionRadius * 2f, orbPlayAreaSize.y);
-            bossDistanceWarningDuration = Mathf.Max(0.05f, bossDistanceWarningDuration);
-            bossDistanceRadius = Mathf.Max(0.1f, bossDistanceRadius);
-            bossDistanceFieldSize.x = Mathf.Max(
-                bossDistanceRadius * 2f,
-                bossDistanceFieldSize.x);
-            bossDistanceFieldSize.y = Mathf.Max(
-                bossDistanceRadius * 2f,
-                bossDistanceFieldSize.y);
-        }
-#endif
 
         private enum AttackFamily
         {

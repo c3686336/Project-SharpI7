@@ -109,18 +109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81eaf8fc5f20f789b8023e5bf32dfe4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  moveSpeed: 0.1
-  dashWindupDuration: 0
-  dashCooldownDuration: 3
-  dashDuration: 0.2
-  dashDistance: 5
   referenceHeading: {x: 0, y: 1}
-  maxHealth: 3
-  defaultMana: 30
-  manaWarningThreshold: 100
-  criticalMana: 150
-  manaFillSpeed: 5
-  manaSaturationDamageCooldown: 3
   chantManager: {fileID: 0}
   bossHealth: {fileID: 0}
 --- !u!50 &6057062684835720305
