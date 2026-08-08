@@ -16,9 +16,9 @@ namespace SharpI7.Balance
             ("overloadDamage", 1),
             ("defaultValue", 1),
             ("warningThreshold", 1),
+            ("overloadThreshold", 1),
             ("saturationThreshold", 1),
             ("fillSpeed", 1),
-            ("saturationDuration", 1),
             ("windupDuration", 1),
             ("cooldownDuration", 1),
             ("duration", 1),
@@ -161,24 +161,24 @@ namespace SharpI7.Balance
             RequireNonNegative(data.player.overloadDamage, "player.overloadDamage", path);
             RequireNonNegative(data.player.mana.defaultValue, "player.mana.defaultValue", path);
             RequireNonNegative(data.player.mana.warningThreshold, "player.mana.warningThreshold", path);
+            RequirePositive(data.player.mana.overloadThreshold, "player.mana.overloadThreshold", path);
             RequirePositive(data.player.mana.saturationThreshold, "player.mana.saturationThreshold", path);
             RequireNonNegative(data.player.mana.fillSpeed, "player.mana.fillSpeed", path);
-            RequireAtLeast(
-                data.player.mana.saturationDuration,
-                0.1f,
-                "player.mana.saturationDuration",
-                path);
 
-            if (data.player.mana.warningThreshold > data.player.mana.saturationThreshold)
+            if (data.player.mana.warningThreshold > data.player.mana.overloadThreshold)
             {
-                throw new InvalidDataException($"player.mana.warningThreshold exceeds saturationThreshold in '{path}'.");
+                throw new InvalidDataException($"player.mana.warningThreshold exceeds overloadThreshold in '{path}'.");
             }
 
-            float manaMaximum = data.player.mana.saturationThreshold +
-                                data.player.mana.fillSpeed * data.player.mana.saturationDuration;
-            if (data.player.mana.defaultValue > manaMaximum)
+            if (data.player.mana.overloadThreshold >= data.player.mana.saturationThreshold)
             {
-                throw new InvalidDataException($"player.mana.defaultValue exceeds the display maximum in '{path}'.");
+                throw new InvalidDataException(
+                    $"player.mana.overloadThreshold must be less than saturationThreshold in '{path}'.");
+            }
+
+            if (data.player.mana.defaultValue > data.player.mana.saturationThreshold)
+            {
+                throw new InvalidDataException($"player.mana.defaultValue exceeds saturationThreshold in '{path}'.");
             }
 
             RequireNonNegative(data.player.dash.windupDuration, "player.dash.windupDuration", path);
