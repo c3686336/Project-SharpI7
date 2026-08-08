@@ -2738,6 +2738,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1330538459}
     - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
+      propertyPath: stageManager
+      value: 
+      objectReference: {fileID: 1977335316}
+    - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: referenceHeading.y
       value: -1
       objectReference: {fileID: 0}

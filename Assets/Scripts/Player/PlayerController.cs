@@ -25,6 +25,7 @@ public sealed class PlayerController : MonoBehaviour,
     [SerializeField] private ChantManager chantManager;
     [SerializeField] private BossHealth bossHealth;
     [SerializeField] private Color flashColor;
+    [SerializeField] private StageManager stageManager;
 
     [Header("Spell Effects")]
     [SerializeField] private SpellEffectRegistry spellEffectRegistry;
@@ -355,7 +356,7 @@ public sealed class PlayerController : MonoBehaviour,
         {
             LockMovement();
             Died?.Invoke();
-            OutGameManager.LoadGameOver();
+            OutGameManager.LoadGameOver(stageManager.CurrentStage.StageId);
         }
     }
 

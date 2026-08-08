@@ -7,6 +7,8 @@ public sealed class OutGameManager : MonoBehaviour
     private const string OutGameSceneName = "Outgame";
     private const string MainSceneName = "MainScene";
 
+    private static string gameOverStageId;
+
     [SerializeField] private GameObject mainMenu;
     [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private GameObject WinMenu;
@@ -14,10 +16,13 @@ public sealed class OutGameManager : MonoBehaviour
     [SerializeField] private Button configButton;
     [SerializeField] private Button exitGameButton;
     [SerializeField] private Button closeConfigButton;
-    [SerializeField] private Button restartButton;
+    [SerializeField] private Button gameOverTitleButton;
+    [SerializeField] private Button gameOverRetryButton;
     [SerializeField] private Button winRestartButton;
     [SerializeField] private GameObject configPanel;
     [SerializeField] private TutorialSelectionPanel tutorialSelectionPanel;
+    [SerializeField] private GameObject stage1GameOverBackground;
+    [SerializeField] private GameObject stage2GameOverBackground;
 
     private static OutgameState outgameState;
 
@@ -33,8 +38,8 @@ public sealed class OutGameManager : MonoBehaviour
         if (mainMenu == null || gameOverMenu == null || WinMenu == null ||
             startGameButton == null || configButton == null || exitGameButton == null ||
             closeConfigButton == null ||
-            restartButton == null || winRestartButton == null || configPanel == null ||
-            tutorialSelectionPanel == null)
+            gameOverTitleButton == null || winRestartButton == null || configPanel == null ||
+            tutorialSelectionPanel == null || gameOverRetryButton == null)
         {
             Debug.LogError("OutGameManager has missing menu or button references.", this);
             enabled = false;
@@ -53,7 +58,8 @@ public sealed class OutGameManager : MonoBehaviour
         configButton.onClick.AddListener(OpenConfig);
         exitGameButton.onClick.AddListener(QuitGame);
         closeConfigButton.onClick.AddListener(CloseConfig);
-        restartButton.onClick.AddListener(ShowMainMenu);
+        gameOverTitleButton.onClick.AddListener(ShowMainMenu);
+        gameOverRetryButton.onClick.AddListener(StartGame);
         winRestartButton.onClick.AddListener(ShowMainMenu);
     }
 
@@ -65,7 +71,8 @@ public sealed class OutGameManager : MonoBehaviour
         configButton.onClick.RemoveListener(OpenConfig);
         exitGameButton.onClick.RemoveListener(QuitGame);
         closeConfigButton.onClick.RemoveListener(CloseConfig);
-        restartButton.onClick.RemoveListener(ShowMainMenu);
+        gameOverTitleButton.onClick.RemoveListener(ShowMainMenu);
+        gameOverRetryButton.onClick.RemoveListener(StartGame);
         winRestartButton.onClick.RemoveListener(ShowMainMenu);
     }
 
@@ -113,9 +120,11 @@ public sealed class OutGameManager : MonoBehaviour
 #endif
     }
 
-    public static void LoadGameOver()
+    public static void LoadGameOver(string stageId)
     {
         outgameState = OutgameState.Lose;
+        gameOverStageId = stageId;
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(OutGameSceneName);
     }
@@ -155,6 +164,18 @@ public sealed class OutGameManager : MonoBehaviour
                 mainMenu.SetActive(false);
                 gameOverMenu.SetActive(true);
                 WinMenu.SetActive(false);
+
+                switch (gameOverStageId ?? "stage1")
+                {
+                    case "stage1":
+                        stage1GameOverBackground.SetActive(true);
+                        stage2GameOverBackground.SetActive(false);
+                        break;
+                    case "stage2":
+                        stage1GameOverBackground.SetActive(false);
+                        stage2GameOverBackground.SetActive(true);
+                        break;
+                }
                 break;
         }
     }

@@ -21,6 +21,8 @@ public sealed class StageManager : MonoBehaviour
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
 
+    public StageData CurrentStage => stageData;
+
     public static void SetInitialStage(StageData initialStage, bool showTutorial)
     {
         initialStageOverride = initialStage;
