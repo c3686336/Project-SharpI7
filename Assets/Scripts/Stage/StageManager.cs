@@ -5,10 +5,11 @@ public sealed class StageManager : MonoBehaviour
 {
     [SerializeField] private StageData stageData;
     [SerializeField] private SpriteRenderer backgroundRenderer;
-    [SerializeField] private GameObject tutorialCanvas;
+    [SerializeField] private TutorialDialogueController tutorialDialogueController;
     [SerializeField] private InGameManager inGameManager;
 
     private static StageData initialStageOverride;
+    private static bool showTutorialOnStart;
 
     private PlayerController player;
     private BossHealthBar bossHealthBar;
@@ -17,15 +18,17 @@ public sealed class StageManager : MonoBehaviour
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
 
-    public static void SetInitialStage(StageData initialStage)
+    public static void SetInitialStage(StageData initialStage, bool showTutorial)
     {
         initialStageOverride = initialStage;
+        showTutorialOnStart = showTutorial;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetInitialStage()
     {
         initialStageOverride = null;
+        showTutorialOnStart = false;
     }
 
     private void Start()
@@ -36,10 +39,12 @@ public sealed class StageManager : MonoBehaviour
         StageData initialStage = initialStageOverride != null
             ? initialStageOverride
             : stageData;
+        bool shouldShowTutorial = showTutorialOnStart;
         initialStageOverride = null;
+        showTutorialOnStart = false;
 
         bool stageLoaded = LoadStage(initialStage);
-        SetTutorialMode(stageLoaded && initialStage.IsTutorial);
+        SetTutorialMode(stageLoaded && shouldShowTutorial);
     }
 
     private void OnDestroy()
@@ -50,19 +55,20 @@ public sealed class StageManager : MonoBehaviour
 
     private void SetTutorialMode(bool enabled)
     {
-        if (tutorialCanvas == null || inGameManager == null)
+        if (tutorialDialogueController == null || inGameManager == null)
         {
             Debug.LogError(
-                "[StageManager] TutorialCanvas or InGameManager reference is missing.",
+                "[StageManager] TutorialDialogueController or InGameManager reference is missing.",
                 this);
             return;
         }
 
-        tutorialCanvas.SetActive(enabled);
+        tutorialDialogueController.gameObject.SetActive(enabled);
 
         if (enabled)
         {
             inGameManager.PauseGameplay();
+            tutorialDialogueController.Begin(inGameManager);
         }
         else
         {

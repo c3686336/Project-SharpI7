@@ -71,13 +71,13 @@ public sealed class OutGameManager : MonoBehaviour
 
     public void StartGame()
     {
-        StageManager.SetInitialStage(null);
+        StageManager.SetInitialStage(null, false);
         LoadMainScene();
     }
 
     private void StartTutorial(StageData tutorialStageData)
     {
-        StageManager.SetInitialStage(tutorialStageData);
+        StageManager.SetInitialStage(tutorialStageData, true);
         LoadMainScene();
     }
 

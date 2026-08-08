@@ -1,0 +1,95 @@
+{
+  "tutorialId": "tutorial_stage1",
+  "steps": [
+    {
+      "description": "튜토리얼 도입",
+      "text": "어, 내 목소리 들려? 지금부터 내 몸을 움직이는 건 네 몫이야.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "WASD 이동 조작 안내",
+      "text": "WASD로 움직일 수 있어. 공격이 날아오면 가만히 있지 말고 피해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "Shift 대시 조작 안내",
+      "text": "이동하면서 Shift를 누르면 그 방향으로 빠르게 대시해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "대시 중 무적 안내",
+      "text": "대시하는 동안에는 공격을 맞지 않아. 위험한 순간에 써먹어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "대시 쿨타임 UI 안내",
+      "text": "오른쪽 아래 표시가 대시 쿨타임이야. 다시 차오르면 대시할 수 있어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "플레이어 체력 UI 안내",
+      "text": "왼쪽 아래 하트 세 개가 내 목숨이야.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "피격과 사망 안내",
+      "text": "공격을 맞으면 하나씩 사라지고, 전부 잃으면 끝이야. 조심해 줘.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "Enter 영창 시작 안내",
+      "text": "Enter를 누르면 영창을 시작할 수 있어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "영창 입력과 마법 사용 안내",
+      "text": "화면에 뜬 문장을 그대로 입력하고 Enter를 다시 누르면 마법이 나가.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "영창 중 이동 제한 안내",
+      "text": "영창하는 동안에는 움직일 수 없으니까, 안전할 때 시작해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 플라스크 UI 안내",
+      "text": "내 초상화를 감싼 플라스크는 현재 마나 상태를 보여줘.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 증가와 소모 안내",
+      "text": "마나는 시간이 지나면 저절로 차오르고, 마법을 사용하면 줄어들어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 위험 상태 안내",
+      "text": "내 표정이 바뀌기 시작하면 마나가 위험하다는 뜻이야.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "마나 포화 피해 안내",
+      "text": "마나가 끝까지 차면 하트 하나를 잃고 처음 수치로 돌아가. 마법을 계속 써서 낮춰 둬.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "튜토리얼 설명 종료",
+      "text": "설명은 여기까지야. 자, 이제 같이 살아남아 보자.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    }
+  ]
+}
