@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ChantManager : MonoBehaviour, IChantManager
 {
@@ -41,22 +42,8 @@ public class ChantManager : MonoBehaviour, IChantManager
     [SerializeField]
     private TMP_InputField chantInputField;
 
-
-    [Header("Status UI")]
     [SerializeField]
     private TMP_Text correctCountUI;
-
-    [SerializeField]
-    private TMP_Text typoCountUI;
-
-    [SerializeField]
-    private TMP_Text chantLevelUI;
-
-    [SerializeField]
-    private TMP_Text expectedDamageUI;
-
-    [SerializeField]
-    private TMP_Text actualDamageUI;
 
     [SerializeField]
     private TMP_Text manaCostUI;
@@ -99,40 +86,46 @@ public class ChantManager : MonoBehaviour, IChantManager
         correctCount;
 
 
+    // UI에서 직접 표시하지 않더라도
+    // 데이터와 외부 접근은 유지.
     public int TypoCount =>
         typoCount;
 
 
+    // UI에서 직접 표시하지 않더라도
+    // 데이터와 외부 접근은 유지.
     public int ChantLevel =>
         currentStage?.chantLevel ?? 0;
 
 
     /// <summary>
-    /// 현재 영창 단계의 마나 소비량.
-    /// PlayerController가 발동 전에 현재 마나와 비교할 때 사용.
+    /// 현재 영창 단계에서 소비할 마나.
+    /// PlayerController가 현재 마나와 비교할 때 사용.
     /// </summary>
     public float CurrentManaCost =>
         currentStage?.manaCost ?? 0f;
 
 
     /// <summary>
-    /// 현재 단계의 영창문 길이를 만족했는지 여부.
-    /// 마나 여부는 여기서 검사하지 않는다.
+    /// 현재 단계의 영창문 길이까지 입력했는지 여부.
+    /// 마나는 검사하지 않는다.
     /// </summary>
     public bool CanResolveCurrentStage =>
         CanCastCurrentStage();
 
 
     /// <summary>
-    /// 현재 단계의 오타가 없다고 가정한 예상 피해량.
+    /// 현재 영창 단계의 예상 피해.
+    /// UI 오브젝트가 없어도 데이터는 계속 계산한다.
     /// </summary>
     public float ExpectedDamage =>
         CalculateExpectedDamage();
 
 
     /// <summary>
-    /// 실제 적용될 피해량.
-    /// 오타가 하나라도 존재하면 0.
+    /// 실제 피해.
+    /// 오타가 하나라도 있으면 0.
+    /// UI 오브젝트가 없어도 데이터는 계속 계산한다.
     /// </summary>
     public float ActualDamage =>
         CalculateActualDamage();
@@ -148,17 +141,30 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     public event Action OnChantInterrupted;
 
-    public event Action OnChantSubmitRequested;
-
     /// <summary>
-    /// 영창이 실제로 Resolve 되었을 때 발생.
-    /// PlayerController에서 구독한다.
+    /// 정상적으로 영창이 발동되었을 때 발생.
+    /// PlayerController가 구독한다.
     /// </summary>
     public event Action<CastResult> OnChantCast;
 
 
     /// <summary>
-    /// 입력 중 현재 영창 상태를 UI 등에 전달.
+    /// 영창 중 Enter가 눌렸을 때 발생.
+    ///
+    /// PlayerController에서
+    /// 오타 여부 / 마나 여부를 확인하고
+    /// 취소 또는 발동을 결정한다.
+    /// </summary>
+    public event Action OnChantSubmitRequested;
+
+
+    /// <summary>
+    /// 영창 입력 상태가 바뀔 때마다 외부 UI 담당에게
+    /// 영창 정보를 전달한다.
+    ///
+    /// ChantPanel에서 직접 표시하지 않는
+    /// ChantLevel / TypoCount / ExpectedDamage /
+    /// ActualDamage 데이터도 이 이벤트로 전달된다.
     /// </summary>
     public event Action<ChantPreviewData>
         OnChantPreviewChanged;
@@ -179,14 +185,39 @@ public class ChantManager : MonoBehaviour, IChantManager
     private int typoCount;
 
 
+    // 영창 시작에 사용된 Enter가
+    // 같은 프레임에 Submit Enter로 또 처리되는 것을 방지.
+    private int chantStartedFrame = -1;
+
+
+    // =========================================================
+    // Interrupt
+    // =========================================================
+
+    /*
+     * PlayerController.TakeDamage()
+     * -> ApplyDamage()
+     * -> InterruptChant()
+     *
+     * 호출이 OnTriggerStay2D 같은 Physics 콜백 내부에서
+     * 발생할 수 있다.
+     *
+     * 그 자리에서 chantPanel.SetActive(false)를 실행하면
+     * TMP_InputField.OnDisable 내부에서 DestroyImmediate 관련
+     * Unity 경고가 발생할 수 있다.
+     *
+     * 따라서 Interrupt만 실제 Reset을 LateUpdate로 미룬다.
+     */
+    private bool interruptPending;
+
+
     // =========================================================
     // Clipboard
     // =========================================================
 
-    // 영창 시작 직전 사용자의 클립보드 내용.
     private string savedClipboard = "";
 
-    private bool clipboardCaptured = false;
+    private bool clipboardCaptured;
 
 
     // =========================================================
@@ -200,11 +231,8 @@ public class ChantManager : MonoBehaviour, IChantManager
             chantInputField.onValueChanged.AddListener(
                 OnInputChanged
             );
-
-            chantInputField.onSubmit.AddListener(
-                OnInputSubmitted
-            );
         }
+
 
         SetChantUI(false);
     }
@@ -239,11 +267,74 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (State != ChantState.Casting)
             return;
 
-        if (!blockPaste)
+
+        // -----------------------------------------------------
+        // Clipboard Blocking
+        // -----------------------------------------------------
+
+        if (blockPaste)
+        {
+            BlockClipboard();
+        }
+
+
+        // -----------------------------------------------------
+        // Enter Handling
+        // -----------------------------------------------------
+
+        /*
+         * 영창 시작에 사용된 Enter가
+         * 바로 Submit Enter로 처리되는 것을 막는다.
+         */
+        if (Time.frameCount == chantStartedFrame)
+        {
+            return;
+        }
+
+
+        Keyboard keyboard =
+            Keyboard.current;
+
+
+        if (keyboard == null)
             return;
 
 
-        BlockClipboard();
+        bool enterPressed =
+            keyboard.enterKey.wasPressedThisFrame ||
+            keyboard.numpadEnterKey.wasPressedThisFrame;
+
+
+        if (!enterPressed)
+            return;
+
+
+        OnChantSubmitRequested?.Invoke();
+    }
+
+
+    private void LateUpdate()
+    {
+        if (!interruptPending)
+            return;
+
+
+        interruptPending =
+            false;
+
+
+        /*
+         * Interrupt가 예약된 이후 같은 프레임에
+         * 다른 이유로 이미 영창이 끝났을 수도 있다.
+         */
+        if (State != ChantState.Casting)
+            return;
+
+
+        ResetChant();
+
+
+        OnChantInterrupted?.Invoke();
     }
 
 
@@ -253,10 +344,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         {
             chantInputField.onValueChanged.RemoveListener(
                 OnInputChanged
-            );
-
-            chantInputField.onSubmit.RemoveListener(
-                OnInputSubmitted
             );
         }
 
@@ -272,33 +359,21 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (!hasFocus)
             return;
 
+
         if (State != ChantState.Casting)
             return;
+
 
         if (!blockPaste)
             return;
 
 
-        // Alt + Tab 등으로 외부 프로그램에서
-        // 복사한 뒤 게임으로 돌아온 경우에도 제거.
+        /*
+         * 게임 밖으로 나갔다가
+         * 외부 프로그램에서 텍스트를 복사한 뒤
+         * 게임으로 돌아오는 경우에도 클립보드를 비운다.
+         */
         BlockClipboard();
-    }
-
-    private void OnInputSubmitted(
-    string value
-    )
-    {
-        if (State != ChantState.Casting)
-            return;
-
-        OnChantSubmitRequested?.Invoke();
-
-        // Submit 후에도 계속 입력 포커스를 유지
-        if (State == ChantState.Casting &&
-            chantInputField != null)
-        {
-            chantInputField.ActivateInputField();
-        }
     }
 
 
@@ -326,6 +401,10 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void BlockClipboard()
     {
+        /*
+         * TMP_InputField 붙여넣기에서 사용하는
+         * 시스템 클립보드 내용을 영창 중 비운다.
+         */
         if (!string.IsNullOrEmpty(
             GUIUtility.systemCopyBuffer
         ))
@@ -441,11 +520,23 @@ public class ChantManager : MonoBehaviour, IChantManager
         ClearRuntimeData();
 
 
+        interruptPending =
+            false;
+
+
         CaptureClipboard();
 
 
         State =
             ChantState.Casting;
+
+
+        /*
+         * 영창 화면 입장에 사용한 Enter가
+         * 같은 프레임에 Submit으로 처리되지 않도록 저장.
+         */
+        chantStartedFrame =
+            Time.frameCount;
 
 
         SetChantUI(true);
@@ -496,10 +587,23 @@ public class ChantManager : MonoBehaviour, IChantManager
             return;
 
 
-        ResetChant();
+        /*
+         * 동일한 Physics 콜백에서 여러 번
+         * 호출되는 것을 방지한다.
+         */
+        if (interruptPending)
+            return;
 
 
-        OnChantInterrupted?.Invoke();
+        /*
+         * 즉시 Reset하지 않는다.
+         *
+         * Physics Trigger/Collision 콜백 내부에서
+         * TMP_InputField가 비활성화되는 문제를 피하기 위해
+         * LateUpdate에서 처리한다.
+         */
+        interruptPending =
+            true;
     }
 
 
@@ -516,16 +620,25 @@ public class ChantManager : MonoBehaviour, IChantManager
             CreateCastResult();
 
 
-        // 현재 단계 영창문의 길이를
-        // 아직 만족하지 못했다면 영창을 종료하지 않는다.
+        /*
+         * 현재 단계의 영창문 길이를 끝까지
+         * 입력하지 않았다면 발동하지 않는다.
+         */
         if (!CanCastCurrentStage())
         {
             return result;
         }
 
 
-        // 마나 검사는 PlayerController에서 한다.
-        // 여기서는 영창 자체의 조건만 검사한다.
+        /*
+         * PlayerController가 ResolveChant 호출 전에
+         *
+         * - 오타 여부
+         * - 현재 마나
+         * - 필요 마나
+         *
+         * 를 확인한다.
+         */
 
 
         ResetChant();
@@ -568,6 +681,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         UpdateUI();
 
 
+        /*
+         * ChantPanel에서 일부 표시용 Text를 삭제해도
+         * 외부 UI에는 계속 데이터를 전달한다.
+         */
         NotifyPreviewChanged();
     }
 
@@ -674,7 +791,7 @@ public class ChantManager : MonoBehaviour, IChantManager
                 false;
 
 
-            // 1. 맞은 글자 수가 많은 단계 우선
+            // 1. 맞은 글자 수 우선
             if (stageCorrectCount >
                 bestCorrectCount)
             {
@@ -682,7 +799,7 @@ public class ChantManager : MonoBehaviour, IChantManager
                     true;
             }
 
-            // 2. 맞은 글자 수가 같다면 정확도
+            // 2. 맞은 글자 수가 같으면 정확도 우선
             else if (
                 stageCorrectCount ==
                 bestCorrectCount &&
@@ -694,7 +811,7 @@ public class ChantManager : MonoBehaviour, IChantManager
                     true;
             }
 
-            // 3. 정확도까지 같다면 길이가 가까운 단계
+            // 3. 정확도도 같으면 길이가 가까운 단계 우선
             else if (
                 stageCorrectCount ==
                 bestCorrectCount &&
@@ -764,7 +881,10 @@ public class ChantManager : MonoBehaviour, IChantManager
             i++
         )
         {
-            // 목표 영창문보다 더 입력한 글자도 오타.
+            /*
+             * 목표 영창문보다 더 많이 입력한 문자도
+             * 오타로 판정한다.
+             */
             if (i >= target.Length)
             {
                 typoCount++;
@@ -823,6 +943,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
 
+        /*
+         * 예상 피해 =
+         * 기본 피해 × 현재 영창 단계 배율
+         */
         return
             currentSpell.baseDamage *
             currentStage.damageMultiplier;
@@ -838,47 +962,62 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
 
-        // 오타가 단 하나라도 존재하면
-        // 실제 피해량은 0.
+        /*
+         * 오타가 하나라도 있으면
+         * 실제 피해량은 무조건 0.
+         */
         if (typoCount > 0)
         {
             return 0f;
         }
 
 
-        // 오타가 없다면 예상 피해량이
-        // 그대로 실제 피해량.
+        /*
+         * 오타가 없다면 예상 피해가
+         * 그대로 실제 피해.
+         */
         return
             CalculateExpectedDamage();
     }
 
 
     // =========================================================
-    // Preview
+    // Preview Data
     // =========================================================
 
     private void NotifyPreviewChanged()
     {
+        /*
+         * ChantPanel에서 직접 Text로 표시하지 않더라도
+         * 모든 계산 데이터는 그대로 유지하고
+         * 외부 UI 담당에게 전달한다.
+         */
         ChantPreviewData preview =
             new ChantPreviewData
             {
                 chantLevel =
                     ChantLevel,
 
+
                 expectedDamage =
                     ExpectedDamage,
+
 
                 actualDamage =
                     ActualDamage,
 
+
                 manaCost =
                     CurrentManaCost,
+
 
                 correctCount =
                     CorrectCount,
 
+
                 typoCount =
                     TypoCount,
+
 
                 canResolve =
                     CanCastCurrentStage()
@@ -942,21 +1081,30 @@ public class ChantManager : MonoBehaviour, IChantManager
                 CalculateActualDamage(),
 
 
-            // 기존 필드 호환용.
-            // 오타 없음 = 1
-            // 오타 있음 = 0
+            /*
+             * 기존 CastResult 필드 유지.
+             *
+             * 오타 없음 = 1
+             * 오타 있음 = 0
+             */
             penaltyMultiplier =
                 typoCount == 0
                     ? 1f
                     : 0f,
 
 
+            /*
+             * 단계별 실제 마나 소비량.
+             */
             manaCost =
                 currentStage?.manaCost ?? 0f,
 
 
-            // 기존 데이터이므로 유지.
-            // 실제 마나 소비에는 manaCost를 사용한다.
+            /*
+             * 기존 시스템 호환을 위해 유지.
+             * 실제 플레이어 마나 소비에는
+             * manaCost를 사용한다.
+             */
             manaRelease =
                 canCast &&
                 currentSpell != null
@@ -993,6 +1141,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         UpdateTargetTextUI();
 
 
+        /*
+         * CorrectCount는 현재 ChantPanel에서
+         * 계속 표시하므로 유지.
+         */
         if (correctCountUI != null)
         {
             correctCountUI.text =
@@ -1000,39 +1152,29 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
 
-        if (typoCountUI != null)
-        {
-            typoCountUI.text =
-                $"오타 : {typoCount}";
-        }
-
-
-        if (chantLevelUI != null)
-        {
-            chantLevelUI.text =
-                $"영창 단계 : {ChantLevel}";
-        }
-
-
-        if (expectedDamageUI != null)
-        {
-            expectedDamageUI.text =
-                $"예상 피해 : {ExpectedDamage:0.#}";
-        }
-
-
-        if (actualDamageUI != null)
-        {
-            actualDamageUI.text =
-                $"실제 피해 : {ActualDamage:0.#}";
-        }
-
-
+        /*
+         * ManaCost도 현재 ChantPanel에서
+         * 표시할 수 있도록 유지.
+         */
         if (manaCostUI != null)
         {
             manaCostUI.text =
                 $"마나 소비 : {CurrentManaCost:0.#}";
         }
+
+
+        /*
+         * 아래 데이터들은 계속 계산되지만
+         * ChantPanel에서는 직접 표시하지 않는다.
+         *
+         * - TypoCount
+         * - ChantLevel
+         * - ExpectedDamage
+         * - ActualDamage
+         *
+         * 필요한 외부 UI에서는
+         * OnChantPreviewChanged를 구독해서 사용한다.
+         */
     }
 
 
@@ -1071,7 +1213,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
 
-        // 아직 아무것도 입력하지 않은 상태.
+        /*
+         * 아무것도 입력하지 않은 상태에서는
+         * 전체 영창문을 회색으로 표시.
+         */
         if (currentStage == null)
         {
             targetTextUI.text =
@@ -1101,7 +1246,7 @@ public class ChantManager : MonoBehaviour, IChantManager
                 target[i];
 
 
-            // 아직 입력하지 않은 글자
+            // 아직 입력하지 않은 문자
             if (i >= currentInput.Length)
             {
                 AppendColoredCharacter(
@@ -1137,7 +1282,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
 
-        // 목표보다 초과 입력된 문자.
+        /*
+         * 목표 영창문보다 많이 입력한 문자도
+         * 빨간색 오타로 표시.
+         */
         if (currentInput.Length >
             target.Length)
         {
@@ -1279,11 +1427,22 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void ResetChant()
     {
+        /*
+         * 예약되어 있던 Interrupt가 있다면 제거.
+         */
+        interruptPending =
+            false;
+
+
         State =
             ChantState.Idle;
 
 
         ClearRuntimeData();
+
+
+        chantStartedFrame =
+            -1;
 
 
         if (chantInputField != null)

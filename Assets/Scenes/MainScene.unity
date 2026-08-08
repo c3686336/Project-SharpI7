@@ -119,17 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &25466707 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8601143963866763762, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
-  m_PrefabInstance: {fileID: 353332707}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &91097558
 GameObject:
   m_ObjectHideFlags: 0
@@ -445,15 +434,15 @@ PrefabInstance:
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: typoCountUI
       value: 
-      objectReference: {fileID: 619468967}
+      objectReference: {fileID: 0}
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: chantLevelUI
       value: 
-      objectReference: {fileID: 25466707}
+      objectReference: {fileID: 0}
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: actualDamageUI
       value: 
-      objectReference: {fileID: 379019187}
+      objectReference: {fileID: 0}
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: defaultSpellId
       value: eternal_flame
@@ -461,7 +450,7 @@ PrefabInstance:
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: expectedDamageUI
       value: 
-      objectReference: {fileID: 1757697396}
+      objectReference: {fileID: 0}
     - target: {fileID: 1392754086381814093, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: m_Name
       value: ChantLevelText
@@ -631,7 +620,11 @@ PrefabInstance:
       value: 41
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 75519419644115112, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+    - {fileID: 1006674181055097519, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+    - {fileID: 1392754086381814093, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+    - {fileID: 6656857583791478003, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
@@ -675,17 +668,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &379019187 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5306904429782367892, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
-  m_PrefabInstance: {fileID: 353332707}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &496133002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1257,17 +1239,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &619468967 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8857971485166742872, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
-  m_PrefabInstance: {fileID: 353332707}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &644082119
 GameObject:
   m_ObjectHideFlags: 0
@@ -2260,17 +2231,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684246137}
   m_CullTransparentMesh: 1
---- !u!114 &1757697396 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5604890725071288530, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
-  m_PrefabInstance: {fileID: 353332707}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1801781442
 GameObject:
   m_ObjectHideFlags: 0
