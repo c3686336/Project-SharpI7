@@ -1,26 +1,31 @@
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class ManaDisplay : MonoBehaviour
 {
     [SerializeField] private MonoBehaviour player;
-    [SerializeField] private ManaRingGraphic ring;
-    [SerializeField] private TMP_Text saturationCountdownText;
-    [SerializeField] private Color saturationColor = new(1f, 0.12f, 0.08f, 1f);
+    [SerializeField] private Image manaFill;
+    [SerializeField] private Image portraitImage;
+
+    [Header("Portraits")]
+    [SerializeField] private Sprite normalPortrait;
+    [SerializeField] private Sprite warningPortrait;
+    [SerializeField] private Sprite saturatedPortrait;
 
     private IPlayerMana playerMana;
 
     private void Awake()
     {
         playerMana = player as IPlayerMana;
+        ConfigureManaFill();
     }
 
     private void OnEnable()
     {
-        if (playerMana == null || ring == null || saturationCountdownText == null)
+        if (playerMana == null || manaFill == null)
         {
-            Debug.LogError("ManaDisplay requires all Inspector references.", this);
+            Debug.LogError("ManaDisplay requires a player and a mana visual.", this);
             enabled = false;
             return;
         }
@@ -39,25 +44,41 @@ public sealed class ManaDisplay : MonoBehaviour
 
     private void Refresh(ManaStatus status)
     {
-        ring.SetStatus(status);
+        float saturationThreshold = Mathf.Max(0.01f, status.SaturationThreshold);
+        manaFill.fillAmount = Mathf.Clamp01(status.Current / saturationThreshold);
 
-        bool showCountdown = status.IsSaturated;
-        saturationCountdownText.gameObject.SetActive(showCountdown);
-        if (!showCountdown)
+        RefreshPortrait(status);
+    }
+
+    private void ConfigureManaFill()
+    {
+        if (manaFill == null)
         {
             return;
         }
 
-        saturationCountdownText.text = $"OVERLOAD\n{status.SaturationRemaining:0.0}";
+        manaFill.type = Image.Type.Filled;
+        manaFill.fillMethod = Image.FillMethod.Vertical;
+        manaFill.fillOrigin = (int)Image.OriginVertical.Bottom;
+        manaFill.fillClockwise = true;
+    }
 
-        float progress = 1f - Mathf.Clamp01(
-            status.SaturationRemaining / Mathf.Max(0.01f, status.SaturationDuration));
-        float pulseSpeed = Mathf.Lerp(6f, 14f, progress);
-        float pulse = 0.82f + Mathf.Sin(Time.unscaledTime * pulseSpeed) * 0.18f;
-        Color color = saturationColor;
-        color.a = pulse;
-        saturationCountdownText.color = color;
-        saturationCountdownText.rectTransform.localScale =
-            Vector3.one * Mathf.Lerp(1f, 1.08f, pulse);
+    private void RefreshPortrait(ManaStatus status)
+    {
+        if (portraitImage == null)
+        {
+            return;
+        }
+
+        Sprite nextPortrait = status.Current >= status.OverloadThreshold
+            ? saturatedPortrait
+            : status.Current >= status.WarningThreshold
+                ? warningPortrait
+                : normalPortrait;
+
+        if (nextPortrait != null && portraitImage.sprite != nextPortrait)
+        {
+            portraitImage.sprite = nextPortrait;
+        }
     }
 }

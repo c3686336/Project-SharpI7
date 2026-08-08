@@ -66,9 +66,9 @@ public sealed class PlayerController : MonoBehaviour,
         mana = new PlayerMana(
             balance.mana.defaultValue,
             balance.mana.warningThreshold,
+            balance.mana.overloadThreshold,
             balance.mana.saturationThreshold,
-            balance.mana.fillSpeed,
-            balance.mana.saturationDuration);
+            balance.mana.fillSpeed);
 
         if (chantManager == null)
         {

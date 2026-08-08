@@ -6,10 +6,10 @@
     "overloadDamage": 1.0,
     "mana": {
       "defaultValue": 30.0,
-      "warningThreshold": 100.0,
-      "saturationThreshold": 150.0,
-      "fillSpeed": 5.0,
-      "saturationDuration": 3.0
+      "warningThreshold": 70.0,
+      "overloadThreshold": 120.0,
+      "saturationThreshold": 165.0,
+      "fillSpeed": 5.0
     },
     "dash": {
       "windupDuration": 0.0,

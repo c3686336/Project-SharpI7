@@ -26,9 +26,9 @@ namespace SharpI7.Balance
     {
         public float defaultValue;
         public float warningThreshold;
+        public float overloadThreshold;
         public float saturationThreshold;
         public float fillSpeed;
-        public float saturationDuration;
     }
 
     [Serializable]
