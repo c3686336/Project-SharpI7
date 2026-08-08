@@ -8,10 +8,14 @@ public struct ChantPreviewData
 
     public float manaCost;
 
+    public float currentMana;
+
     public int correctCount;
 
     public int typoCount;
 
-    // 현재 영창 단계의 길이를 만족했는가
+    public bool hasEnoughMana;
+
+    // 현재 입력, 오타, 마나 조건을 모두 만족했는가
     public bool canResolve;
 }

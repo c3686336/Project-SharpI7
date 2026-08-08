@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ChantManager : MonoBehaviour, IChantManager
 {
@@ -10,7 +11,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         Idle,
         Casting
     }
-
 
     // =========================================================
     // Database
@@ -23,6 +23,9 @@ public class ChantManager : MonoBehaviour, IChantManager
     [SerializeField]
     private string defaultSpellId = "dark_flame";
 
+    [Header("Dependencies")]
+    [SerializeField]
+    private ToastMessageManager toastMessageManager;
 
     // =========================================================
     // UI
@@ -41,102 +44,54 @@ public class ChantManager : MonoBehaviour, IChantManager
     [SerializeField]
     private TMP_InputField chantInputField;
 
-
-    [Header("Status UI")]
     [SerializeField]
     private TMP_Text correctCountUI;
 
     [SerializeField]
-    private TMP_Text typoCountUI;
-
-    [SerializeField]
-    private TMP_Text chantLevelUI;
-
-    [SerializeField]
-    private TMP_Text expectedDamageUI;
-
-    [SerializeField]
-    private TMP_Text actualDamageUI;
-
-    [SerializeField]
     private TMP_Text manaCostUI;
-
-
-    // =========================================================
-    // Paste Settings
-    // =========================================================
-
-    [Header("Paste Settings")]
-    [SerializeField]
-    private bool blockPaste = true;
-
 
     // =========================================================
     // Public Properties
     // =========================================================
 
-    public ChantState State { get; private set; }
-        = ChantState.Idle;
+    public ChantState State { get; private set; } = ChantState.Idle;
 
+    public bool IsCasting => State == ChantState.Casting;
 
-    public bool IsCasting =>
-        State == ChantState.Casting;
+    public ChantSpellData CurrentSpell => currentSpell;
 
+    public ChantStageData CurrentStage => currentStage;
 
-    public ChantSpellData CurrentSpell =>
-        currentSpell;
+    public string CurrentInput => currentInput;
 
+    public int CorrectCount => correctCount;
 
-    public ChantStageData CurrentStage =>
-        currentStage;
+    // UI에서 직접 표시하지 않더라도
+    // 데이터와 외부 접근은 유지.
+    public int TypoCount => typoCount;
 
+    // UI에서 직접 표시하지 않더라도
+    // 데이터와 외부 접근은 유지.
+    public int ChantLevel => currentStage?.chantLevel ?? 0;
 
-    public string CurrentInput =>
-        currentInput;
+    private float CurrentManaCost => currentStage?.manaCost ?? 0f;
 
+    public float CurrentMana => playerMana?.CurrentMana ?? 0f;
 
-    public int CorrectCount =>
-        correctCount;
-
-
-    public int TypoCount =>
-        typoCount;
-
-
-    public int ChantLevel =>
-        currentStage?.chantLevel ?? 0;
-
+    public bool HasEnoughMana => playerMana != null && CurrentMana >= CurrentManaCost;
 
     /// <summary>
-    /// 현재 영창 단계의 마나 소비량.
-    /// PlayerController가 발동 전에 현재 마나와 비교할 때 사용.
+    /// 현재 영창 단계의 예상 피해.
+    /// UI 오브젝트가 없어도 데이터는 계속 계산한다.
     /// </summary>
-    public float CurrentManaCost =>
-        currentStage?.manaCost ?? 0f;
-
+    public float ExpectedDamage => CalculateExpectedDamage();
 
     /// <summary>
-    /// 현재 단계의 영창문 길이를 만족했는지 여부.
-    /// 마나 여부는 여기서 검사하지 않는다.
+    /// 실제 피해.
+    /// 오타가 하나라도 있으면 0.
+    /// UI 오브젝트가 없어도 데이터는 계속 계산한다.
     /// </summary>
-    public bool CanResolveCurrentStage =>
-        CanCastCurrentStage();
-
-
-    /// <summary>
-    /// 현재 단계의 오타가 없다고 가정한 예상 피해량.
-    /// </summary>
-    public float ExpectedDamage =>
-        CalculateExpectedDamage();
-
-
-    /// <summary>
-    /// 실제 적용될 피해량.
-    /// 오타가 하나라도 존재하면 0.
-    /// </summary>
-    public float ActualDamage =>
-        CalculateActualDamage();
-
+    public float ActualDamage => CalculateActualDamage();
 
     // =========================================================
     // Events
@@ -148,21 +103,21 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     public event Action OnChantInterrupted;
 
-    public event Action OnChantSubmitRequested;
-
     /// <summary>
-    /// 영창이 실제로 Resolve 되었을 때 발생.
-    /// PlayerController에서 구독한다.
+    /// 정상적으로 영창이 발동되었을 때 발생.
+    /// PlayerController가 구독한다.
     /// </summary>
     public event Action<CastResult> OnChantCast;
 
-
     /// <summary>
-    /// 입력 중 현재 영창 상태를 UI 등에 전달.
+    /// 영창 입력 상태가 바뀔 때마다 외부 UI 담당에게
+    /// 영창 정보를 전달한다.
+    ///
+    /// ChantPanel에서 직접 표시하지 않는
+    /// ChantLevel / TypoCount / ExpectedDamage /
+    /// ActualDamage 데이터도 이 이벤트로 전달된다.
     /// </summary>
-    public event Action<ChantPreviewData>
-        OnChantPreviewChanged;
-
+    public event Action<ChantPreviewData> OnChantPreviewChanged;
 
     // =========================================================
     // Runtime Data
@@ -178,16 +133,32 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private int typoCount;
 
+    private IPlayerMana playerMana;
+    private bool manaSubscribed;
+
+    // 영창 시작에 사용된 Enter가
+    // 같은 프레임에 Submit Enter로 또 처리되는 것을 방지.
+    private int chantStartedFrame = -1;
 
     // =========================================================
-    // Clipboard
+    // Interrupt
     // =========================================================
 
-    // 영창 시작 직전 사용자의 클립보드 내용.
-    private string savedClipboard = "";
-
-    private bool clipboardCaptured = false;
-
+    /*
+     * PlayerController.TakeDamage()
+     * -> ApplyDamage()
+     * -> InterruptChant()
+     *
+     * 호출이 OnTriggerStay2D 같은 Physics 콜백 내부에서
+     * 발생할 수 있다.
+     *
+     * 그 자리에서 chantPanel.SetActive(false)를 실행하면
+     * TMP_InputField.OnDisable 내부에서 DestroyImmediate 관련
+     * Unity 경고가 발생할 수 있다.
+     *
+     * 따라서 Interrupt만 실제 Reset을 LateUpdate로 미룬다.
+     */
+    private bool interruptPending;
 
     // =========================================================
     // Unity Lifecycle
@@ -197,544 +168,412 @@ public class ChantManager : MonoBehaviour, IChantManager
     {
         if (chantInputField != null)
         {
-            chantInputField.onValueChanged.AddListener(
-                OnInputChanged
-            );
-
-            chantInputField.onSubmit.AddListener(
-                OnInputSubmitted
-            );
+            chantInputField.onValueChanged.AddListener(OnInputChanged);
         }
 
         SetChantUI(false);
     }
 
+    private void OnEnable()
+    {
+        SubscribeToMana();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromMana();
+    }
 
     private void Start()
     {
         if (chantDatabase == null)
         {
-            Debug.LogError(
-                "[ChantManager] ChantDatabase가 연결되지 않았습니다."
-            );
+            Debug.LogError("[ChantManager] ChantDatabase가 연결되지 않았습니다.");
 
             return;
         }
 
-
         if (!SetSpell(defaultSpellId))
         {
-            Debug.LogError(
-                $"[ChantManager] 기본 주문 로드 실패: {defaultSpellId}"
-            );
+            Debug.LogError($"[ChantManager] 기본 주문 로드 실패: {defaultSpellId}");
         }
-
 
         UpdateUI();
     }
-
 
     private void Update()
     {
         if (State != ChantState.Casting)
             return;
 
-        if (!blockPaste)
+        /*
+         * 영창 시작에 사용된 Enter가
+         * 바로 Submit Enter로 처리되는 것을 막는다.
+         */
+        if (Time.frameCount == chantStartedFrame)
+        {
+            return;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
             return;
 
+        bool enterPressed =
+            keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame;
 
-        BlockClipboard();
+        if (!enterPressed)
+            return;
+
+        ResolveChant();
     }
 
+    private void LateUpdate()
+    {
+        if (!interruptPending)
+            return;
+
+        interruptPending = false;
+
+        /*
+         * Interrupt가 예약된 이후 같은 프레임에
+         * 다른 이유로 이미 영창이 끝났을 수도 있다.
+         */
+        if (State != ChantState.Casting)
+            return;
+
+        ResetChant();
+
+        OnChantInterrupted?.Invoke();
+    }
 
     private void OnDestroy()
     {
         if (chantInputField != null)
         {
-            chantInputField.onValueChanged.RemoveListener(
-                OnInputChanged
-            );
-
-            chantInputField.onSubmit.RemoveListener(
-                OnInputSubmitted
-            );
-        }
-
-
-        RestoreClipboard();
-    }
-
-
-    private void OnApplicationFocus(
-        bool hasFocus
-    )
-    {
-        if (!hasFocus)
-            return;
-
-        if (State != ChantState.Casting)
-            return;
-
-        if (!blockPaste)
-            return;
-
-
-        // Alt + Tab 등으로 외부 프로그램에서
-        // 복사한 뒤 게임으로 돌아온 경우에도 제거.
-        BlockClipboard();
-    }
-
-    private void OnInputSubmitted(
-    string value
-    )
-    {
-        if (State != ChantState.Casting)
-            return;
-
-        OnChantSubmitRequested?.Invoke();
-
-        // Submit 후에도 계속 입력 포커스를 유지
-        if (State == ChantState.Casting &&
-            chantInputField != null)
-        {
-            chantInputField.ActivateInputField();
+            chantInputField.onValueChanged.RemoveListener(OnInputChanged);
         }
     }
-
-
-    // =========================================================
-    // Clipboard Blocking
-    // =========================================================
-
-    private void CaptureClipboard()
-    {
-        if (!blockPaste)
-            return;
-
-
-        savedClipboard =
-            GUIUtility.systemCopyBuffer;
-
-
-        clipboardCaptured =
-            true;
-
-
-        BlockClipboard();
-    }
-
-
-    private void BlockClipboard()
-    {
-        if (!string.IsNullOrEmpty(
-            GUIUtility.systemCopyBuffer
-        ))
-        {
-            GUIUtility.systemCopyBuffer =
-                "";
-        }
-    }
-
-
-    private void RestoreClipboard()
-    {
-        if (!clipboardCaptured)
-            return;
-
-
-        GUIUtility.systemCopyBuffer =
-            savedClipboard;
-
-
-        savedClipboard =
-            "";
-
-
-        clipboardCaptured =
-            false;
-    }
-
 
     // =========================================================
     // Spell
     // =========================================================
 
-    public bool SetSpell(
-        string spellId
-    )
+    public bool SetSpell(string spellId)
     {
         if (State == ChantState.Casting)
         {
-            Debug.LogWarning(
-                "[ChantManager] 영창 중에는 주문을 변경할 수 없습니다."
-            );
+            Debug.LogWarning("[ChantManager] 영창 중에는 주문을 변경할 수 없습니다.");
 
             return false;
         }
-
 
         if (chantDatabase == null)
         {
-            Debug.LogError(
-                "[ChantManager] ChantDatabase가 없습니다."
-            );
+            Debug.LogError("[ChantManager] ChantDatabase가 없습니다.");
 
             return false;
         }
 
-
-        ChantSpellData spell =
-            chantDatabase.GetSpell(
-                spellId
-            );
-
+        ChantSpellData spell = chantDatabase.GetSpell(spellId);
 
         if (spell == null)
             return false;
 
-
-        if (spell.stages == null ||
-            spell.stages.Count == 0)
+        if (spell.stages == null || spell.stages.Count == 0)
         {
-            Debug.LogError(
-                $"[ChantManager] 영창 단계가 없습니다: {spellId}"
-            );
+            Debug.LogError($"[ChantManager] 영창 단계가 없습니다: {spellId}");
 
             return false;
         }
 
-
-        currentSpell =
-            spell;
-
+        currentSpell = spell;
 
         ClearRuntimeData();
 
-
         UpdateUI();
-
 
         return true;
     }
 
-
     // =========================================================
     // Chant Control
     // =========================================================
+
+    public void SetManaSource(IPlayerMana manaSource)
+    {
+        UnsubscribeFromMana();
+        playerMana = manaSource;
+
+        if (isActiveAndEnabled)
+        {
+            SubscribeToMana();
+        }
+
+        UpdateUI();
+        if (IsCasting)
+        {
+            NotifyPreviewChanged();
+        }
+    }
 
     public void StartChant()
     {
         if (State == ChantState.Casting)
             return;
 
-
         if (currentSpell == null)
         {
-            Debug.LogWarning(
-                "[ChantManager] 선택된 주문이 없습니다."
-            );
+            Debug.LogWarning("[ChantManager] 선택된 주문이 없습니다.");
 
             return;
         }
 
-
         ClearRuntimeData();
+        interruptPending = false;
+        State = ChantState.Casting;
 
-
-        CaptureClipboard();
-
-
-        State =
-            ChantState.Casting;
-
-
+        /*
+         * 영창 화면 입장에 사용한 Enter가
+         * 같은 프레임에 Submit으로 처리되지 않도록 저장.
+         */
+        chantStartedFrame = Time.frameCount;
         SetChantUI(true);
-
 
         if (chantInputField != null)
         {
-            chantInputField.SetTextWithoutNotify(
-                ""
-            );
-
-
-            chantInputField.interactable =
-                true;
-
-
+            chantInputField.SetTextWithoutNotify("");
+            chantInputField.interactable = true;
             chantInputField.Select();
-
             chantInputField.ActivateInputField();
         }
 
-
         UpdateUI();
-
         NotifyPreviewChanged();
-
-
         OnChantStarted?.Invoke();
     }
-
 
     public void CancelChant()
     {
         if (State != ChantState.Casting)
             return;
 
-
         ResetChant();
-
-
         OnChantCancelled?.Invoke();
     }
-
 
     public void InterruptChant()
     {
         if (State != ChantState.Casting)
             return;
 
+        /*
+         * 동일한 Physics 콜백에서 여러 번
+         * 호출되는 것을 방지한다.
+         */
+        if (interruptPending)
+            return;
 
-        ResetChant();
-
-
-        OnChantInterrupted?.Invoke();
+        /*
+         * 즉시 Reset하지 않는다.
+         *
+         * Physics Trigger/Collision 콜백 내부에서
+         * TMP_InputField가 비활성화되는 문제를 피하기 위해
+         * LateUpdate에서 처리한다.
+         */
+        interruptPending = true;
     }
-
 
     public CastResult ResolveChant()
     {
         if (State != ChantState.Casting)
             return default;
 
-
         EvaluateInput();
 
+        CastResult result = CreateCastResult();
 
-        CastResult result =
-            CreateCastResult();
+        if (result.typoCount > 0)
+        {
+            CancelChant();
+            return result;
+        }
 
-
-        // 현재 단계 영창문의 길이를
-        // 아직 만족하지 못했다면 영창을 종료하지 않는다.
-        if (!CanCastCurrentStage())
+        if (!result.canCast)
         {
             return result;
         }
 
-
-        // 마나 검사는 PlayerController에서 한다.
-        // 여기서는 영창 자체의 조건만 검사한다.
-
+        if (!HasEnoughMana)
+        {
+            ShowInsufficientManaFeedback();
+            CancelChant();
+            return result;
+        }
 
         ResetChant();
 
-
-        OnChantCast?.Invoke(
-            result
-        );
-
+        OnChantCast?.Invoke(result);
 
         return result;
     }
 
+    private void ShowInsufficientManaFeedback()
+    {
+        string message = $"마나가 부족합니다. 현재 {CurrentMana:0.#} / 필요 {CurrentManaCost:0.#}";
+
+        if (toastMessageManager != null)
+        {
+            toastMessageManager.Show(message);
+            return;
+        }
+
+        Debug.LogWarning(message, this);
+    }
+
+    private void HandleManaStatusChanged(ManaStatus _)
+    {
+        if (!IsCasting)
+        {
+            return;
+        }
+
+        UpdateUI();
+        NotifyPreviewChanged();
+    }
+
+    private void SubscribeToMana()
+    {
+        if (manaSubscribed || playerMana == null)
+        {
+            return;
+        }
+
+        playerMana.ManaStatusChanged += HandleManaStatusChanged;
+        manaSubscribed = true;
+    }
+
+    private void UnsubscribeFromMana()
+    {
+        if (!manaSubscribed || playerMana == null)
+        {
+            return;
+        }
+
+        playerMana.ManaStatusChanged -= HandleManaStatusChanged;
+        manaSubscribed = false;
+    }
 
     // =========================================================
     // Input
     // =========================================================
 
-    private void OnInputChanged(
-        string value
-    )
+    private void OnInputChanged(string value)
     {
         if (State != ChantState.Casting)
             return;
 
+        currentInput = value ?? "";
 
-        currentInput =
-            value ?? "";
-
-
-        currentStage =
-            FindBestMatchingStage(
-                currentInput
-            );
-
+        currentStage = FindBestMatchingStage(currentInput);
 
         EvaluateInput();
-
-
         UpdateUI();
 
-
+        /*
+         * ChantPanel에서 일부 표시용 Text를 삭제해도
+         * 외부 UI에는 계속 데이터를 전달한다.
+         */
         NotifyPreviewChanged();
     }
-
 
     // =========================================================
     // Stage Detection
     // =========================================================
 
-    private ChantStageData FindBestMatchingStage(
-        string input
-    )
+    private ChantStageData FindBestMatchingStage(string input)
     {
-        if (currentSpell == null ||
-            currentSpell.stages == null ||
-            currentSpell.stages.Count == 0)
+        if (currentSpell == null || currentSpell.stages == null || currentSpell.stages.Count == 0)
         {
             return null;
         }
-
 
         if (string.IsNullOrEmpty(input))
         {
             return null;
         }
 
+        ChantStageData bestStage = null;
 
-        ChantStageData bestStage =
-            null;
+        int bestCorrectCount = -1;
 
+        float bestAccuracy = -1f;
 
-        int bestCorrectCount =
-            -1;
+        int bestLengthDifference = int.MaxValue;
 
-
-        float bestAccuracy =
-            -1f;
-
-
-        int bestLengthDifference =
-            int.MaxValue;
-
-
-        foreach (
-            ChantStageData stage
-            in currentSpell.stages
-        )
+        foreach (ChantStageData stage in currentSpell.stages)
         {
             if (stage == null)
                 continue;
 
-
-            if (string.IsNullOrEmpty(
-                stage.chantText
-            ))
+            if (string.IsNullOrEmpty(stage.chantText))
             {
                 continue;
             }
 
+            string target = stage.chantText;
+            int compareLength = Mathf.Min(input.Length, target.Length);
+            int stageCorrectCount = 0;
 
-            string target =
-                stage.chantText;
-
-
-            int compareLength =
-                Mathf.Min(
-                    input.Length,
-                    target.Length
-                );
-
-
-            int stageCorrectCount =
-                0;
-
-
-            for (
-                int i = 0;
-                i < compareLength;
-                i++
-            )
+            for (int i = 0; i < compareLength; i++)
             {
-                if (input[i] ==
-                    target[i])
+                if (input[i] == target[i])
                 {
                     stageCorrectCount++;
                 }
             }
 
+            float accuracy = compareLength > 0 ? (float)stageCorrectCount / compareLength : 0f;
 
-            float accuracy =
-                compareLength > 0
-                    ? (float)stageCorrectCount /
-                      compareLength
-                    : 0f;
+            int lengthDifference = Mathf.Abs(target.Length - input.Length);
 
+            bool better = false;
 
-            int lengthDifference =
-                Mathf.Abs(
-                    target.Length -
-                    input.Length
-                );
-
-
-            bool better =
-                false;
-
-
-            // 1. 맞은 글자 수가 많은 단계 우선
-            if (stageCorrectCount >
-                bestCorrectCount)
+            // 1. 맞은 글자 수 우선
+            if (stageCorrectCount > bestCorrectCount)
             {
-                better =
-                    true;
+                better = true;
             }
 
-            // 2. 맞은 글자 수가 같다면 정확도
-            else if (
-                stageCorrectCount ==
-                bestCorrectCount &&
-                accuracy >
-                bestAccuracy
-            )
+            // 2. 맞은 글자 수가 같으면 정확도 우선
+            else if (stageCorrectCount == bestCorrectCount && accuracy > bestAccuracy)
             {
-                better =
-                    true;
+                better = true;
             }
 
-            // 3. 정확도까지 같다면 길이가 가까운 단계
-            else if (
-                stageCorrectCount ==
-                bestCorrectCount &&
-                Mathf.Approximately(
-                    accuracy,
-                    bestAccuracy
-                ) &&
-                lengthDifference <
-                bestLengthDifference
-            )
+            // 3. 정확도도 같으면 길이가 가까운 단계 우선
+            else if (stageCorrectCount == bestCorrectCount &&
+                     Mathf.Approximately(accuracy, bestAccuracy) &&
+                     lengthDifference < bestLengthDifference)
             {
-                better =
-                    true;
+                better = true;
             }
-
 
             if (!better)
                 continue;
 
+            bestStage = stage;
 
-            bestStage =
-                stage;
+            bestCorrectCount = stageCorrectCount;
 
+            bestAccuracy = accuracy;
 
-            bestCorrectCount =
-                stageCorrectCount;
-
-
-            bestAccuracy =
-                accuracy;
-
-
-            bestLengthDifference =
-                lengthDifference;
+            bestLengthDifference = lengthDifference;
         }
-
 
         return bestStage;
     }
-
 
     // =========================================================
     // Evaluation
@@ -742,29 +581,20 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void EvaluateInput()
     {
-        correctCount =
-            0;
-
-
-        typoCount =
-            0;
-
+        correctCount = 0;
+        typoCount = 0;
 
         if (currentStage == null)
             return;
 
+        string target = currentStage.chantText;
 
-        string target =
-            currentStage.chantText;
-
-
-        for (
-            int i = 0;
-            i < currentInput.Length;
-            i++
-        )
+        for (int i = 0; i < currentInput.Length; i++)
         {
-            // 목표 영창문보다 더 입력한 글자도 오타.
+            /*
+             * 목표 영창문보다 더 많이 입력한 문자도
+             * 오타로 판정한다.
+             */
             if (i >= target.Length)
             {
                 typoCount++;
@@ -772,9 +602,7 @@ public class ChantManager : MonoBehaviour, IChantManager
                 continue;
             }
 
-
-            if (currentInput[i] ==
-                target[i])
+            if (currentInput[i] == target[i])
             {
                 correctCount++;
             }
@@ -785,7 +613,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
     }
 
-
     // =========================================================
     // Cast Validation
     // =========================================================
@@ -795,20 +622,13 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (currentStage == null)
             return false;
 
-
-        return
-            currentInput.Length ==
-            currentStage.chantText.Length;
+        return currentInput.Length == currentStage.chantText.Length;
     }
-
 
     private bool IsPerfectChant()
     {
-        return
-            CanCastCurrentStage() &&
-            typoCount == 0;
+        return CanCastCurrentStage() && typoCount == 0;
     }
-
 
     // =========================================================
     // Damage
@@ -816,80 +636,67 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private float CalculateExpectedDamage()
     {
-        if (currentSpell == null ||
-            currentStage == null)
+        if (currentSpell == null || currentStage == null)
         {
             return 0f;
         }
 
-
-        return
-            currentSpell.baseDamage *
-            currentStage.damageMultiplier;
+        /*
+         * 예상 피해 =
+         * 기본 피해 × 현재 영창 단계 배율
+         */
+        return currentSpell.baseDamage * currentStage.damageMultiplier;
     }
-
 
     private float CalculateActualDamage()
     {
-        if (currentSpell == null ||
-            currentStage == null)
+        if (currentSpell == null || currentStage == null)
         {
             return 0f;
         }
 
-
-        // 오타가 단 하나라도 존재하면
-        // 실제 피해량은 0.
+        /*
+         * 오타가 하나라도 있으면
+         * 실제 피해량은 무조건 0.
+         */
         if (typoCount > 0)
         {
             return 0f;
         }
 
-
-        // 오타가 없다면 예상 피해량이
-        // 그대로 실제 피해량.
-        return
-            CalculateExpectedDamage();
+        /*
+         * 오타가 없다면 예상 피해가
+         * 그대로 실제 피해.
+         */
+        return CalculateExpectedDamage();
     }
 
-
     // =========================================================
-    // Preview
+    // Preview Data
     // =========================================================
 
     private void NotifyPreviewChanged()
     {
-        ChantPreviewData preview =
-            new ChantPreviewData
-            {
-                chantLevel =
-                    ChantLevel,
+        /*
+         * ChantPanel에서 직접 Text로 표시하지 않더라도
+         * 모든 계산 데이터는 그대로 유지하고
+         * 외부 UI 담당에게 전달한다.
+         */
+        ChantPreviewData preview = new ChantPreviewData
+        {
+            chantLevel = ChantLevel,
+            expectedDamage = ExpectedDamage,
+            actualDamage = ActualDamage,
+            manaCost = CurrentManaCost,
+            currentMana = CurrentMana,
+            correctCount = CorrectCount,
+            typoCount = TypoCount,
+            hasEnoughMana = HasEnoughMana,
+            canResolve = CanCastCurrentStage() && TypoCount == 0 && HasEnoughMana
+        };
 
-                expectedDamage =
-                    ExpectedDamage,
-
-                actualDamage =
-                    ActualDamage,
-
-                manaCost =
-                    CurrentManaCost,
-
-                correctCount =
-                    CorrectCount,
-
-                typoCount =
-                    TypoCount,
-
-                canResolve =
-                    CanCastCurrentStage()
-            };
-
-
-        OnChantPreviewChanged?.Invoke(
-            preview
-        );
+        OnChantPreviewChanged?.Invoke(preview);
     }
-
 
     // =========================================================
     // Cast Result
@@ -897,90 +704,27 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private CastResult CreateCastResult()
     {
-        bool canCast =
-            CanCastCurrentStage();
-
+        bool canCast = CanCastCurrentStage();
 
         return new CastResult
         {
-            spellId =
-                currentSpell?.id ?? "",
-
-
-            spellName =
-                currentSpell?.spellName ?? "",
-
-
-            targetText =
-                currentStage?.chantText ?? "",
-
-
-            typedText =
-                currentInput,
-
-
-            correctCount =
-                correctCount,
-
-
-            typoCount =
-                typoCount,
-
-
-            castLevel =
-                canCast &&
-                currentStage != null
-                    ? currentStage.chantLevel
-                    : 0,
-
-
-            expectedDamage =
-                CalculateExpectedDamage(),
-
-
-            actualDamage =
-                CalculateActualDamage(),
-
-
-            // 기존 필드 호환용.
-            // 오타 없음 = 1
-            // 오타 있음 = 0
-            penaltyMultiplier =
-                typoCount == 0
-                    ? 1f
-                    : 0f,
-
-
-            manaCost =
-                currentStage?.manaCost ?? 0f,
-
-
-            // 기존 데이터이므로 유지.
-            // 실제 마나 소비에는 manaCost를 사용한다.
-            manaRelease =
-                canCast &&
-                currentSpell != null
-                    ? currentSpell.manaRelease
-                    : 0f,
-
-
-            magicType =
-                currentSpell?.magicType ?? "",
-
-
-            effectId =
-                currentSpell?.effectId ?? "",
-
-
-            canCast =
-                canCast,
-
-
-            completed =
-                IsPerfectChant()
+            spellId = currentSpell?.id ?? "",
+            spellName = currentSpell?.spellName ?? "",
+            targetText = currentStage?.chantText ?? "",
+            typedText = currentInput,
+            correctCount = correctCount,
+            typoCount = typoCount,
+            castLevel = canCast && currentStage != null ? currentStage.chantLevel : 0,
+            expectedDamage = CalculateExpectedDamage(),
+            actualDamage = CalculateActualDamage(),
+            penaltyMultiplier = typoCount == 0 ? 1f : 0f,
+            manaCost = currentStage?.manaCost ?? 0f,
+            magicType = currentSpell?.magicType ?? "",
+            effectId = currentSpell?.effectId ?? "",
+            canCast = canCast,
+            completed = IsPerfectChant()
         };
     }
-
 
     // =========================================================
     // UI
@@ -992,267 +736,163 @@ public class ChantManager : MonoBehaviour, IChantManager
 
         UpdateTargetTextUI();
 
-
+        /*
+         * CorrectCount는 현재 ChantPanel에서
+         * 계속 표시하므로 유지.
+         */
         if (correctCountUI != null)
         {
-            correctCountUI.text =
-                $"정상 입력 : {correctCount}";
+            correctCountUI.text = $"정상 입력 : {correctCount}";
         }
 
-
-        if (typoCountUI != null)
-        {
-            typoCountUI.text =
-                $"오타 : {typoCount}";
-        }
-
-
-        if (chantLevelUI != null)
-        {
-            chantLevelUI.text =
-                $"영창 단계 : {ChantLevel}";
-        }
-
-
-        if (expectedDamageUI != null)
-        {
-            expectedDamageUI.text =
-                $"예상 피해 : {ExpectedDamage:0.#}";
-        }
-
-
-        if (actualDamageUI != null)
-        {
-            actualDamageUI.text =
-                $"실제 피해 : {ActualDamage:0.#}";
-        }
-
-
+        /*
+         * ManaCost도 현재 ChantPanel에서
+         * 표시할 수 있도록 유지.
+         */
         if (manaCostUI != null)
         {
-            manaCostUI.text =
-                $"마나 소비 : {CurrentManaCost:0.#}";
+            manaCostUI.text = $"마나 : {CurrentMana:0.#} / 필요 : {CurrentManaCost:0.#}";
         }
-    }
 
+        /*
+         * 아래 데이터들은 계속 계산되지만
+         * ChantPanel에서는 직접 표시하지 않는다.
+         *
+         * - TypoCount
+         * - ChantLevel
+         * - ExpectedDamage
+         * - ActualDamage
+         *
+         * 필요한 외부 UI에서는
+         * OnChantPreviewChanged를 구독해서 사용한다.
+         */
+    }
 
     private void UpdateSpellNameUI()
     {
         if (spellNameUI == null)
             return;
 
-
         if (currentSpell == null)
         {
-            spellNameUI.text =
-                "";
+            spellNameUI.text = "";
 
             return;
         }
 
-
-        spellNameUI.text =
-            currentSpell.spellName;
+        spellNameUI.text = currentSpell.spellName;
     }
-
 
     private void UpdateTargetTextUI()
     {
         if (targetTextUI == null)
             return;
 
-
         if (currentSpell == null)
         {
-            targetTextUI.text =
-                "";
+            targetTextUI.text = "";
 
             return;
         }
 
-
-        // 아직 아무것도 입력하지 않은 상태.
+        /*
+         * 아무것도 입력하지 않은 상태에서는
+         * 전체 영창문을 회색으로 표시.
+         */
         if (currentStage == null)
         {
-            targetTextUI.text =
-                BuildUnenteredText(
-                    currentSpell.fullChantText
-                );
+            targetTextUI.text = BuildUnenteredText(currentSpell.fullChantText);
 
             return;
         }
 
+        string target = currentStage.chantText;
 
-        string target =
-            currentStage.chantText;
+        StringBuilder builder = new StringBuilder();
 
-
-        StringBuilder builder =
-            new StringBuilder();
-
-
-        for (
-            int i = 0;
-            i < target.Length;
-            i++
-        )
+        for (int i = 0; i < target.Length; i++)
         {
-            char targetCharacter =
-                target[i];
+            char targetCharacter = target[i];
 
-
-            // 아직 입력하지 않은 글자
+            // 아직 입력하지 않은 문자
             if (i >= currentInput.Length)
             {
-                AppendColoredCharacter(
-                    builder,
-                    targetCharacter,
-                    "#888888"
-                );
+                AppendColoredCharacter(builder, targetCharacter, "#888888");
 
                 continue;
             }
 
-
             // 정상 입력
-            if (currentInput[i] ==
-                targetCharacter)
+            if (currentInput[i] == targetCharacter)
             {
-                AppendColoredCharacter(
-                    builder,
-                    targetCharacter,
-                    "#00FF88"
-                );
+                AppendColoredCharacter(builder, targetCharacter, "#00FF88");
             }
 
             // 오타
             else
             {
-                AppendColoredCharacter(
-                    builder,
-                    targetCharacter,
-                    "#FF4444"
-                );
+                AppendColoredCharacter(builder, targetCharacter, "#FF4444");
             }
         }
 
-
-        // 목표보다 초과 입력된 문자.
-        if (currentInput.Length >
-            target.Length)
+        /*
+         * 목표 영창문보다 많이 입력한 문자도
+         * 빨간색 오타로 표시.
+         */
+        if (currentInput.Length > target.Length)
         {
-            for (
-                int i = target.Length;
-                i < currentInput.Length;
-                i++
-            )
+            for (int i = target.Length; i < currentInput.Length; i++)
             {
-                AppendColoredCharacter(
-                    builder,
-                    currentInput[i],
-                    "#FF4444"
-                );
+                AppendColoredCharacter(builder, currentInput[i], "#FF4444");
             }
         }
 
-
-        targetTextUI.text =
-            builder.ToString();
+        targetTextUI.text = builder.ToString();
     }
 
-
-    private string BuildUnenteredText(
-        string text
-    )
+    private string BuildUnenteredText(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
             return "";
         }
 
+        StringBuilder builder = new StringBuilder();
 
-        StringBuilder builder =
-            new StringBuilder();
-
-
-        foreach (
-            char character
-            in text
-        )
+        foreach (char character in text)
         {
-            AppendColoredCharacter(
-                builder,
-                character,
-                "#888888"
-            );
+            AppendColoredCharacter(builder, character, "#888888");
         }
 
-
-        return
-            builder.ToString();
+        return builder.ToString();
     }
 
-
-    private void AppendColoredCharacter(
-        StringBuilder builder,
-        char character,
-        string color
-    )
+    private void AppendColoredCharacter(StringBuilder builder, char character, string color)
     {
-        builder.Append(
-            "<color="
-        );
+        builder.Append("<color=");
 
+        builder.Append(color);
 
-        builder.Append(
-            color
-        );
+        builder.Append(">");
 
+        builder.Append(EscapeRichTextCharacter(character));
 
-        builder.Append(
-            ">"
-        );
-
-
-        builder.Append(
-            EscapeRichTextCharacter(
-                character
-            )
-        );
-
-
-        builder.Append(
-            "</color>"
-        );
+        builder.Append("</color>");
     }
 
-
-    private string EscapeRichTextCharacter(
-        char character
-    )
+    private string EscapeRichTextCharacter(char character)
     {
-        return character switch
-        {
-            '<' => "&lt;",
-            '>' => "&gt;",
-            '&' => "&amp;",
-            _ => character.ToString()
-        };
+        return character switch { '<' => "&lt;", '>' => "&gt;", '&' => "&amp;",
+                                  _ => character.ToString() };
     }
 
-
-    private void SetChantUI(
-        bool active
-    )
+    private void SetChantUI(bool active)
     {
         if (chantPanel != null)
         {
-            chantPanel.SetActive(
-                active
-            );
+            chantPanel.SetActive(active);
         }
     }
-
 
     // =========================================================
     // Reset
@@ -1260,52 +900,39 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void ClearRuntimeData()
     {
-        currentInput =
-            "";
+        currentInput = "";
 
+        currentStage = null;
 
-        currentStage =
-            null;
+        correctCount = 0;
 
-
-        correctCount =
-            0;
-
-
-        typoCount =
-            0;
+        typoCount = 0;
     }
-
 
     private void ResetChant()
     {
-        State =
-            ChantState.Idle;
+        /*
+         * 예약되어 있던 Interrupt가 있다면 제거.
+         */
+        interruptPending = false;
 
+        State = ChantState.Idle;
 
         ClearRuntimeData();
 
+        chantStartedFrame = -1;
 
         if (chantInputField != null)
         {
             chantInputField.DeactivateInputField();
 
-
-            chantInputField.SetTextWithoutNotify(
-                ""
-            );
+            chantInputField.SetTextWithoutNotify("");
         }
-
 
         SetChantUI(false);
 
-
         UpdateUI();
-
-
-        RestoreClipboard();
     }
-
 
     // =========================================================
     // Debug
@@ -1319,37 +946,25 @@ public class ChantManager : MonoBehaviour, IChantManager
         StartChant();
     }
 
-
     [ContextMenu("Debug / Cast Chant")]
     private void DebugCastChant()
     {
-        CastResult result =
-            ResolveChant();
+        CastResult result = ResolveChant();
 
-
-        Debug.Log(
-            $"[Chant Result]\n" +
-            $"Spell: {result.spellName}\n" +
-            $"Target: {result.targetText}\n" +
-            $"Input: {result.typedText}\n" +
-            $"Correct: {result.correctCount}\n" +
-            $"Typo: {result.typoCount}\n" +
-            $"Level: {result.castLevel}\n" +
-            $"Mana Cost: {result.manaCost}\n" +
-            $"Expected Damage: {result.expectedDamage}\n" +
-            $"Actual Damage: {result.actualDamage}\n" +
-            $"Can Cast: {result.canCast}\n" +
-            $"Perfect: {result.completed}"
-        );
+        Debug.Log($"[Chant Result]\n" + $"Spell: {result.spellName}\n" +
+                  $"Target: {result.targetText}\n" + $"Input: {result.typedText}\n" +
+                  $"Correct: {result.correctCount}\n" + $"Typo: {result.typoCount}\n" +
+                  $"Level: {result.castLevel}\n" + $"Mana Cost: {result.manaCost}\n" +
+                  $"Expected Damage: {result.expectedDamage}\n" +
+                  $"Actual Damage: {result.actualDamage}\n" + $"Can Cast: {result.canCast}\n" +
+                  $"Perfect: {result.completed}");
     }
-
 
     [ContextMenu("Debug / Cancel Chant")]
     private void DebugCancelChant()
     {
         CancelChant();
     }
-
 
     [ContextMenu("Debug / Interrupt Chant")]
     private void DebugInterruptChant()
