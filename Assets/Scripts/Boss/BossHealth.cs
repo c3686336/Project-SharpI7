@@ -79,32 +79,23 @@ namespace SharpI7.Combat
             }
         }
 
-        public void TakeSpellDamage(int completedWordCount)
+        public void TakeSpellDamage(CastResult result)
         {
-            if (completedWordCount <= 0)
+            var castLevel = result.castLevel;
+            var damage = result.actualDamage;
+            if (castLevel <= 0)
             {
                 return;
             }
 
             var levelOneClip = spellHitVideoClip;
-            if (completedWordCount >= 2 && spellHitVideoLevelTwoClip != null)
+            if (castLevel >= 2 && spellHitVideoLevelTwoClip != null)
             {
                 spellHitVideoClip = spellHitVideoLevelTwoClip;
             }
 
-            TakeDamage(GetSpellDamage(completedWordCount));
+            TakeDamage(damage);
             spellHitVideoClip = levelOneClip;
-        }
-
-        public float GetSpellDamage(int completedWordCount)
-        {
-            if (balance.spellDamageByStage == null || balance.spellDamageByStage.Length == 0)
-            {
-                return 0f;
-            }
-
-            var damageIndex = Mathf.Clamp(completedWordCount - 1, 0, balance.spellDamageByStage.Length - 1);
-            return balance.spellDamageByStage[damageIndex];
         }
 
         public void RestoreFullHealth()

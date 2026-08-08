@@ -11,6 +11,6 @@ internal sealed class PlayerSpellCaster
 
     public void Cast(CastResult result)
     {
-        target.TakeSpellDamage(result.castLevel);
+        target.TakeSpellDamage(result);
     }
 }
