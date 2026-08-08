@@ -2201,6 +2201,7 @@ MonoBehaviour:
   dialogueText: {fileID: 1073754081}
   tutorialArrow: {fileID: 559770629}
   charactersPerSecond: 30
+  firstDialogueDelay: 0.5
   arrowMoveDistance: 8
   arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}

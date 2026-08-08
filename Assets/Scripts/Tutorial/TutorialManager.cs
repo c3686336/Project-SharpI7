@@ -46,6 +46,7 @@ public sealed class TutorialManager : MonoBehaviour
 
     [Header("Dialogue Typing")]
     [SerializeField, Min(1f)] private float charactersPerSecond = 35f;
+    [SerializeField, Min(0f)] private float firstDialogueDelay = 0.5f;
 
     [Header("Arrow Animation")]
     [SerializeField, Min(0f)] private float arrowMoveDistance = 8f;
@@ -96,6 +97,7 @@ public sealed class TutorialManager : MonoBehaviour
     private bool isRunning;
     private bool isActionPlaying;
     private bool isTyping;
+    private bool isTypingDelayActive;
     private bool isWaitingForChantEnter;
     private bool chantPreviewSnapshotCaptured;
     private bool chantPreviewInitialActive;
@@ -158,6 +160,11 @@ public sealed class TutorialManager : MonoBehaviour
         UpdateArrowAnimation();
 
         if (Time.frameCount <= inputBlockedThroughFrame)
+        {
+            return;
+        }
+
+        if (isTypingDelayActive)
         {
             return;
         }
@@ -234,12 +241,16 @@ public sealed class TutorialManager : MonoBehaviour
     private void ShowCurrentStep()
     {
         TutorialDialogueStep step = steps[currentStepIndex];
-        StartTyping(step.text ?? string.Empty);
+        float typingDelay = currentStepIndex == 0
+            ? Mathf.Max(0f, firstDialogueDelay)
+            : 0f;
+
+        StartTyping(step.text ?? string.Empty, typingDelay);
         ApplyArrows(step);
         RunStepAction(step);
     }
 
-    private void StartTyping(string text)
+    private void StartTyping(string text, float delay)
     {
         StopTyping();
 
@@ -255,11 +266,18 @@ public sealed class TutorialManager : MonoBehaviour
         }
 
         isTyping = true;
-        typingRoutine = StartCoroutine(TypeDialogue(characterCount));
+        typingRoutine = StartCoroutine(TypeDialogue(characterCount, delay));
     }
 
-    private IEnumerator TypeDialogue(int characterCount)
+    private IEnumerator TypeDialogue(int characterCount, float delay)
     {
+        if (delay > 0f)
+        {
+            isTypingDelayActive = true;
+            yield return new WaitForSecondsRealtime(delay);
+            isTypingDelayActive = false;
+        }
+
         float visibleCharacterCount = 0f;
         float typingSpeed = Mathf.Max(1f, charactersPerSecond);
 
@@ -297,6 +315,7 @@ public sealed class TutorialManager : MonoBehaviour
         }
 
         isTyping = false;
+        isTypingDelayActive = false;
     }
 
     private void RunStepAction(TutorialDialogueStep step)
