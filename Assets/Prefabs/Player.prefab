@@ -145,8 +145,8 @@ MonoBehaviour:
   spellImpactDelay: 0.1
   homingFireProjectileSpeed: 12
   homingFireProjectileScale: 1.8
-  homingFireProjectileLevelTwoScaleMultiplier: 1.5
-  homingFireProjectileLevelThreeScaleMultiplier: 2
+  homingFireProjectileLevelTwoScaleMultiplier: 2
+  homingFireProjectileLevelThreeScaleMultiplier: 3
   homingFireHitRadius: 0.12
   homingFireLifetime: 3
   referenceHeading: {x: 0, y: 1}
