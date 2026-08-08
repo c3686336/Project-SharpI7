@@ -792,6 +792,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChantManager
   chantDatabase: {fileID: 4706315953203965741}
   defaultSpellId: dark_flame
+  toastMessageManager: {fileID: 0}
   chantPanel: {fileID: 1070568336526553515}
   spellNameUI: {fileID: 1291521954112248429}
   targetTextUI: {fileID: 1291521954112248429}

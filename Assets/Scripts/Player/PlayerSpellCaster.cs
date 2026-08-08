@@ -9,14 +9,8 @@ internal sealed class PlayerSpellCaster
         this.target = target;
     }
 
-    public bool TryCast(CastResult result, float currentMana)
+    public void Cast(CastResult result)
     {
-        if (!result.canCast || result.manaRelease > currentMana)
-        {
-            return false;
-        }
-
         target.TakeDamage(result.actualDamage);
-        return true;
     }
 }
