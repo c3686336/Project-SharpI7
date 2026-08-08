@@ -16,7 +16,11 @@ public sealed class BossHealthBar : MonoBehaviour
         BossHealth initialBoss = bossHealth != null
             ? bossHealth
             : FindAnyObjectByType<BossHealth>();
-        BindBoss(initialBoss);
+
+        if (initialBoss != null)
+        {
+            BindBoss(initialBoss);
+        }
     }
 
     public void BindBoss(BossHealth newBossHealth)

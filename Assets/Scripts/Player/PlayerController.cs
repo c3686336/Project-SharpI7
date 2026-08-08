@@ -61,10 +61,10 @@ public sealed class PlayerController : MonoBehaviour,
             balance.mana.fillSpeed,
             balance.mana.saturationDuration);
 
-        if (chantManager == null || bossHealth == null)
+        if (chantManager == null)
         {
             Debug.LogError(
-                "PlayerController requires ChantManager and BossHealth references.",
+                "PlayerController requires a ChantManager reference.",
                 this);
             enabled = false;
             return;
@@ -75,7 +75,6 @@ public sealed class PlayerController : MonoBehaviour,
         Rigidbody2D rigidbody2D = GetComponent<Rigidbody2D>();
         locomotion = new PlayerLocomotion(
             rigidbody2D,
-            bossHealth.transform,
             balance.moveSpeed,
             referenceHeading);
         dash = new PlayerDash(
@@ -86,13 +85,14 @@ public sealed class PlayerController : MonoBehaviour,
             balance.dash.duration,
             balance.dash.distance,
             destroyCancellationToken);
-        spellCaster = new PlayerSpellCaster(bossHealth);
+        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
+        combatEnded = bossHealth == null;
 
     }
 
     private void OnEnable()
     {
-        if (input == null || chantManager == null || bossHealth == null || dash == null)
+        if (input == null || chantManager == null || dash == null)
         {
             return;
         }
@@ -104,8 +104,11 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
 
-        bossHealth.Died -= HandleBossDied;
-        bossHealth.Died += HandleBossDied;
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+            bossHealth.Died += HandleBossDied;
+        }
     }
 
     private void OnDisable()

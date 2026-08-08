@@ -16,11 +16,9 @@ public sealed class StageManager : MonoBehaviour
     private void Start()
     {
         player = FindAnyObjectByType<PlayerController>();
-        bossHealthBar = FindAnyObjectByType<BossHealthBar>();
+        bossHealthBar = FindAnyObjectByType<BossHealthBar>(FindObjectsInactive.Include);
 
-        ApplyStageData();
-        BindBoss(FindAnyObjectByType<BossHealth>());
-        CreateStageExit();
+        LoadStage(stageData);
     }
 
     private void OnDestroy()
@@ -60,6 +58,37 @@ public sealed class StageManager : MonoBehaviour
         currentBoss.Died += HandleBossDied;
         player?.SetCombatTarget(currentBoss);
         bossHealthBar?.BindBoss(currentBoss);
+    }
+
+    private bool LoadStage(StageData newStage)
+    {
+        if (newStage == null)
+        {
+            Debug.LogError("[StageManager] StageData가 없습니다.", this);
+            return false;
+        }
+
+        if (newStage.BossPrefab == null)
+        {
+            Debug.LogError($"[StageManager] {newStage.StageId}의 BossPrefab이 없습니다.", newStage);
+            return false;
+        }
+
+        GameObject bossObject = Instantiate(newStage.BossPrefab);
+        BossHealth newBoss = bossObject.GetComponent<BossHealth>();
+        if (newBoss == null)
+        {
+            Debug.LogError($"[StageManager] {bossObject.name}에 BossHealth가 없습니다.", bossObject);
+            Destroy(bossObject);
+            return false;
+        }
+
+        DestroyStageExit();
+        stageData = newStage;
+        ApplyStageData();
+        BindBoss(newBoss);
+        CreateStageExit();
+        return true;
     }
 
     private void UnbindBoss()
@@ -135,29 +164,8 @@ public sealed class StageManager : MonoBehaviour
             return;
         }
 
-        if (nextStage.BossPrefab == null)
-        {
-            Debug.LogError($"[StageManager] {nextStage.StageId}의 BossPrefab이 없습니다.", nextStage);
-            return;
-        }
-
         isChangingStage = true;
-        DestroyStageExit();
-        stageData = nextStage;
-        ApplyStageData();
-
-        GameObject bossObject = Instantiate(stageData.BossPrefab);
-        BossHealth nextBoss = bossObject.GetComponent<BossHealth>();
-        if (nextBoss == null)
-        {
-            Debug.LogError($"[StageManager] {bossObject.name}에 BossHealth가 없습니다.", bossObject);
-            Destroy(bossObject);
-            isChangingStage = false;
-            return;
-        }
-
-        BindBoss(nextBoss);
-        CreateStageExit();
+        LoadStage(nextStage);
         isChangingStage = false;
     }
 }
