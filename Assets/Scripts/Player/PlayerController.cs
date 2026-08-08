@@ -41,7 +41,7 @@ public sealed class PlayerController : MonoBehaviour,
     public bool HasChantInput => IsChanting && !string.IsNullOrEmpty(chantManager.CurrentInput);
     public Vector2 MoveDirection => locomotion?.CurrentMovement ?? Vector2.zero;
     public bool IsMoving => locomotion != null && locomotion.CurrentMovement.sqrMagnitude > 0.001f &&
-                            !isMovementLocked && !IsDashing && !combatEnded && health != null && health.IsAlive;
+                            !isMovementLocked && !IsDashing && health != null && health.IsAlive;
     public float MaxHealth => health?.Maximum ?? balance?.maxHealth ?? 0f;
     public float CurrentHealth => health?.Current ?? 0f;
     public bool IsAlive => health?.IsAlive ?? false;
@@ -158,7 +158,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void FixedUpdate()
     {
-        if (!health.IsAlive || combatEnded)
+        if (!health.IsAlive)
         {
             return;
         }
@@ -188,6 +188,26 @@ public sealed class PlayerController : MonoBehaviour,
         ApplyDamage(amount, false);
     }
 
+    public void SetCombatTarget(BossHealth newBossHealth)
+    {
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+        }
+
+        bossHealth = newBossHealth;
+        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
+        combatEnded = bossHealth == null;
+        isMovementLocked = false;
+
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+            bossHealth.Died += HandleBossDied;
+            input?.Movement.Enable();
+        }
+    }
+
     private void DeductMana(float amount)
     {
         if (mana.Deduct(amount))
@@ -207,8 +227,7 @@ public sealed class PlayerController : MonoBehaviour,
             chantManager.InterruptChant();
         }
 
-        isMovementLocked = true;
-        input.Movement.Disable();
+        isMovementLocked = false;
     }
 
     private void HandleChantCast(CastResult result)

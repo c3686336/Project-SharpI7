@@ -14,11 +14,13 @@ public sealed class StageData : ScriptableObject
     [SerializeField] private GameObject bossPrefab;
 
     [Header("다음 스테이지")]
+    [SerializeField] private GameObject stageExitPrefab;
     [SerializeField] private StageData nextStage;
 
     public string StageId => stageId;
     public bool IsTutorial => isTutorial;
 	public Sprite BackgroundSprite => backgroundSprite;
     public GameObject BossPrefab => bossPrefab;
+    public GameObject StageExitPrefab => stageExitPrefab;
     public StageData NextStage => nextStage;
 }
