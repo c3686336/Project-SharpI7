@@ -48,6 +48,7 @@ public sealed class OutGameManager : MonoBehaviour
     public void OnEnable()
     {
         startGameButton.onClick.AddListener(tutorialSelectionPanel.Open);
+        tutorialSelectionPanel.TutorialSelected += StartTutorial;
         tutorialSelectionPanel.NormalGameSelected += StartGame;
         configButton.onClick.AddListener(OpenConfig);
         exitGameButton.onClick.AddListener(QuitGame);
@@ -59,6 +60,7 @@ public sealed class OutGameManager : MonoBehaviour
     public void OnDisable()
     {
         startGameButton.onClick.RemoveListener(tutorialSelectionPanel.Open);
+        tutorialSelectionPanel.TutorialSelected -= StartTutorial;
         tutorialSelectionPanel.NormalGameSelected -= StartGame;
         configButton.onClick.RemoveListener(OpenConfig);
         exitGameButton.onClick.RemoveListener(QuitGame);
@@ -68,6 +70,18 @@ public sealed class OutGameManager : MonoBehaviour
     }
 
     public void StartGame()
+    {
+        StageManager.SetInitialStage(null);
+        LoadMainScene();
+    }
+
+    private void StartTutorial(StageData tutorialStageData)
+    {
+        StageManager.SetInitialStage(tutorialStageData);
+        LoadMainScene();
+    }
+
+    private void LoadMainScene()
     {
         outgameState = OutgameState.Main;
         Time.timeScale = 1f;

@@ -7,8 +7,9 @@ public sealed class TutorialSelectionPanel : MonoBehaviour
 {
     [SerializeField] private Button yesButton;
     [SerializeField] private Button noButton;
+    [SerializeField] private StageData tutorialStageData;
 
-    public event Action TutorialSelected;
+    public event Action<StageData> TutorialSelected;
     public event Action NormalGameSelected;
 
     private void Awake()
@@ -58,7 +59,21 @@ public sealed class TutorialSelectionPanel : MonoBehaviour
 
     private void SelectTutorial()
     {
-        TutorialSelected?.Invoke();
+        if (tutorialStageData == null)
+        {
+            Debug.LogError("TutorialSelectionPanel requires a tutorial StageData.", this);
+            return;
+        }
+
+        if (!tutorialStageData.IsTutorial)
+        {
+            Debug.LogError(
+                $"{tutorialStageData.name} is not marked as a tutorial stage.",
+                tutorialStageData);
+            return;
+        }
+
+        TutorialSelected?.Invoke(tutorialStageData);
     }
 
     private void SelectNormalGame()

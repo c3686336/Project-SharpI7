@@ -5,6 +5,10 @@ public sealed class StageManager : MonoBehaviour
 {
     [SerializeField] private StageData stageData;
     [SerializeField] private SpriteRenderer backgroundRenderer;
+    [SerializeField] private GameObject tutorialCanvas;
+    [SerializeField] private InGameManager inGameManager;
+
+    private static StageData initialStageOverride;
 
     private PlayerController player;
     private BossHealthBar bossHealthBar;
@@ -13,18 +17,57 @@ public sealed class StageManager : MonoBehaviour
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
 
+    public static void SetInitialStage(StageData initialStage)
+    {
+        initialStageOverride = initialStage;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetInitialStage()
+    {
+        initialStageOverride = null;
+    }
+
     private void Start()
     {
         player = FindAnyObjectByType<PlayerController>();
         bossHealthBar = FindAnyObjectByType<BossHealthBar>(FindObjectsInactive.Include);
 
-        LoadStage(stageData);
+        StageData initialStage = initialStageOverride != null
+            ? initialStageOverride
+            : stageData;
+        initialStageOverride = null;
+
+        bool stageLoaded = LoadStage(initialStage);
+        SetTutorialMode(stageLoaded && initialStage.IsTutorial);
     }
 
     private void OnDestroy()
     {
         UnbindBoss();
         DestroyStageExit();
+    }
+
+    private void SetTutorialMode(bool enabled)
+    {
+        if (tutorialCanvas == null || inGameManager == null)
+        {
+            Debug.LogError(
+                "[StageManager] TutorialCanvas or InGameManager reference is missing.",
+                this);
+            return;
+        }
+
+        tutorialCanvas.SetActive(enabled);
+
+        if (enabled)
+        {
+            inGameManager.PauseGameplay();
+        }
+        else
+        {
+            inGameManager.ResumeGameplay();
+        }
     }
 
     private void ApplyStageData()
