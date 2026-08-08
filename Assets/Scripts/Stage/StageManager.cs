@@ -1,11 +1,13 @@
 using SharpI7.Combat;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public sealed class StageManager : MonoBehaviour
 {
     [SerializeField] private StageData stageData;
     [SerializeField] private SpriteRenderer backgroundRenderer;
-    [SerializeField] private TutorialDialogueController tutorialDialogueController;
+    [FormerlySerializedAs("tutorialDialogueController")]
+    [SerializeField] private TutorialManager tutorialManager;
     [SerializeField] private InGameManager inGameManager;
 
     private static StageData initialStageOverride;
@@ -55,20 +57,20 @@ public sealed class StageManager : MonoBehaviour
 
     private void SetTutorialMode(bool enabled)
     {
-        if (tutorialDialogueController == null || inGameManager == null)
+        if (tutorialManager == null || inGameManager == null)
         {
             Debug.LogError(
-                "[StageManager] TutorialDialogueController or InGameManager reference is missing.",
+                "[StageManager] TutorialManager or InGameManager reference is missing.",
                 this);
             return;
         }
 
-        tutorialDialogueController.gameObject.SetActive(enabled);
+        tutorialManager.gameObject.SetActive(enabled);
 
         if (enabled)
         {
             inGameManager.PauseGameplay();
-            tutorialDialogueController.Begin(inGameManager);
+            tutorialManager.Begin(inGameManager);
         }
         else
         {

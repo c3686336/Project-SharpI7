@@ -3,9 +3,7 @@
   "steps": [
     {
       "description": "튜토리얼 도입",
-      "text": "어, 내 목소리 들려? 지금부터 내 몸을 움직이는 건 네 몫이야.",
-      "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "text": "어, 내 목소리 들려? 지금부터 내 몸을 움직이는 건 네 몫이야."
     },
     {
       "description": "WASD 이동 조작 안내",
@@ -20,26 +18,14 @@
       "arrowDirection": "right"
     },
     {
-      "description": "대시 중 무적 안내",
-      "text": "대시하는 동안에는 공격을 맞지 않아. 위험한 순간에 써먹어.",
+      "description": "대시 무적과 쿨타임 UI 안내",
+      "text": "대시하는 동안에는 공격을 맞지 않아. 오른쪽 아래 표시가 다시 차오르면 또 사용할 수 있어.",
       "arrowPosition": { "x": 0, "y": 0 },
       "arrowDirection": "right"
     },
     {
-      "description": "대시 쿨타임 UI 안내",
-      "text": "오른쪽 아래 표시가 대시 쿨타임이야. 다시 차오르면 대시할 수 있어.",
-      "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
-    },
-    {
-      "description": "플레이어 체력 UI 안내",
-      "text": "왼쪽 아래 하트 세 개가 내 목숨이야.",
-      "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
-    },
-    {
-      "description": "피격과 사망 안내",
-      "text": "공격을 맞으면 하나씩 사라지고, 전부 잃으면 끝이야. 조심해 줘.",
+      "description": "플레이어 체력 UI와 사망 안내",
+      "text": "왼쪽 아래 하트 세 개가 내 목숨이야. 공격을 맞을 때마다 하나씩 사라지고, 전부 잃으면 끝이야.",
       "arrowPosition": { "x": 0, "y": 0 },
       "arrowDirection": "right"
     },
@@ -51,7 +37,7 @@
     },
     {
       "description": "영창 입력과 마법 사용 안내",
-      "text": "화면에 뜬 문장을 그대로 입력하고 Enter를 다시 누르면 마법이 나가.",
+      "text": "화면에 뜬 문장을 그대로 입력하고 Enter를 다시 누르면 스킬이 나가.",
       "arrowPosition": { "x": 0, "y": 0 },
       "arrowDirection": "right"
     },
@@ -62,34 +48,43 @@
       "arrowDirection": "right"
     },
     {
-      "description": "마나 플라스크 UI 안내",
-      "text": "내 초상화를 감싼 플라스크는 현재 마나 상태를 보여줘.",
+      "description": "마나 체질 이야기 도입",
+      "text": "그리고 나한테는 조금 성가신 체질이 하나 있어."
+    },
+    {
+      "description": "마나 자동 증가와 플라스크 UI 안내",
+      "text": "나는 가만히 있어도 마나가 계속 차올라. 내 초상화를 감싼 플라스크가 현재 마나를 보여줘.",
       "arrowPosition": { "x": 0, "y": 0 },
       "arrowDirection": "right"
     },
     {
-      "description": "마나 증가와 소모 안내",
-      "text": "마나는 시간이 지나면 저절로 차오르고, 마법을 사용하면 줄어들어.",
+      "description": "마나 증가에 따른 무아지경과 프로필 변화 시연",
+      "text": "마나가 넘칠수록 난 점점 무아지경에 빠져. 내 표정이 이렇게 달라지면 위험하다는 뜻이야.",
       "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "arrowDirection": "right",
+      "action": "previewManaProfiles"
     },
     {
-      "description": "마나 위험 상태 안내",
-      "text": "내 표정이 바뀌기 시작하면 마나가 위험하다는 뜻이야.",
+      "description": "마나 포화와 체력 손실 안내",
+      "text": "플라스크가 완전히 차면 정신을 놓치고 하트 하나를 잃어. 그 뒤 마나는 처음 상태로 돌아와.",
       "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "arrowDirection": "right",
+      "action": "previewManaSaturationDamage"
     },
     {
-      "description": "마나 포화 피해 안내",
-      "text": "마나가 끝까지 차면 하트 하나를 잃고 처음 수치로 돌아가. 마법을 계속 써서 낮춰 둬.",
+      "description": "스킬을 통한 마나 소비 안내",
+      "text": "그걸 막으려면 스킬을 계속 사용해서 마나를 소비해 줘. 영창을 성공시키면 마나가 줄어들어.",
       "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "arrowDirection": "right",
+      "action": "previewManaConsumption"
+    },
+    {
+      "description": "마나 관리 핵심 정리",
+      "text": "피하기만 해서는 결국 마나에 삼켜져. 공격할 기회가 생기면 놓치지 마."
     },
     {
       "description": "튜토리얼 설명 종료",
-      "text": "설명은 여기까지야. 자, 이제 같이 살아남아 보자.",
-      "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "text": "설명은 여기까지야. 자, 이제 같이 살아남아 보자."
     }
   ]
 }

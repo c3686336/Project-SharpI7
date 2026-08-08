@@ -529,12 +529,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 222325129}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: [{fileID: 1073754080}]
-  m_Father: {fileID: 1073548660}
+  m_Children:
+  - {fileID: 1073754080}
+  m_Father: {fileID: 877866162}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1430,12 +1431,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 559770628}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1073548660}
+  m_Father: {fileID: 877866162}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2058,6 +2059,74 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 0, z: -10}
+--- !u!1 &877866161
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 877866162}
+  - component: {fileID: 877866163}
+  m_Layer: 5
+  m_Name: TutorialRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &877866162
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 877866161}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 222325130}
+  - {fileID: 559770629}
+  m_Father: {fileID: 1073548660}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &877866163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 877866161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a6f1c45c69b4e08afae3c0f04587a62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  fileName: tutorial.json
+  dialogueText: {fileID: 1073754081}
+  tutorialArrow: {fileID: 559770629}
+  manaFillImage: {fileID: 1160547530}
+  portraitImage: {fileID: 649426900}
+  warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
+  saturatedPortrait: {fileID: -6470460504253458178, guid: 06c05b5968d730a498da2d06fba67c8b, type: 3}
+  warningPortraitPosition: {x: 10, y: 10}
+  warningPortraitSize: {x: 200, y: 200}
+  saturatedPortraitPosition: {x: 5, y: 60}
+  saturatedPortraitSize: {x: 270, y: 280}
+  warningFillAmount: 0.42424244
+  overloadFillAmount: 0.72727275
+  manaPreviewSegmentDuration: 0.75
+  manaPreviewHoldDuration: 0.6
+  manaConsumptionDuration: 1.5
+  heartContainer: {fileID: 91097559}
+  emptyHeartSprite: {fileID: -6470460504253458178, guid: 8cf6d8f61886c544382fb689b2011ad4, type: 3}
 --- !u!1 &994139411
 GameObject:
   m_ObjectHideFlags: 0
@@ -2314,7 +2383,6 @@ GameObject:
   - component: {fileID: 1073548659}
   - component: {fileID: 1073548658}
   - component: {fileID: 1073548657}
-  - component: {fileID: 1073548661}
   - component: {fileID: 1073548662}
   m_Layer: 5
   m_Name: TutorialCanvas
@@ -2399,8 +2467,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 222325130}
-  - {fileID: 559770629}
+  - {fileID: 877866162}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2408,21 +2475,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1073548661
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1073548656}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a6f1c45c69b4e08afae3c0f04587a62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TutorialDialogueController
-  fileName: tutorial.json
-  dialogueText: {fileID: 1073754081}
-  tutorialArrow: {fileID: 559770629}
 --- !u!1 &1073754079
 GameObject:
   m_ObjectHideFlags: 0
@@ -2458,7 +2510,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 30}
-  m_SizeDelta: {x: 850, y: 310}
+  m_SizeDelta: {x: 800, y: 280}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1073754081
 MonoBehaviour:
@@ -4618,7 +4670,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
   stageData: {fileID: 11400000, guid: 8693c7bdedb8e7645aa30cff81271b63, type: 2}
   backgroundRenderer: {fileID: 1711106417}
-  tutorialDialogueController: {fileID: 1073548661}
+  tutorialManager: {fileID: 877866163}
   inGameManager: {fileID: 440768436}
 --- !u!4 &1977335317
 Transform:
