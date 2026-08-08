@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f8dd76862e9bb345acd64f33d136d15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossHealthBar
-  bossHealth: {fileID: 11400000, guid: 66666666666666666666666666666666, type: 3}
+  bossHealth: {fileID: 0}
   healthSlider: {fileID: 153257088}
   healthText: {fileID: 1684246139}
   phaseOneImage: {fileID: 114923689}
@@ -3007,7 +3007,7 @@ PrefabInstance:
     - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: bossHealth
       value: 
-      objectReference: {fileID: 11400000, guid: 66666666666666666666666666666666, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: chantManager
       value: 
