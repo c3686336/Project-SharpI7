@@ -223,10 +223,8 @@ public class ChantManager : MonoBehaviour, IChantManager
         bool enterPressed =
             keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame;
 
-        if (!enterPressed)
-            return;
-
-        ResolveChant();
+        if (enterPressed)
+            ResolveChant();
     }
 
     private void LateUpdate()
