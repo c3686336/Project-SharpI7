@@ -1,5 +1,5 @@
-using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SharpI7.Visuals
@@ -9,6 +9,7 @@ namespace SharpI7.Visuals
     {
         private const string FrameResourcesPath = "DashEffects";
         private const float DefaultPixelsPerUnit = 160f;
+        private const int FrameCount = 6;
 
         [SerializeField, Min(0.01f)] private float frameDuration = 0.045f;
         [SerializeField] private int sortingOrder = 200;
@@ -102,18 +103,25 @@ namespace SharpI7.Visuals
             }
 
             cachedFrames = null;
-            var textures = Resources.LoadAll<Texture2D>(FrameResourcesPath);
-            Array.Sort(textures, (left, right) => string.CompareOrdinal(left.name, right.name));
-            cachedFrames = new Sprite[textures.Length];
-            for (var index = 0; index < textures.Length; index++)
+            var loadedFrames = new List<Sprite>(FrameCount);
+            for (var frameNumber = 1; frameNumber <= FrameCount; frameNumber++)
             {
-                var texture = textures[index];
-                cachedFrames[index] = Sprite.Create(
+                var texture = Resources.Load<Texture2D>(
+                    $"{FrameResourcesPath}/dash_{frameNumber:00}");
+                if (texture == null)
+                {
+                    Debug.LogWarning($"Missing dash effect frame: dash_{frameNumber:00}");
+                    continue;
+                }
+
+                loadedFrames.Add(Sprite.Create(
                     texture,
                     new Rect(0f, 0f, texture.width, texture.height),
                     new Vector2(0.05f, 0.5f),
-                    DefaultPixelsPerUnit);
+                    DefaultPixelsPerUnit));
             }
+
+            cachedFrames = loadedFrames.ToArray();
         }
 
         private void OnDestroy()

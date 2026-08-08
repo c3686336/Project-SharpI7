@@ -1,40 +1,19 @@
 fileFormatVersion: 2
-guid: 2376ca45ed1cb5a4cbf31dbef43a2850
+guid: b15c410c1157c514583e0f56ac2614d3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8893951887250361083
-    second: dash_04_0
+      213: 7473975676581675608
+    second: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_0"
   - first:
-      213: 3249192154557029504
-    second: dash_04_1
+      213: 5132188728847337462
+    second: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_1"
   - first:
-      213: -1061703507160960691
-    second: dash_04_2
+      213: 2376348786755550203
+    second: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_2"
   - first:
-      213: 8196349272129974044
-    second: dash_04_3
-  - first:
-      213: 4484764384278518269
-    second: dash_04_4
-  - first:
-      213: 7056374126336258205
-    second: dash_04_5
-  - first:
-      213: 604454173190137062
-    second: dash_04_6
-  - first:
-      213: 6263180804541267586
-    second: dash_04_7
-  - first:
-      213: 7285710937002592174
-    second: dash_04_8
-  - first:
-      213: 1145447598189368681
-    second: dash_04_9
-  - first:
-      213: 6679477339774683377
-    second: dash_04_10
+      213: -6921564572513563962
+    second: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_3"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -130,13 +109,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: dash_04_0
+      name: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_0"
       rect:
         serializedVersion: 2
-        x: 23
-        y: 23
-        width: 1238
-        height: 531
+        x: 11
+        y: 0
+        width: 1516
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -145,19 +124,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 505f60771e5529480800000000000000
-      internalID: -8893951887250361083
+      spriteID: 8528f8e6745e8b760800000000000000
+      internalID: 7473975676581675608
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dash_04_1
+      name: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_1"
       rect:
         serializedVersion: 2
-        x: 80
-        y: 273
-        width: 10
+        x: 489
+        y: 702
+        width: 8
         height: 12
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -167,107 +146,41 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 08c9b53bc03771d20800000000000000
-      internalID: 3249192154557029504
+      spriteID: 6f785371572393740800000000000000
+      internalID: 5132188728847337462
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dash_04_2
+      name: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_2"
       rect:
         serializedVersion: 2
-        x: 83
-        y: 284
+        x: 494
+        y: 706
+        width: 167
+        height: 318
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfbbef091ac7af020800000000000000
+      internalID: 2376348786755550203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_3"
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 705
         width: 7
-        height: 11
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d4172ee09421441f0800000000000000
-      internalID: -1061703507160960691
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_3
-      rect:
-        serializedVersion: 2
-        x: 80
-        y: 268
-        width: 7
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c1fa654ac384fb170800000000000000
-      internalID: 8196349272129974044
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_4
-      rect:
-        serializedVersion: 2
-        x: 91
-        y: 273
-        width: 7
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: df99e3a32751d3e30800000000000000
-      internalID: 4484764384278518269
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_5
-      rect:
-        serializedVersion: 2
-        x: 80
-        y: 262
-        width: 11
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d90b782b1e64de160800000000000000
-      internalID: 7056374126336258205
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_6
-      rect:
-        serializedVersion: 2
-        x: 82
-        y: 246
-        width: 8
         height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -277,96 +190,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6e420043ed3736800800000000000000
-      internalID: 604454173190137062
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_7
-      rect:
-        serializedVersion: 2
-        x: 1219
-        y: 249
-        width: 14
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 28e3aba02c94be650800000000000000
-      internalID: 6263180804541267586
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_8
-      rect:
-        serializedVersion: 2
-        x: 1226
-        y: 242
-        width: 16
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ea7c730fe7b0c1560800000000000000
-      internalID: 7285710937002592174
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_9
-      rect:
-        serializedVersion: 2
-        x: 1232
-        y: 250
-        width: 7
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 965d6ee858275ef00800000000000000
-      internalID: 1145447598189368681
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: dash_04_10
-      rect:
-        serializedVersion: 2
-        x: 708
-        y: 29
-        width: 10
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1f88a8a404542bc50800000000000000
-      internalID: 6679477339774683377
+      spriteID: 6ca866d71b9a1ff90800000000000000
+      internalID: -6921564572513563962
       vertices: []
       indices: 
       edges: []
@@ -385,17 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      dash_04_0: -8893951887250361083
-      dash_04_1: 3249192154557029504
-      dash_04_10: 6679477339774683377
-      dash_04_2: -1061703507160960691
-      dash_04_3: 8196349272129974044
-      dash_04_4: 4484764384278518269
-      dash_04_5: 7056374126336258205
-      dash_04_6: 604454173190137062
-      dash_04_7: 6263180804541267586
-      dash_04_8: 7285710937002592174
-      dash_04_9: 1145447598189368681
+      "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_0": 7473975676581675608
+      "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_1": 5132188728847337462
+      "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_2": 2376348786755550203
+      "ChatGPT Image 2026\uB144 8\uC6D4 8\uC77C \uC624\uC804 05_00_27 (4)_3": -6921564572513563962
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
