@@ -2,8 +2,8 @@
   "spells": [
     {
       "id": "eternal_flame",
-      "spellName": "영원한 불꽃",
-      "fullChantText": "영원히 타오르는 불꽃",
+      "spellName": "영원한 불",
+      "fullChantText": "영원히 타오르는 불",
       "baseDamage": 100.0,
       "manaRelease": 30.0,
       "magicType": "Fire",
@@ -23,7 +23,7 @@
         },
         {
           "chantLevel": 3,
-          "chantText": "영원히 타오르는 불꽃",
+          "chantText": "영원히 타오르는 불",
           "damageMultiplier": 2.0,
           "manaCost": 50
         }

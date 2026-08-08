@@ -144,14 +144,7 @@ public sealed class PlayerController : MonoBehaviour,
 
         if (input.Movement.Spell.WasPressedThisFrame())
         {
-            if (chantManager.IsCasting)
-            {
-                TryResolveChant();
-            }
-            else
-            {
-                chantManager.StartChant();
-            }
+            HandleChantEnter();
         }
 
         if (input.Movement.ExitChant.WasPressedThisFrame())
@@ -273,16 +266,21 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void TryResolveChant()
     {
-        // 현재 단계의 영창 길이를 아직 만족하지 않음
+        // 현재 단계 영창을 끝까지 입력하지 않음
         if (!chantManager.CanResolveCurrentStage)
         {
             return;
         }
 
+        // 안전장치:
+        // 오타가 있다면 발동하지 않음
+        if (chantManager.TypoCount > 0)
+        {
+            return;
+        }
 
         float manaCost =
             chantManager.CurrentManaCost;
-
 
         // 현재 마나 부족
         if (mana.Current < manaCost)
@@ -296,8 +294,36 @@ public sealed class PlayerController : MonoBehaviour,
             return;
         }
 
-
         chantManager.ResolveChant();
+    }
+
+    private void HandleChantEnter()
+    {
+        // 영창 중이 아니면 Enter로 영창 시작
+        if (!chantManager.IsCasting)
+        {
+            chantManager.StartChant();
+            return;
+        }
+
+        // 영창 중 오타가 하나라도 있다면
+        // Enter로 영창 취소
+        if (chantManager.TypoCount > 0)
+        {
+            chantManager.CancelChant();
+            return;
+        }
+
+        // 오타는 없지만 아직 현재 영창 단계를
+        // 끝까지 입력하지 않았다면 아무것도 하지 않음
+        if (!chantManager.CanResolveCurrentStage)
+        {
+            return;
+        }
+
+        // 완벽하게 입력 완료
+        // 마나 검사 후 발동
+        TryResolveChant();
     }
 
 #if UNITY_EDITOR
