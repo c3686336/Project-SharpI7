@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 02dacdf44e119e144b1ac24a388f2066
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 358362
+  packageName: Effect Aura
+  packageVersion: 1.0
+  assetPath: Assets/AuraSuperXayda/AuraEffect/Materials/Electric.mat
+  uploadId: 854008

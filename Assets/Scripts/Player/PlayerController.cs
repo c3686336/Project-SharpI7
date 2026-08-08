@@ -60,6 +60,7 @@ public sealed class PlayerController : MonoBehaviour,
     public Vector2 DashDirection => dash?.DashDirection ?? Vector2.right;
     public bool IsChanting => chantManager != null && chantManager.IsCasting;
     public bool HasChantInput => IsChanting && !string.IsNullOrEmpty(chantManager.CurrentInput);
+    public int ChantInputLength => chantManager?.CurrentInput?.Length ?? 0;
     public Vector2 MoveDirection => locomotion?.CurrentMovement ?? Vector2.zero;
     public bool IsMoving => locomotion != null && locomotion.CurrentMovement.sqrMagnitude > 0.001f &&
                             !isMovementLocked && !IsDashing && health != null && health.IsAlive;

@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 845918742311000002}
   - component: {fileID: 845918742311000003}
   - component: {fileID: 6491687407026945252}
+  - component: {fileID: 845918742311000004}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -146,8 +147,8 @@ MonoBehaviour:
   spellImpactDelay: 0.1
   homingFireProjectileSpeed: 12
   homingFireProjectileScale: 1.8
-  homingFireProjectileLevelTwoScaleMultiplier: 1.5
-  homingFireProjectileLevelThreeScaleMultiplier: 2
+  homingFireProjectileLevelTwoScaleMultiplier: 2
+  homingFireProjectileLevelThreeScaleMultiplier: 3
   homingFireHitRadius: 0.12
   homingFireLifetime: 3
   referenceHeading: {x: 0, y: 1}
@@ -243,8 +244,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c23d8f2e549e4f52a76eb00a92e956f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   movementFrames:
   - {fileID: 2395171169746166628, guid: f9b754d6b4fe52a44b70941623b1ef18, type: 3}
   - {fileID: -9190950720821370306, guid: 5ffff3d1925c9ed43a92bbcc61080e23, type: 3}
@@ -409,3 +410,22 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &845918742311000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5215665589235079319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9d8243b47a845e78ce3b21e807e8f23, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  auraPrefab: {fileID: 5381488786946506934, guid: fedfa42862fa16b4f98c8f74e47e2abf, type: 3}
+  minimumCharacters: 6
+  worldOffset: {x: 0, y: 0.15, z: 0.2}
+  worldScale: 1.5
+  horizontalScaleMultiplier: 1.3
+  verticalScaleMultiplier: 0.6666667
+  fireColor: {r: 1, g: 0.08, b: 0.01, a: 1}
