@@ -426,17 +426,31 @@ namespace SharpI7.Combat
                 bossMovement.LockMovement();
             }
 
-            var attackPosition = transform.position;
-            attackPosition.z = 0f;
+            var fieldCenter = (Vector2)transform.position;
+            var fieldSize = bossDistanceFieldSize;
+            // Use the background bounds first so the outer danger overlay covers
+            // the entire visible map, not only the smaller interior between walls.
+            if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldCenter = (Vector2)arenaBounds.center;
+                fieldSize = (Vector2)arenaBounds.size;
+            }
+            else if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                fieldCenter = (Vector2)wallInteriorBounds.center;
+                fieldSize = (Vector2)wallInteriorBounds.size;
+            }
+
             activeBossDistanceZone = Instantiate(
                 bossDistanceDangerPrefab,
-                attackPosition,
+                new Vector3(fieldCenter.x, fieldCenter.y, 0f),
                 Quaternion.identity);
             activeBossDistanceZone.Begin(
                 transform,
                 playerTarget,
                 nextBossDistanceMode,
-                bossDistanceFieldSize,
+                fieldCenter,
+                fieldSize,
                 bossDistanceRadius,
                 bossDistanceWarningDuration,
                 attackDamage);
@@ -527,9 +541,18 @@ namespace SharpI7.Combat
             var fieldBounds = new Bounds(
                 transform.position,
                 new Vector3(dashLaserWallFieldSize.x, dashLaserWallFieldSize.y, 1f));
-            var direction = (DashLaserWallDirection)Random.Range(
-                0,
-                System.Enum.GetValues(typeof(DashLaserWallDirection)).Length);
+            if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                fieldBounds = wallInteriorBounds;
+            }
+            else if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldBounds = arenaBounds;
+            }
+
+            var direction = Random.value < 0.5f
+                ? DashLaserWallDirection.LeftToRight
+                : DashLaserWallDirection.RightToLeft;
 
             activeDashLaserWall = Instantiate(dashLaserWallDangerPrefab, transform.position, Quaternion.identity);
             activeDashLaserWall.Begin(

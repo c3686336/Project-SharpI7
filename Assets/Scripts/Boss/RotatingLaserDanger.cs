@@ -6,8 +6,8 @@ namespace SharpI7.Combat
     [DisallowMultipleComponent]
     public sealed class RotatingLaserDanger : MonoBehaviour
     {
-        [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.32f);
-        [SerializeField] private Color activeColor = new(1f, 0.18f, 0.02f, 0.9f);
+        [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.35f);
+        [SerializeField] private Color activeColor = new(1f, 0.08f, 0.02f, 0.72f);
 
         private SpriteRenderer laserRenderer;
         private Sprite runtimeSprite;

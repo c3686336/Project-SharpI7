@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  dangerColor: {r: 0.85, g: 0.02, b: 0.02, a: 0.32}
-  explosionColor: {r: 1, g: 0.08, b: 0.02, a: 0.62}
+  dangerColor: {r: 1, g: 0.08, b: 0.08, a: 0.35}
+  explosionColor: {r: 1, g: 0.08, b: 0.02, a: 0.72}
   safeColor: {r: 0.1, g: 1, b: 0.35, a: 0.42}
   textureResolution: 128

@@ -13,7 +13,9 @@ namespace SharpI7.Combat
         [Header("Hit Effect")]
         [SerializeField] private VideoClip spellHitVideoClip;
         [SerializeField] private VideoClip spellHitVideoLevelTwoClip;
+        [SerializeField] private VideoClip spellHitVideoLevelThreeClip;
         [SerializeField, Min(1f)] private float spellHitVideoLevelTwoScale = 1.25f;
+        [SerializeField, Min(1f)] private float spellHitVideoLevelThreeScale = 1.6f;
         [SerializeField, Min(1f)] private float spellHitVideoLevelTwoIntensity = 2f;
         [SerializeField] private Vector3 spellHitVideoOffset = new(0f, -0.35f, -0.1f);
         [SerializeField] private Vector2 spellHitVideoSize = new(4.8f, 4.8f);
@@ -88,14 +90,18 @@ namespace SharpI7.Combat
                 return;
             }
 
-            var levelOneClip = spellHitVideoClip;
-            if (castLevel >= 2 && spellHitVideoLevelTwoClip != null)
+            var originalClip = spellHitVideoClip;
+            if (castLevel >= 3 && spellHitVideoLevelThreeClip != null)
+            {
+                spellHitVideoClip = spellHitVideoLevelThreeClip;
+            }
+            else if (castLevel >= 2 && spellHitVideoLevelTwoClip != null)
             {
                 spellHitVideoClip = spellHitVideoLevelTwoClip;
             }
 
             TakeDamage(damage);
-            spellHitVideoClip = levelOneClip;
+            spellHitVideoClip = originalClip;
         }
 
         public void RestoreFullHealth()
@@ -187,13 +193,16 @@ namespace SharpI7.Combat
             }
 
             spellHitVideoObject.transform.position = transform.position + spellHitVideoOffset;
-            var isLevelTwoEffect = spellHitVideoClip == spellHitVideoLevelTwoClip;
-            var scaleMultiplier = isLevelTwoEffect ? spellHitVideoLevelTwoScale : 1f;
+            var isLevelThreeEffect = spellHitVideoClip == spellHitVideoLevelThreeClip;
+            var isEnhancedEffect = spellHitVideoClip == spellHitVideoLevelTwoClip || isLevelThreeEffect;
+            var scaleMultiplier = isLevelThreeEffect
+                ? spellHitVideoLevelThreeScale
+                : isEnhancedEffect ? spellHitVideoLevelTwoScale : 1f;
             spellHitVideoObject.transform.localScale = new Vector3(
                 spellHitVideoSize.x * scaleMultiplier,
                 spellHitVideoSize.y * scaleMultiplier,
                 1f);
-            spellHitVideoMaterial.SetFloat("_Intensity", isLevelTwoEffect ? spellHitVideoLevelTwoIntensity : 1f);
+            spellHitVideoMaterial.SetFloat("_Intensity", isEnhancedEffect ? spellHitVideoLevelTwoIntensity : 1f);
             spellHitVideoRenderer.enabled = true;
             spellHitVideoPlayer.Stop();
             spellHitVideoPlayer.time = 0d;

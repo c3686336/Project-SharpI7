@@ -44,5 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cbd919688ed39d429c4193c45d7787b, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  warningColor: {r: 1, g: 0.08, b: 0.08, a: 0.3}
-  activeColor: {r: 1, g: 0.2, b: 0.02, a: 0.95}
+  laserMaterial: {fileID: 2100000, guid: 0b7e4af7eb551ed49b95cb7fb78f578d, type: 2}

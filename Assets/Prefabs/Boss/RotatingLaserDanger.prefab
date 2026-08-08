@@ -44,5 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cccccccccccccccccccccccccccccccc, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  warningColor: {r: 1, g: 0.08, b: 0.08, a: 0.32}
-  activeColor: {r: 1, g: 0.18, b: 0.02, a: 0.9}
+  warningColor: {r: 1, g: 0.08, b: 0.08, a: 0.35}
+  activeColor: {r: 1, g: 0.08, b: 0.02, a: 0.72}
