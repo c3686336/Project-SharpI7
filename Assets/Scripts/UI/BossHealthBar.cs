@@ -11,6 +11,45 @@ public sealed class BossHealthBar : MonoBehaviour
 
     private void Start()
     {
+        EnsureReferences();
+
+        BossHealth initialBoss = bossHealth != null
+            ? bossHealth
+            : FindAnyObjectByType<BossHealth>();
+
+        if (initialBoss != null)
+        {
+            BindBoss(initialBoss);
+        }
+    }
+
+    public void BindBoss(BossHealth newBossHealth)
+    {
+        EnsureReferences();
+
+        if (bossHealth != null)
+        {
+            bossHealth.HealthChanged -= UpdateHealth;
+            bossHealth.Died -= Hide;
+        }
+
+        bossHealth = newBossHealth;
+
+        if (bossHealth == null)
+        {
+            Debug.LogWarning("[BossHealthBar] BossHealth를 찾을 수 없습니다.", this);
+            gameObject.SetActive(false);
+            return;
+        }
+
+        gameObject.SetActive(true);
+        bossHealth.HealthChanged += UpdateHealth;
+        bossHealth.Died += Hide;
+        UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
+    }
+
+    private void EnsureReferences()
+    {
         if (healthSlider == null)
         {
             healthSlider = GetComponent<Slider>();
@@ -20,20 +59,6 @@ public sealed class BossHealthBar : MonoBehaviour
         {
             healthText = GetComponentInChildren<TMP_Text>(true);
         }
-
-        if (bossHealth == null)
-        {
-            bossHealth = FindAnyObjectByType<BossHealth>();
-        }
-
-        if (bossHealth == null)
-        {
-            Debug.LogWarning("[BossHealthBar] BossHealth를 찾을 수 없습니다.", this);
-            return;
-        }
-
-        bossHealth.HealthChanged += UpdateHealth;
-        UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
     }
 
     private void UpdateHealth(float current, float max)
@@ -51,11 +76,17 @@ public sealed class BossHealthBar : MonoBehaviour
         }
     }
 
+    private void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+
     private void OnDestroy()
     {
         if (bossHealth != null)
         {
             bossHealth.HealthChanged -= UpdateHealth;
+            bossHealth.Died -= Hide;
         }
     }
 }

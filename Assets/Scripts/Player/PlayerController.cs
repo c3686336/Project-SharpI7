@@ -41,7 +41,7 @@ public sealed class PlayerController : MonoBehaviour,
     public bool HasChantInput => IsChanting && !string.IsNullOrEmpty(chantManager.CurrentInput);
     public Vector2 MoveDirection => locomotion?.CurrentMovement ?? Vector2.zero;
     public bool IsMoving => locomotion != null && locomotion.CurrentMovement.sqrMagnitude > 0.001f &&
-                            !isMovementLocked && !IsDashing && !combatEnded && health != null && health.IsAlive;
+                            !isMovementLocked && !IsDashing && health != null && health.IsAlive;
     public float MaxHealth => health?.Maximum ?? balance?.maxHealth ?? 0f;
     public float CurrentHealth => health?.Current ?? 0f;
     public bool IsAlive => health?.IsAlive ?? false;
@@ -61,10 +61,10 @@ public sealed class PlayerController : MonoBehaviour,
             balance.mana.fillSpeed,
             balance.mana.saturationDuration);
 
-        if (chantManager == null || bossHealth == null)
+        if (chantManager == null)
         {
             Debug.LogError(
-                "PlayerController requires ChantManager and BossHealth references.",
+                "PlayerController requires a ChantManager reference.",
                 this);
             enabled = false;
             return;
@@ -75,7 +75,6 @@ public sealed class PlayerController : MonoBehaviour,
         Rigidbody2D rigidbody2D = GetComponent<Rigidbody2D>();
         locomotion = new PlayerLocomotion(
             rigidbody2D,
-            bossHealth.transform,
             balance.moveSpeed,
             referenceHeading);
         dash = new PlayerDash(
@@ -86,13 +85,14 @@ public sealed class PlayerController : MonoBehaviour,
             balance.dash.duration,
             balance.dash.distance,
             destroyCancellationToken);
-        spellCaster = new PlayerSpellCaster(bossHealth);
+        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
+        combatEnded = bossHealth == null;
 
     }
 
     private void OnEnable()
     {
-        if (input == null || chantManager == null || bossHealth == null || dash == null)
+        if (input == null || chantManager == null || dash == null)
         {
             return;
         }
@@ -104,8 +104,11 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
 
-        bossHealth.Died -= HandleBossDied;
-        bossHealth.Died += HandleBossDied;
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+            bossHealth.Died += HandleBossDied;
+        }
     }
 
     private void OnDisable()
@@ -158,7 +161,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void FixedUpdate()
     {
-        if (!health.IsAlive || combatEnded)
+        if (!health.IsAlive)
         {
             return;
         }
@@ -188,6 +191,26 @@ public sealed class PlayerController : MonoBehaviour,
         ApplyDamage(amount, false);
     }
 
+    public void SetCombatTarget(BossHealth newBossHealth)
+    {
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+        }
+
+        bossHealth = newBossHealth;
+        spellCaster = bossHealth == null ? null : new PlayerSpellCaster(bossHealth);
+        combatEnded = bossHealth == null;
+        isMovementLocked = false;
+
+        if (bossHealth != null)
+        {
+            bossHealth.Died -= HandleBossDied;
+            bossHealth.Died += HandleBossDied;
+            input?.Movement.Enable();
+        }
+    }
+
     private void DeductMana(float amount)
     {
         if (mana.Deduct(amount))
@@ -207,8 +230,7 @@ public sealed class PlayerController : MonoBehaviour,
             chantManager.InterruptChant();
         }
 
-        isMovementLocked = true;
-        input.Movement.Disable();
+        isMovementLocked = false;
     }
 
     private void HandleChantCast(CastResult result)
