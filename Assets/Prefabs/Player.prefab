@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 2321059675307188937}
   - component: {fileID: 6057062684835720305}
   - component: {fileID: 2284924980614982524}
+  - component: {fileID: 845918742311000001}
+  - component: {fileID: 845918742311000002}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -84,7 +86,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Sprite: {fileID: 4334783836991956000, guid: 44972de81550f9a40a35a737a9bd0ac6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -194,3 +196,37 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &845918742311000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5215665589235079319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c23d8f2e549e4f52a76eb00a92e956f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementFrames:
+  - {fileID: 2395171169746166628, guid: f9b754d6b4fe52a44b70941623b1ef18, type: 3}
+  - {fileID: -9190950720821370306, guid: 5ffff3d1925c9ed43a92bbcc61080e23, type: 3}
+  - {fileID: -3451814149263678230, guid: 0d6d6f4319d31fb408c7dcf5e914da2d, type: 3}
+  - {fileID: 3535422003912807925, guid: c897f481370e86f47884eee738069e6c, type: 3}
+  - {fileID: -1523415334552674976, guid: 200628cc6548c754eaa81bf19a2fd2bd, type: 3}
+  - {fileID: -3547462953489778252, guid: d4b29a60a3e566e4180900dbac532e28, type: 3}
+  framesPerSecond: 10
+--- !u!114 &845918742311000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5215665589235079319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b231f0b8d6d4207b9b2e5d590a8c41f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ringPrefab: {fileID: 428174, guid: 37e803394624a5c48ae5f13fd212ac0b, type: 3}
+  ringColor: {r: 1, g: 0.08, b: 0.08, a: 1}
