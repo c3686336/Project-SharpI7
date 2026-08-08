@@ -13,6 +13,15 @@ public sealed class PlayerController : MonoBehaviour,
     IPlayerDash
 {
     [SerializeField, Min(0f)] private float spellImpactDelay = 0.1f;
+    [SerializeField] private GameObject homingFireProjectilePrefab;
+    [SerializeField] private GameObject homingFireProjectileLevelTwoPrefab;
+    [SerializeField] private GameObject homingFireProjectileLevelThreePrefab;
+    [SerializeField, Min(0.01f)] private float homingFireProjectileSpeed = 12f;
+    [SerializeField, Min(0.01f)] private float homingFireProjectileScale = 1.8f;
+    [SerializeField, Min(0.01f)] private float homingFireProjectileLevelTwoScaleMultiplier = 1.5f;
+    [SerializeField, Min(0.01f)] private float homingFireProjectileLevelThreeScaleMultiplier = 2f;
+    [SerializeField, Min(0.01f)] private float homingFireHitRadius = 0.12f;
+    [SerializeField, Min(0.1f)] private float homingFireLifetime = 3f;
     [SerializeField] private Vector2 referenceHeading;
     [SerializeField] private ChantManager chantManager;
     [SerializeField] private BossHealth bossHealth;
@@ -247,10 +256,52 @@ public sealed class PlayerController : MonoBehaviour,
             yield return new WaitForSeconds(spellImpactDelay);
         }
 
-        if (bossHealth != null && bossHealth.IsAlive)
+        if (bossHealth == null || !bossHealth.IsAlive)
         {
-            spellCaster.Cast(result);
+            yield break;
         }
+
+        var projectilePrefab = GetHomingFireProjectilePrefab(result.castLevel);
+        if (projectilePrefab == null)
+        {
+            spellCaster?.Cast(result);
+            yield break;
+        }
+
+        var spawnPosition = transform.position;
+        spawnPosition.z = 0f;
+        var projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
+        projectile.transform.localScale *= homingFireProjectileScale * GetHomingFireProjectileScaleMultiplier(result.castLevel);
+        var homingFire = projectile.AddComponent<HomingFireProjectile>();
+        homingFire.Initialize(
+            bossHealth,
+            result.castLevel,
+            homingFireProjectileSpeed,
+            homingFireHitRadius,
+            homingFireLifetime);
+    }
+    private float GetHomingFireProjectileScaleMultiplier(int spellLevel)
+    {
+        if (spellLevel >= 3)
+        {
+            return homingFireProjectileLevelThreeScaleMultiplier;
+        }
+
+        return spellLevel >= 2 ? homingFireProjectileLevelTwoScaleMultiplier : 1f;
+    }
+    private GameObject GetHomingFireProjectilePrefab(int spellLevel)
+    {
+        if (spellLevel >= 3 && homingFireProjectileLevelThreePrefab != null)
+        {
+            return homingFireProjectileLevelThreePrefab;
+        }
+
+        if (spellLevel >= 2 && homingFireProjectileLevelTwoPrefab != null)
+        {
+            return homingFireProjectileLevelTwoPrefab;
+        }
+
+        return homingFireProjectilePrefab;
     }
     private void ApplyDamage(float amount, bool ignoreDashInvulnerability)
     {
