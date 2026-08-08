@@ -3,6 +3,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 public class ChantManager : MonoBehaviour, IChantManager
 {
@@ -166,22 +167,37 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void Awake()
     {
-        if (chantInputField != null)
-        {
-            chantInputField.onValueChanged.AddListener(OnInputChanged);
-        }
-
         SetChantUI(false);
     }
 
     private void OnEnable()
     {
         SubscribeToMana();
+
+        if (chantInputField != null)
+        {
+            chantInputField.onValueChanged.AddListener(OnInputChanged);
+            Keyboard.current.onIMECompositionChange += OnImeChanged;
+        }
+        else
+        {
+            Debug.LogWarning("chantInputField is null");
+        }
     }
 
     private void OnDisable()
     {
         UnsubscribeFromMana();
+
+        if (chantInputField != null)
+        {
+            chantInputField.onValueChanged.RemoveListener(OnInputChanged);
+            Keyboard.current.onIMECompositionChange -= OnImeChanged;
+        }
+        else
+        {
+            Debug.LogWarning("chantInputField is null");
+        }
     }
 
     private void Start()
@@ -466,6 +482,11 @@ public class ChantManager : MonoBehaviour, IChantManager
     // =========================================================
     // Input
     // =========================================================
+
+    private void OnImeChanged(IMECompositionString _)
+    {
+        OnInputChanged(chantInputField.textComponent.text);
+    }
 
     private void OnInputChanged(string value)
     {
