@@ -30,10 +30,16 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PreviewManaProfilesAction = "previewManaProfiles";
     private const string PreviewManaSaturationDamageAction = "previewManaSaturationDamage";
     private const string PreviewManaConsumptionAction = "previewManaConsumption";
+    private const string WaitForChantEnterAction = "waitForChantEnter";
+    private const string HideChantPreviewAction = "hideChantPreview";
 
     [SerializeField] private string fileName = DefaultFileName;
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private RectTransform tutorialArrow;
+
+    [Header("Chant Preview UI")]
+    [SerializeField] private GameObject chantPreviewPanel;
+    [SerializeField] private BookChantAnimator chantPreviewBook;
 
     [Header("Mana Preview UI")]
     [SerializeField] private Image manaFillImage;
@@ -69,6 +75,9 @@ public sealed class TutorialManager : MonoBehaviour
     private int inputBlockedThroughFrame = -1;
     private bool isRunning;
     private bool isActionPlaying;
+    private bool isWaitingForChantEnter;
+    private bool chantPreviewSnapshotCaptured;
+    private bool chantPreviewInitialActive;
     private bool manaPreviewActive;
     private bool healthPreviewActive;
 
@@ -89,6 +98,7 @@ public sealed class TutorialManager : MonoBehaviour
     public void Begin(InGameManager manager)
     {
         StopCurrentAction();
+        RestoreChantPreview();
         RestoreManaVisuals();
         RestoreHealthVisuals();
         inGameManager = manager;
@@ -110,6 +120,7 @@ public sealed class TutorialManager : MonoBehaviour
 
         currentStepIndex = 0;
         inputBlockedThroughFrame = Time.frameCount;
+        isWaitingForChantEnter = false;
         isRunning = true;
         ShowCurrentStep();
     }
@@ -118,6 +129,12 @@ public sealed class TutorialManager : MonoBehaviour
     {
         if (!isRunning || Time.frameCount <= inputBlockedThroughFrame)
         {
+            return;
+        }
+
+        if (isWaitingForChantEnter)
+        {
+            HandleChantEnterInput();
             return;
         }
 
@@ -196,6 +213,12 @@ public sealed class TutorialManager : MonoBehaviour
 
         switch (step.action)
         {
+            case WaitForChantEnterAction:
+                isWaitingForChantEnter = true;
+                break;
+            case HideChantPreviewAction:
+                HideChantPreview();
+                break;
             case PreviewManaProfilesAction:
                 StartManaProfilePreview();
                 break;
@@ -211,6 +234,67 @@ public sealed class TutorialManager : MonoBehaviour
                     this);
                 break;
         }
+    }
+
+    private void HandleChantEnterInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+        {
+            return;
+        }
+
+        bool enterPressed = keyboard.enterKey.wasPressedThisFrame ||
+                            keyboard.numpadEnterKey.wasPressedThisFrame;
+        if (!enterPressed)
+        {
+            return;
+        }
+
+        isWaitingForChantEnter = false;
+        ShowChantPreview();
+        AdvanceDialogue();
+    }
+
+    private void ShowChantPreview()
+    {
+        if (chantPreviewPanel == null)
+        {
+            Debug.LogError(
+                "[TutorialDialogue] 영창 시연용 패널이 연결되지 않았습니다.",
+                this);
+            return;
+        }
+
+        if (!chantPreviewSnapshotCaptured)
+        {
+            chantPreviewInitialActive = chantPreviewPanel.activeSelf;
+            chantPreviewSnapshotCaptured = true;
+        }
+
+        chantPreviewPanel.SetActive(true);
+        chantPreviewBook?.ShowTutorialPreview();
+    }
+
+    private void HideChantPreview()
+    {
+        if (chantPreviewPanel != null)
+        {
+            chantPreviewPanel.SetActive(false);
+        }
+
+        chantPreviewBook?.HideTutorialPreview();
+    }
+
+    private void RestoreChantPreview()
+    {
+        if (chantPreviewSnapshotCaptured && chantPreviewPanel != null)
+        {
+            chantPreviewPanel.SetActive(chantPreviewInitialActive);
+        }
+
+        chantPreviewBook?.HideTutorialPreview();
+        chantPreviewSnapshotCaptured = false;
     }
 
     private void StartManaProfilePreview()
@@ -539,9 +623,11 @@ public sealed class TutorialManager : MonoBehaviour
     private void Finish()
     {
         StopCurrentAction();
+        RestoreChantPreview();
         RestoreManaVisuals();
         RestoreHealthVisuals();
         isRunning = false;
+        isWaitingForChantEnter = false;
         currentStepIndex = -1;
 
         if (tutorialArrow != null)

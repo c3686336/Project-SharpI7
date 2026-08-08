@@ -2112,6 +2112,8 @@ MonoBehaviour:
   fileName: tutorial.json
   dialogueText: {fileID: 1073754081}
   tutorialArrow: {fileID: 559770629}
+  chantPreviewPanel: {fileID: 2077000001}
+  chantPreviewBook: {fileID: 572975437}
   manaFillImage: {fileID: 1160547530}
   portraitImage: {fileID: 649426900}
   warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
@@ -5272,6 +5274,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7b4d0bf838a31f248a273ff5e5c2ee26, type: 3}
+--- !u!1 &2077000001 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1340574779710009253, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+  m_PrefabInstance: {fileID: 353332707}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -31,9 +31,10 @@
     },
     {
       "description": "Enter 영창 시작 안내",
-      "text": "Enter를 누르면 영창을 시작할 수 있어.",
+      "text": "영창 모드에 들어가려면 Enter를 눌러. 직접 한 번 눌러 봐.",
       "arrowPosition": { "x": 0, "y": 0 },
-      "arrowDirection": "right"
+      "arrowDirection": "right",
+      "action": "waitForChantEnter"
     },
     {
       "description": "영창 입력과 마법 사용 안내",
@@ -43,13 +44,44 @@
     },
     {
       "description": "영창 중 이동 제한 안내",
-      "text": "영창하는 동안에는 움직일 수 없으니까, 안전할 때 시작해.",
+      "text": "영창하는 동안에는 움직일 수 없어. 자리를 잘 잡고 시작해야 해.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "1~3서클 마법 구조 안내",
+      "text": "마법에는 1서클부터 3서클까지 있어. 같은 마법도 영창을 길게 이어서 더 높은 서클로 만들 수 있어.",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "1서클 불 마법 영창 안내",
+      "text": "1서클 마법을 쓰고 싶다면 ‘불’이라고 영창하면 돼."
+    },
+    {
+      "description": "2서클 불 마법 영창 안내",
+      "text": "2서클은 ‘타오르는 불’이야. 1서클보다 영창이 길어진 만큼 더 강해져."
+    },
+    {
+      "description": "3서클 불 마법 영창 안내",
+      "text": "3서클은 ‘영원히 타오르는 불’이야. 가장 길고 어려운 영창이지."
+    },
+    {
+      "description": "서클에 따른 마나 소비량과 데미지 안내",
+      "text": "더 어려운 영창을 시도할수록 마나 소비량도 많아지지만, 그만큼 데미지도 강해져!",
+      "arrowPosition": { "x": 0, "y": 0 },
+      "arrowDirection": "right"
+    },
+    {
+      "description": "피격 시 영창 취소 경고",
+      "text": "하지만 영창하는 도중 보스의 패턴에 맞으면 영창이 취소되니까 주의해.",
       "arrowPosition": { "x": 0, "y": 0 },
       "arrowDirection": "right"
     },
     {
       "description": "마나 체질 이야기 도입",
-      "text": "그리고 나한테는 조금 성가신 체질이 하나 있어."
+      "text": "그리고 나한테는 조금 성가신 체질이 하나 있어.",
+      "action": "hideChantPreview"
     },
     {
       "description": "마나 자동 증가와 플라스크 UI 안내",
@@ -81,6 +113,18 @@
     {
       "description": "마나 관리 핵심 정리",
       "text": "피하기만 해서는 결국 마나에 삼켜져. 공격할 기회가 생기면 놓치지 마."
+    },
+    {
+      "description": "보스 패턴 색상 안내 도입",
+      "text": "마지막으로, 보스의 공격 패턴은 색을 보면 위험한 순간을 알 수 있어."
+    },
+    {
+      "description": "빨간색 보스 패턴 예고 안내",
+      "text": "패턴이 빨간색일 때는 공격이 오기 전 예고야. 보이면 바로 피할 준비를 해."
+    },
+    {
+      "description": "초록색 보스 패턴 안전 안내",
+      "text": "초록색은 공격이 끝난 안전한 상태야. 다시 움직이거나 공격할 기회를 잡아."
     },
     {
       "description": "튜토리얼 설명 종료",
