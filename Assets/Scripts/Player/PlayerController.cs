@@ -140,7 +140,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void Update()
     {
-        if (!health.IsAlive || combatEnded)
+        if (InGameManager.GameplayInputBlocked || !health.IsAlive || combatEnded)
         {
             return;
         }
@@ -170,7 +170,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void FixedUpdate()
     {
-        if (!health.IsAlive)
+        if (InGameManager.GameplayInputBlocked || !health.IsAlive || combatEnded)
         {
             return;
         }

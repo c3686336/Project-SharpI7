@@ -216,7 +216,7 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void Update()
     {
-        if (State != ChantState.Casting)
+        if (InGameManager.GameplayInputBlocked || State != ChantState.Casting)
             return;
 
         /*
