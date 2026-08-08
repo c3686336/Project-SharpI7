@@ -2,9 +2,13 @@ using UnityEngine;
 
 public sealed class PlayerMagicRing : MonoBehaviour
 {
+    private static readonly int MainTextureId = Shader.PropertyToID("_MainTex");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
+
     [SerializeField] private Transform ringPrefab;
     [SerializeField] private Color ringColor = new(1f, 0.08f, 0.08f, 1f);
     [SerializeField] private Vector3 footOffset = new(0f, -0.48f, 0.1f);
+    [SerializeField] private Shader chantAuraShader;
     [SerializeField] private Texture2D chantAuraTexture;
     [SerializeField] private Color chantAuraColor = new(1f, 0.1f, 0.01f, 0.62f);
     [SerializeField] private Vector2 chantAuraSize = new(2.2f, 1.5f);
@@ -12,6 +16,7 @@ public sealed class PlayerMagicRing : MonoBehaviour
     private PlayerController playerController;
     private GameObject ringInstance;
     private GameObject auraInstance;
+    private Material auraMaterial;
 
     private void Awake()
     {
@@ -48,12 +53,15 @@ public sealed class PlayerMagicRing : MonoBehaviour
             auraInstance.SetActive(playerController != null && playerController.IsChanting);
     }
 
+    private void OnDestroy()
+    {
+        if (auraMaterial != null)
+            Destroy(auraMaterial);
+    }
+
     private void CreateChantAura()
     {
-        if (chantAuraTexture == null) return;
-
-        var auraShader = Shader.Find("SharpI7/Chant Aura");
-        if (auraShader == null) return;
+        if (chantAuraShader == null || chantAuraTexture == null) return;
 
         auraInstance = GameObject.CreatePrimitive(PrimitiveType.Quad);
         auraInstance.name = "Chant Energy Aura";
@@ -66,9 +74,10 @@ public sealed class PlayerMagicRing : MonoBehaviour
         if (collider != null) Destroy(collider);
 
         var renderer = auraInstance.GetComponent<MeshRenderer>();
-        renderer.material = new Material(auraShader);
-        renderer.material.SetTexture("_MainTex", chantAuraTexture);
-        renderer.material.SetColor("_Color", chantAuraColor);
+        auraMaterial = new Material(chantAuraShader);
+        auraMaterial.SetTexture(MainTextureId, chantAuraTexture);
+        auraMaterial.SetColor(ColorId, chantAuraColor);
+        renderer.sharedMaterial = auraMaterial;
         renderer.sortingOrder = GetComponent<SpriteRenderer>().sortingOrder - 1;
         auraInstance.SetActive(false);
     }
