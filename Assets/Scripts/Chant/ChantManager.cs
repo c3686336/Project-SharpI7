@@ -132,8 +132,6 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private string currentInput = "";
 
-    private string lastValidInput = "";
-
     private int correctCount;
 
     private int typoCount;
@@ -359,20 +357,8 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (State != ChantState.Casting)
             return;
 
-        // Ctrl+V / Cmd+V / Shift+Insert 차단
-        if (IsPastePressed())
-        {
-            RestoreLastValidInput();
-
-            return;
-        }
-
         currentInput =
             value ?? "";
-
-        lastValidInput =
-            currentInput;
-
         // 입력 내용에 가장 잘 맞는 영창 단계를 찾는다.
         currentStage =
             FindBestMatchingStage(
@@ -468,54 +454,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         textBeforeImeComposition = "";
         isImeComposing = false;
         imeCompositionEndedFrame = -1;
-    }
-
-    private bool IsPastePressed()
-    {
-        Keyboard keyboard =
-            Keyboard.current;
-
-        if (keyboard == null)
-            return false;
-
-        bool ctrlOrCommand =
-            keyboard.ctrlKey.isPressed ||
-            keyboard.leftMetaKey.isPressed ||
-            keyboard.rightMetaKey.isPressed;
-
-        bool normalPaste =
-            ctrlOrCommand &&
-            keyboard.vKey.wasPressedThisFrame;
-
-        bool shiftInsert =
-            keyboard.shiftKey.isPressed &&
-            keyboard.insertKey.wasPressedThisFrame;
-
-        return
-            normalPaste ||
-            shiftInsert;
-    }
-
-    private void RestoreLastValidInput()
-    {
-        if (chantInputField != null)
-        {
-            chantInputField.SetTextWithoutNotify(
-                lastValidInput
-            );
-        }
-
-        currentInput =
-            lastValidInput;
-
-        currentStage =
-            FindBestMatchingStage(
-                currentInput
-            );
-
-        EvaluateInput();
-
-        UpdateUI();
     }
 
 
@@ -1057,8 +995,6 @@ public class ChantManager : MonoBehaviour, IChantManager
     {
         ClearPendingImeComposition();
         currentInput = "";
-
-        lastValidInput = "";
 
         currentStage = null;
 
