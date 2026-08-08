@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using SharpI7.Balance;
 using SharpI7.Combat;
 using UnityEngine;
+using System.Threading;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -62,7 +63,9 @@ public sealed class PlayerController : MonoBehaviour,
     {
         balance = BalanceDataLoader.Current.player;
         input = new PlayerInputActions();
-        health = new PlayerHealth(balance.maxHealth);
+        health = new PlayerHealth(balance.maxHealth, balance.invincibilityDuration);
+        health.InvincibilityStarted += OnInvincibilityStarted;
+
         mana = new PlayerMana(
             balance.mana.defaultValue,
             balance.mana.warningThreshold,
@@ -348,4 +351,33 @@ public sealed class PlayerController : MonoBehaviour,
         ManaStatusChanged?.Invoke(mana.Status);
     }
 
+    private void OnInvincibilityStarted(CancellationToken token)
+    {
+        FlashRed(token).Forget();
+    }
+
+    private async UniTaskVoid FlashRed(CancellationToken token)
+    {
+        try
+        {
+            while (true)
+            {
+                Debug.Log("asdf");
+                await UniTask.Delay(
+                    TimeSpan.FromMilliseconds(100),
+                    cancellationToken: token);
+
+                Debug.Log("asdf1");
+                await UniTask.Delay(
+                    TimeSpan.FromMilliseconds(100),
+                    cancellationToken: token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+        }
+    }
 }

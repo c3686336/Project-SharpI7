@@ -1,9 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "player": {
     "maxHealth": 3.0,
     "moveSpeed": 0.1,
     "overloadDamage": 1.0,
+    "invincibilityDuration": 0.7,
     "mana": {
       "defaultValue": 30.0,
       "warningThreshold": 70.0,

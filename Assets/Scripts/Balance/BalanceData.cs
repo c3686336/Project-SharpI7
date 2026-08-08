@@ -17,6 +17,7 @@ namespace SharpI7.Balance
         public float maxHealth;
         public float moveSpeed;
         public float overloadDamage;
+        public float invincibilityDuration;
         public PlayerManaBalance mana;
         public PlayerDashBalance dash;
     }

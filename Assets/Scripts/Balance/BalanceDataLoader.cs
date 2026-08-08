@@ -7,6 +7,7 @@ namespace SharpI7.Balance
     public static class BalanceDataLoader
     {
         private const string DefaultFileName = "balance.json";
+        private const int CurrentSchemaVersion = 2;
 
         private static readonly (string Name, int Count)[] RequiredProperties =
         {
@@ -14,6 +15,7 @@ namespace SharpI7.Balance
             ("maxHealth", 2),
             ("moveSpeed", 2),
             ("overloadDamage", 1),
+            ("invincibilityDuration", 1),
             ("defaultValue", 1),
             ("warningThreshold", 1),
             ("overloadThreshold", 1),
@@ -137,7 +139,7 @@ namespace SharpI7.Balance
 
         private static void Validate(BalanceData data, string path)
         {
-            if (data == null || data.schemaVersion != 1)
+            if (data == null || data.schemaVersion != CurrentSchemaVersion)
             {
                 throw new InvalidDataException($"Unsupported or missing balance schema version in '{path}'.");
             }
@@ -159,6 +161,7 @@ namespace SharpI7.Balance
             RequirePositive(data.player.maxHealth, "player.maxHealth", path);
             RequireNonNegative(data.player.moveSpeed, "player.moveSpeed", path);
             RequireNonNegative(data.player.overloadDamage, "player.overloadDamage", path);
+            RequireNonNegative(data.player.invincibilityDuration, "player.invincibilityDuration", path);
             RequireNonNegative(data.player.mana.defaultValue, "player.mana.defaultValue", path);
             RequireNonNegative(data.player.mana.warningThreshold, "player.mana.warningThreshold", path);
             RequirePositive(data.player.mana.overloadThreshold, "player.mana.overloadThreshold", path);
