@@ -2204,7 +2204,7 @@ MonoBehaviour:
   arrowMoveDistance: 8
   arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}
-  chantPreviewBook: {fileID: 0}
+  chantPreviewBook: {fileID: 2114229406}
   manaFillImage: {fileID: 1160547530}
   portraitImage: {fileID: 649426900}
   warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
@@ -5525,7 +5525,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BookChantAnimator
   chantManager: {fileID: 1330538459}
-  riseDistance: 350
+  riseDistance: 310
   duration: 0.3
 --- !u!114 &2114229407
 MonoBehaviour:

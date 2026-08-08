@@ -39,7 +39,7 @@
       "text": "아래 있는 영창들 중 원하는 영창을 입력하고 Enter를 다시 누르면 마법이 나가.",
       "arrows": [
         {
-          "position": { "x": 0, "y": -300 },
+          "position": { "x": 0, "y": -260 },
           "direction": "down"
         },
         {
