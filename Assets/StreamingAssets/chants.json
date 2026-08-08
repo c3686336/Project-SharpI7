@@ -52,6 +52,7 @@
           "chantLevel": 2,
           "chantText": "내리치는 번개",
           "damageMultiplier": 35,
+
           "manaCost": 30,
           "effectId": "FlickingLightning_Lv2"
         },
@@ -59,6 +60,7 @@
           "chantLevel": 3,
           "chantText": "끝없이 내리치는 번개",
           "damageMultiplier": 75,
+
           "manaCost": 50,
           "effectId": "FlickingLightning_Lv3_Impact"
         }

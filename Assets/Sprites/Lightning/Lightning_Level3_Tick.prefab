@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7766543909418799198}
   - component: {fileID: 5737978066881928287}
   - component: {fileID: 4390856254099415260}
-  - component: {fileID: -5652547608956220257}
+  - component: {fileID: -5451199802622966845}
   m_Layer: 0
   m_Name: Lightning_Level3_Tick
   m_TagString: Untagged
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 110
   m_MaskInteraction: 0
   m_Sprite: {fileID: -3149389169688070996, guid: 235587f3bb0127b4484e3526ef9efab2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -116,7 +116,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-5652547608956220257
+--- !u!114 &-5451199802622966845
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -125,10 +125,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7780006044499204285}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ac1a985cd5f5f74b9f43e941a190c4f, type: 3}
+  m_Script: {fileID: 11500000, guid: 46fdec6b26a21374f9df58c90f4e3a3c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LightningProjectile
-  moveSpeed: 15
-  destroyDistance: 0.1
-  maxLifetime: 3
-  rotateTowardTarget: 1
+  m_EditorClassIdentifier: Assembly-CSharp::LightningTickEffect
+  lifetime: 0.8
