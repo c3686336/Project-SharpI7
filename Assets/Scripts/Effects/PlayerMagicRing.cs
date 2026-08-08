@@ -4,6 +4,7 @@ public sealed class PlayerMagicRing : MonoBehaviour
 {
     [SerializeField] private Transform ringPrefab;
     [SerializeField] private Color ringColor = new(1f, 0.08f, 0.08f, 1f);
+    [SerializeField] private Vector3 footOffset = new(0f, -0.48f, 0.1f);
 
     private PlayerController playerController;
     private GameObject ringInstance;
@@ -16,14 +17,15 @@ public sealed class PlayerMagicRing : MonoBehaviour
 
         ringInstance = Instantiate(ringPrefab, transform).gameObject;
         ringInstance.name = "Red Magic Ring";
-        ringInstance.transform.localPosition = new Vector3(0f, -0.25f, 0.1f);
-        ringInstance.transform.localRotation = Quaternion.identity;
-        ringInstance.transform.localScale = Vector3.one * 0.275f;
+        ringInstance.transform.localPosition = footOffset;
+        ringInstance.transform.localRotation = Quaternion.Euler(-101.284f, 13.41701f, -22.905f);
+        ringInstance.transform.localScale = new Vector3(0.22f, 0.4f, 1f);
 
         foreach (var particle in ringInstance.GetComponentsInChildren<ParticleSystem>(true))
         {
             var main = particle.main;
             main.startColor = ringColor;
+            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
         }
 
         ringInstance.SetActive(false);

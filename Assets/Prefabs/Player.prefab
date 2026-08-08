@@ -230,3 +230,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ringPrefab: {fileID: 428174, guid: 37e803394624a5c48ae5f13fd212ac0b, type: 3}
   ringColor: {r: 1, g: 0.08, b: 0.08, a: 1}
+  hoverRadius: 0.14
+  hoverHeight: 0.1
+  hoverSpeed: 1.5
