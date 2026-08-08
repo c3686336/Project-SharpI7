@@ -1621,7 +1621,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -574, y: -470}
+  m_AnchoredPosition: {x: 470, y: 340}
   m_SizeDelta: {x: 100, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &559770630
@@ -2200,6 +2200,8 @@ MonoBehaviour:
   fileName: tutorial.json
   dialogueText: {fileID: 1073754081}
   tutorialArrow: {fileID: 559770629}
+  arrowMoveDistance: 8
+  arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}
   chantPreviewBook: {fileID: 0}
   manaFillImage: {fileID: 1160547530}
