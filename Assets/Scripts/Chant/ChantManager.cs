@@ -408,14 +408,10 @@ public class ChantManager : MonoBehaviour, IChantManager
 
         CastResult result = CreateCastResult();
 
-        if (result.typoCount > 0)
+        // Enter always closes the chant: valid input casts, anything else cancels.
+        if (!result.completed)
         {
             CancelChant();
-            return result;
-        }
-
-        if (!result.canCast)
-        {
             return result;
         }
 
@@ -819,18 +815,20 @@ public class ChantManager : MonoBehaviour, IChantManager
             return;
         }
 
-        /*
-         * 아무것도 입력하지 않은 상태에서는
-         * 전체 영창문을 회색으로 표시.
-         */
-        if (currentStage == null)
-        {
-            targetTextUI.text = BuildUnenteredText(currentSpell.fullChantText);
+        ChantStageData displayStage = currentStage;
 
+        if (displayStage == null && currentSpell.stages != null && currentSpell.stages.Count > 0)
+        {
+            displayStage = currentSpell.stages[0];
+        }
+
+        if (displayStage == null || string.IsNullOrEmpty(displayStage.chantText))
+        {
+            targetTextUI.text = "";
             return;
         }
 
-        string target = currentStage.chantText;
+        string target = displayStage.chantText;
 
         StringBuilder builder = new StringBuilder();
 
@@ -872,23 +870,6 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
         targetTextUI.text = builder.ToString();
-    }
-
-    private string BuildUnenteredText(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder();
-
-        foreach (char character in text)
-        {
-            AppendColoredCharacter(builder, character, "#888888");
-        }
-
-        return builder.ToString();
     }
 
     private void AppendColoredCharacter(StringBuilder builder, char character, string color)
