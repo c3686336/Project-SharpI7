@@ -189,18 +189,7 @@ namespace SharpI7.Balance
             RequirePositive(boss.health.maxHealth, "boss.health.maxHealth", path);
             RequirePositive(boss.health.phaseTwoMaxHealth, "boss.health.phaseTwoMaxHealth", path);
             RequireNonNegative(boss.health.phaseTwoTransitionDelay, "boss.health.phaseTwoTransitionDelay", path);
-            if (boss.health.spellDamageByStage == null || boss.health.spellDamageByStage.Length == 0)
-            {
-                throw new InvalidDataException($"boss.health.spellDamageByStage is required in '{path}'.");
-            }
 
-            for (var index = 0; index < boss.health.spellDamageByStage.Length; index++)
-            {
-                RequireNonNegative(
-                    boss.health.spellDamageByStage[index],
-                    $"boss.health.spellDamageByStage[{index}]",
-                    path);
-            }
             RequireNonNegative(boss.movement.moveSpeed, "boss.movement.moveSpeed", path);
             RequireNonNegative(boss.movement.stoppingDistance, "boss.movement.stoppingDistance", path);
             RequireAtLeast(
