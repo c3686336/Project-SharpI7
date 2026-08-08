@@ -11,19 +11,19 @@
       "stages": [
         {
           "chantLevel": 1,
-          "chantText": "불",
+          "chantText": "f",
           "damageMultiplier": 1.0,
           "manaCost":  10
         },
         {
           "chantLevel": 2,
-          "chantText": "타오르는 불",
+          "chantText": "qq",
           "damageMultiplier": 1.5,
           "manaCost": 30
         },
         {
           "chantLevel": 3,
-          "chantText": "영원히 타오르는 불",
+          "chantText": "jjj",
           "damageMultiplier": 2.0,
           "manaCost": 50
         }

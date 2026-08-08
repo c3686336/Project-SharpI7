@@ -262,11 +262,9 @@ public sealed class PlayerController : MonoBehaviour,
         }
 
         var projectilePrefab = GetHomingFireProjectilePrefab(result.castLevel);
-        if (projectilePrefab == null)
-        {
-            spellCaster?.Cast(result);
-            yield break;
-        }
+
+        // Projectile is purely visual
+        spellCaster?.Cast(result);
 
         var spawnPosition = transform.position;
         spawnPosition.z = 0f;
