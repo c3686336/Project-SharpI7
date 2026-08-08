@@ -329,17 +329,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ToastMessageManager
   toastPrefab: {fileID: 3727694462478624948, guid: f6b72bac9405fe2479875d613f7e9acd, type: 3}
---- !u!114 &239821034 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4122494063286841456, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
-  m_PrefabInstance: {fileID: 353332707}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &337123496
 GameObject:
   m_ObjectHideFlags: 0
@@ -430,7 +419,7 @@ PrefabInstance:
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: spellNameUI
       value: 
-      objectReference: {fileID: 239821034}
+      objectReference: {fileID: 353332708}
     - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: typoCountUI
       value: 
@@ -628,6 +617,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+--- !u!114 &353332708 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 684803946110374012, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+  m_PrefabInstance: {fileID: 353332707}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &378742373
 GameObject:
   m_ObjectHideFlags: 0
