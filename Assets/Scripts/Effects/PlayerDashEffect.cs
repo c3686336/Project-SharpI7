@@ -19,6 +19,14 @@ namespace SharpI7.Visuals
         private Coroutine playRoutine;
         private Transform followTarget;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetCachedFrames()
+        {
+            // With Fast Enter Play Mode Unity can retain static fields while
+            // destroying runtime-created Sprite objects between play sessions.
+            cachedFrames = null;
+        }
+
         public static void Prewarm()
         {
             CreateCachedFrames();
@@ -88,11 +96,12 @@ namespace SharpI7.Visuals
 
         private static void CreateCachedFrames()
         {
-            if (cachedFrames != null)
+            if (cachedFrames != null && cachedFrames.Length > 0 && cachedFrames[0] != null)
             {
                 return;
             }
 
+            cachedFrames = null;
             var textures = Resources.LoadAll<Texture2D>(FrameResourcesPath);
             Array.Sort(textures, (left, right) => string.CompareOrdinal(left.name, right.name));
             cachedFrames = new Sprite[textures.Length];
