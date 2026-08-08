@@ -107,6 +107,7 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantCancelled += UnlockMovement;
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
+        chantManager.OnChantSubmitRequested += HandleChantSubmit;
 
         bossHealth.Died -= HandleBossDied;
         bossHealth.Died += HandleBossDied;
@@ -122,6 +123,7 @@ public sealed class PlayerController : MonoBehaviour,
             chantManager.OnChantCancelled -= UnlockMovement;
             chantManager.OnChantInterrupted -= UnlockMovement;
             chantManager.OnChantCast -= HandleChantCast;
+            chantManager.OnChantSubmitRequested -= HandleChantSubmit;
         }
 
         if (bossHealth != null)
@@ -142,9 +144,9 @@ public sealed class PlayerController : MonoBehaviour,
             dash.ExecuteAsync().Forget();
         }
 
-        if (input.Movement.Spell.WasPressedThisFrame())
+        if (input.Movement.Spell.WasPressedThisFrame() && !chantManager.IsCasting)
         {
-            HandleChantEnter();
+            chantManager.StartChant();
         }
 
         if (input.Movement.ExitChant.WasPressedThisFrame())
@@ -297,32 +299,29 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.ResolveChant();
     }
 
-    private void HandleChantEnter()
+    private void HandleChantSubmit()
     {
-        // 영창 중이 아니면 Enter로 영창 시작
         if (!chantManager.IsCasting)
         {
-            chantManager.StartChant();
             return;
         }
 
-        // 영창 중 오타가 하나라도 있다면
-        // Enter로 영창 취소
+        // 오타가 하나라도 있으면
+        // Enter 한 번으로 영창 실패/취소
         if (chantManager.TypoCount > 0)
         {
             chantManager.CancelChant();
             return;
         }
 
-        // 오타는 없지만 아직 현재 영창 단계를
-        // 끝까지 입력하지 않았다면 아무것도 하지 않음
+        // 아직 현재 단계를 끝까지 입력하지 않았음
         if (!chantManager.CanResolveCurrentStage)
         {
             return;
         }
 
-        // 완벽하게 입력 완료
-        // 마나 검사 후 발동
+        // 완벽하게 입력했다면
+        // 마나 검사 후 바로 발동
         TryResolveChant();
     }
 

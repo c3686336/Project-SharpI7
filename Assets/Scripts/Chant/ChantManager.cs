@@ -148,6 +148,8 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     public event Action OnChantInterrupted;
 
+    public event Action OnChantSubmitRequested;
+
     /// <summary>
     /// 영창이 실제로 Resolve 되었을 때 발생.
     /// PlayerController에서 구독한다.
@@ -197,6 +199,10 @@ public class ChantManager : MonoBehaviour, IChantManager
         {
             chantInputField.onValueChanged.AddListener(
                 OnInputChanged
+            );
+
+            chantInputField.onSubmit.AddListener(
+                OnInputSubmitted
             );
         }
 
@@ -248,6 +254,10 @@ public class ChantManager : MonoBehaviour, IChantManager
             chantInputField.onValueChanged.RemoveListener(
                 OnInputChanged
             );
+
+            chantInputField.onSubmit.RemoveListener(
+                OnInputSubmitted
+            );
         }
 
 
@@ -272,6 +282,23 @@ public class ChantManager : MonoBehaviour, IChantManager
         // Alt + Tab 등으로 외부 프로그램에서
         // 복사한 뒤 게임으로 돌아온 경우에도 제거.
         BlockClipboard();
+    }
+
+    private void OnInputSubmitted(
+    string value
+    )
+    {
+        if (State != ChantState.Casting)
+            return;
+
+        OnChantSubmitRequested?.Invoke();
+
+        // Submit 후에도 계속 입력 포커스를 유지
+        if (State == ChantState.Casting &&
+            chantInputField != null)
+        {
+            chantInputField.ActivateInputField();
+        }
     }
 
 
