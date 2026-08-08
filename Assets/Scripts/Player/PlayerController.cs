@@ -3,7 +3,6 @@ using System.Collections;
 using Cysharp.Threading.Tasks;
 using SharpI7.Balance;
 using SharpI7.Combat;
-using SharpI7.Visuals;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -13,6 +12,7 @@ public sealed class PlayerController : MonoBehaviour,
     IPlayerMana,
     IPlayerDash
 {
+    [SerializeField, Min(0f)] private float spellImpactDelay = 0.1f;
     [SerializeField] private Vector2 referenceHeading;
     [SerializeField] private ChantManager chantManager;
     [SerializeField] private BossHealth bossHealth;
@@ -24,7 +24,6 @@ public sealed class PlayerController : MonoBehaviour,
     private PlayerDash dash;
     private PlayerSpellCaster spellCaster;
     private PlayerBalance balance;
-    private PlayerDashEffect dashEffectPrefab;
     private Coroutine chantInterruptRoutine;
     private bool isMovementLocked;
     private bool combatEnded;
@@ -37,6 +36,7 @@ public sealed class PlayerController : MonoBehaviour,
     public float DashCooldownUntil => dash?.CooldownUntil ?? 0f;
     public float DashCooldownProgress => dash?.CooldownProgress ?? 0f;
     public bool IsDashing => dash?.IsDashing ?? false;
+    public Vector2 DashDirection => dash?.DashDirection ?? Vector2.right;
     public bool IsChanting => chantManager != null && chantManager.IsCasting;
     public bool HasChantInput => IsChanting && !string.IsNullOrEmpty(chantManager.CurrentInput);
     public Vector2 MoveDirection => locomotion?.CurrentMovement ?? Vector2.zero;
@@ -80,19 +80,14 @@ public sealed class PlayerController : MonoBehaviour,
             referenceHeading);
         dash = new PlayerDash(
             rigidbody2D,
-            () => locomotion.CurrentMovement,
+            () => input.Movement.Movement.ReadValue<Vector2>(),
             balance.dash.windupDuration,
             balance.dash.cooldownDuration,
             balance.dash.duration,
             balance.dash.distance,
-            destroyCancellationToken,
-            SpawnDashEffect);
+            destroyCancellationToken);
         spellCaster = new PlayerSpellCaster(bossHealth);
 
-        // Load the prefab and its animation frames before input starts so the
-        // first Shift press never has to synchronously load Resources assets.
-        dashEffectPrefab = Resources.Load<PlayerDashEffect>("DashEffect");
-        PlayerDashEffect.Prewarm();
     }
 
     private void OnEnable()
@@ -201,20 +196,6 @@ public sealed class PlayerController : MonoBehaviour,
         }
     }
 
-    private void SpawnDashEffect(Vector2 dashDirection)
-    {
-        if (dashEffectPrefab == null)
-        {
-            return;
-        }
-
-        // Follow the player's position without inheriting its boss-facing
-        // rotation, which keeps the trail opposite to the dash direction.
-        var dashEffect = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
-        dashEffect.Follow(transform);
-        dashEffect.Play(dashDirection);
-    }
-
     private void HandleBossDied()
     {
         combatEnded = true;
@@ -232,12 +213,23 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void HandleChantCast(CastResult result)
     {
-        spellCaster.Cast(result);
         DeductMana(result.manaCost);
-
+        StartCoroutine(ApplySpellDamageAfterDelay(result));
         UnlockMovement();
     }
 
+    private IEnumerator ApplySpellDamageAfterDelay(CastResult result)
+    {
+        if (spellImpactDelay > 0f)
+        {
+            yield return new WaitForSeconds(spellImpactDelay);
+        }
+
+        if (bossHealth != null && bossHealth.IsAlive)
+        {
+            spellCaster.Cast(result);
+        }
+    }
     private void ApplyDamage(float amount, bool ignoreDashInvulnerability)
     {
         if (!health.IsAlive || amount <= 0f ||

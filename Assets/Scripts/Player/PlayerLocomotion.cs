@@ -28,16 +28,22 @@ internal sealed class PlayerLocomotion
 
     public void FixedTick(Vector2 movement, bool canMove)
     {
-        CurrentMovement = movement;
-        if (canMove)
+        if (!canMove || movement.sqrMagnitude <= 0.001f)
         {
-            var nextPosition = rigidbody2D.position + moveSpeed * CurrentMovement;
-            rigidbody2D.MovePosition(ArenaBounds.ClampPosition(nextPosition, boundaryPadding));
+            CurrentMovement = Vector2.zero;
+            rigidbody2D.linearVelocity = Vector2.zero;
+            return;
         }
+
+        CurrentMovement = movement;
+        rigidbody2D.linearVelocity = Vector2.zero;
+        var nextPosition = rigidbody2D.position + moveSpeed * CurrentMovement;
+        rigidbody2D.MovePosition(ArenaBounds.ClampPosition(nextPosition, boundaryPadding));
     }
 
     public void Stop()
     {
         CurrentMovement = Vector2.zero;
+        rigidbody2D.linearVelocity = Vector2.zero;
     }
 }

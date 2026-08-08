@@ -127,7 +127,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -205,6 +205,14 @@ MonoBehaviour:
   - {fileID: -1523415334552674976, guid: 200628cc6548c754eaa81bf19a2fd2bd, type: 3}
   - {fileID: -3547462953489778252, guid: d4b29a60a3e566e4180900dbac532e28, type: 3}
   framesPerSecond: 10
+  dashFrames:
+  - {fileID: 2395171169746166628, guid: b4985e104e39b6a4c99b7c5f5e6d211a, type: 3}
+  - {fileID: 589950116323344301, guid: 35419d39597a15f459d650d1556741cb, type: 3}
+  - {fileID: -8538219170695544576, guid: 757bbcd3c0f7d2340b68972cda7dabec, type: 3}
+  - {fileID: 3535422003912807925, guid: 762fab60f3677ce42ad41be4e645f3bc, type: 3}
+  - {fileID: -4911446307247983195, guid: a7abe162e26bb20428ab3f17d8093b69, type: 3}
+  - {fileID: 979358755696017567, guid: 01566745429bbb047bad55f00188265e, type: 3}
+  dashFramesPerSecond: 20
 --- !u!114 &845918742311000002
 MonoBehaviour:
   m_ObjectHideFlags: 0

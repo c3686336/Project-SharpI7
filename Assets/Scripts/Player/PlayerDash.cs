@@ -13,7 +13,6 @@ internal sealed class PlayerDash
     private readonly float duration;
     private readonly float distance;
     private readonly CancellationToken cancellationToken;
-    private readonly Action<Vector2> dashStarted;
     private readonly float boundaryPadding;
 
     private bool isOnCooldown;
@@ -26,8 +25,7 @@ internal sealed class PlayerDash
         float cooldownDuration,
         float duration,
         float distance,
-        CancellationToken cancellationToken,
-        Action<Vector2> dashStarted)
+        CancellationToken cancellationToken)
     {
         this.rigidbody2D = rigidbody2D;
         this.directionProvider = directionProvider;
@@ -36,7 +34,6 @@ internal sealed class PlayerDash
         this.duration = duration;
         this.distance = distance;
         this.cancellationToken = cancellationToken;
-        this.dashStarted = dashStarted;
         var collider = rigidbody2D.GetComponent<Collider2D>();
         boundaryPadding = collider == null
             ? 0f
@@ -45,6 +42,7 @@ internal sealed class PlayerDash
 
     public float CooldownUntil { get; private set; }
     public bool IsDashing { get; private set; }
+    public Vector2 DashDirection { get; private set; }
     public float CooldownProgress
     {
         get
@@ -72,20 +70,24 @@ internal sealed class PlayerDash
             return;
         }
 
+        // FixedUpdate stops normal locomotion as soon as IsDashing becomes true.
+        // Store the input direction first so the windup cannot turn this dash into
+        // a zero-distance tween.
+        var dashDirection = directionProvider();
+        if (dashDirection.sqrMagnitude <= 0.001f)
+        {
+            return;
+        }
+
+        DashDirection = dashDirection.normalized;
         IsDashing = true;
 
         await UniTask.Delay(
             TimeSpan.FromSeconds(windupDuration),
             cancellationToken: cancellationToken);
 
-        var dashDirection = directionProvider();
-        if (dashDirection.sqrMagnitude > 0.001f)
-        {
-            dashStarted?.Invoke(dashDirection.normalized);
-        }
-
         var destination = ArenaBounds.ClampPosition(
-            rigidbody2D.position + dashDirection * distance,
+            rigidbody2D.position + DashDirection * distance,
             boundaryPadding);
         await rigidbody2D.DOMove(destination, duration)
             .SetEase(Ease.InOutQuad)

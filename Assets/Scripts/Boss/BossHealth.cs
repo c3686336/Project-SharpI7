@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using SharpI7.Balance;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace SharpI7.Combat
 {
@@ -10,8 +11,9 @@ namespace SharpI7.Combat
         [SerializeField] private DamagePopup damagePopupPrefab;
 
         [Header("Hit Effect")]
-        [SerializeField] private GameObject littleFireHitEffectPrefab;
-        [SerializeField] private Vector3 littleFireHitEffectOffset;
+        [SerializeField] private VideoClip spellHitVideoClip;
+        [SerializeField] private Vector3 spellHitVideoOffset = new(0f, -0.35f, -0.1f);
+        [SerializeField] private Vector2 spellHitVideoSize = new(4.8f, 4.8f);
 
         public event Action<float, float> HealthChanged;
         public event Action Died;
@@ -27,11 +29,18 @@ namespace SharpI7.Combat
 
         private Coroutine phaseTwoTransitionRoutine;
         private BossHealthBalance balance;
+        private GameObject spellHitVideoObject;
+        private MeshRenderer spellHitVideoRenderer;
+        private VideoPlayer spellHitVideoPlayer;
+        private RenderTexture spellHitVideoTexture;
+        private Material spellHitVideoMaterial;
+        private Coroutine hideSpellHitVideoRoutine;
 
         private void Awake()
         {
             balance = BalanceDataLoader.Current.boss.health;
             CurrentHealth = balance.maxHealth;
+            PrepareSpellHitVideo();
         }
 
         public void TakeDamage(float amount)
@@ -43,10 +52,14 @@ namespace SharpI7.Combat
                 return;
             }
 
-            ShowLittleFireHitEffect();
+            ShowSpellHitEffect();
             ShowDamagePopup(amount);
 
             CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
+            if (!IsAlive && spellHitVideoObject != null)
+            {
+                Destroy(spellHitVideoObject, (float)spellHitVideoClip.length + 0.05f);
+            }
 
             if (!IsAlive && balance.enablePhaseTwo && !IsPhaseTwo)
             {
@@ -94,17 +107,91 @@ namespace SharpI7.Combat
             HealthChanged?.Invoke(CurrentHealth, balance.maxHealth);
         }
 
-        private void ShowLittleFireHitEffect()
+        private void ShowSpellHitEffect()
         {
-            if (littleFireHitEffectPrefab == null)
+            PlaySpellHitVideo();
+        }
+
+        private void PrepareSpellHitVideo()
+        {
+            if (spellHitVideoClip == null || spellHitVideoObject != null)
             {
                 return;
             }
 
-            Instantiate(
-                littleFireHitEffectPrefab,
-                transform.position + littleFireHitEffectOffset,
-                Quaternion.identity);
+            var shader = Shader.Find("SharpI7/Additive Video");
+            if (shader == null)
+            {
+                return;
+            }
+
+            spellHitVideoObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            spellHitVideoObject.name = "Spell Fire Hit Effect";
+            spellHitVideoObject.transform.localScale = new Vector3(spellHitVideoSize.x, spellHitVideoSize.y, 1f);
+
+            var collider = spellHitVideoObject.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            spellHitVideoRenderer = spellHitVideoObject.GetComponent<MeshRenderer>();
+            spellHitVideoTexture = new RenderTexture(
+                Mathf.Max(16, (int)spellHitVideoClip.width),
+                Mathf.Max(16, (int)spellHitVideoClip.height),
+                0);
+            spellHitVideoMaterial = new Material(shader) { mainTexture = spellHitVideoTexture };
+            spellHitVideoRenderer.material = spellHitVideoMaterial;
+            spellHitVideoRenderer.enabled = false;
+
+            var bossSprite = GetComponent<SpriteRenderer>();
+            if (bossSprite != null)
+            {
+                spellHitVideoRenderer.sortingLayerID = bossSprite.sortingLayerID;
+                spellHitVideoRenderer.sortingOrder = bossSprite.sortingOrder + 1;
+            }
+
+            spellHitVideoPlayer = spellHitVideoObject.AddComponent<VideoPlayer>();
+            spellHitVideoPlayer.playOnAwake = false;
+            spellHitVideoPlayer.isLooping = false;
+            spellHitVideoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+            spellHitVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
+            spellHitVideoPlayer.targetTexture = spellHitVideoTexture;
+            spellHitVideoPlayer.clip = spellHitVideoClip;
+            spellHitVideoPlayer.Prepare();
+        }
+
+        private void PlaySpellHitVideo()
+        {
+            PrepareSpellHitVideo();
+            if (spellHitVideoObject == null || spellHitVideoPlayer == null)
+            {
+                return;
+            }
+
+            spellHitVideoObject.transform.position = transform.position + spellHitVideoOffset;
+            spellHitVideoRenderer.enabled = true;
+            spellHitVideoPlayer.Stop();
+            spellHitVideoPlayer.time = 0d;
+            spellHitVideoPlayer.Play();
+
+            if (hideSpellHitVideoRoutine != null)
+            {
+                StopCoroutine(hideSpellHitVideoRoutine);
+            }
+
+            hideSpellHitVideoRoutine = StartCoroutine(HideSpellHitVideoAfterPlayback());
+        }
+
+        private IEnumerator HideSpellHitVideoAfterPlayback()
+        {
+            yield return new WaitForSeconds((float)spellHitVideoClip.length + 0.05f);
+            if (spellHitVideoRenderer != null)
+            {
+                spellHitVideoRenderer.enabled = false;
+            }
+
+            hideSpellHitVideoRoutine = null;
         }
 
         private void BeginPhaseTwoTransition()
