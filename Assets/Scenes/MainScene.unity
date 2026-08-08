@@ -5263,7 +5263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aadb15e0773d70b42a03fe1f6ccfdc60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
-  stageData: {fileID: 11400000, guid: dbee7770e0516c1429e8c3d6f3bef1b5, type: 2}
+  stageData: {fileID: 11400000, guid: 8693c7bdedb8e7645aa30cff81271b63, type: 2}
   backgroundRenderer: {fileID: 1711106417}
   tutorialManager: {fileID: 877866163}
   inGameManager: {fileID: 440768436}
