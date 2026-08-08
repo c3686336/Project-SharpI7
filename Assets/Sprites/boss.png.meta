@@ -103,8 +103,8 @@ TextureImporter:
       name: boss_0
       rect:
         serializedVersion: 2
-        x: 767
-        y: 423
+        x: 7
+        y: 83
         width: 389
         height: 231
       alignment: 0
