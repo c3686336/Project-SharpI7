@@ -6,6 +6,7 @@ internal sealed class PlayerLocomotion
     private readonly Transform target;
     private readonly float moveSpeed;
     private readonly Vector2 referenceHeading;
+    private readonly float boundaryPadding;
 
     public PlayerLocomotion(
         Rigidbody2D rigidbody2D,
@@ -17,6 +18,10 @@ internal sealed class PlayerLocomotion
         this.target = target;
         this.moveSpeed = moveSpeed;
         this.referenceHeading = referenceHeading;
+        var collider = rigidbody2D.GetComponent<Collider2D>();
+        boundaryPadding = collider == null
+            ? 0f
+            : Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.y);
     }
 
     public Vector2 CurrentMovement { get; private set; }
@@ -26,7 +31,8 @@ internal sealed class PlayerLocomotion
         CurrentMovement = movement;
         if (canMove)
         {
-            rigidbody2D.MovePosition(rigidbody2D.position + moveSpeed * CurrentMovement);
+            var nextPosition = rigidbody2D.position + moveSpeed * CurrentMovement;
+            rigidbody2D.MovePosition(ArenaBounds.ClampPosition(nextPosition, boundaryPadding));
         }
 
         Vector2 toTarget = target.position - rigidbody2D.transform.position;

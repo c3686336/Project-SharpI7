@@ -44,5 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orbColor: {r: 0.55, g: 0.15, b: 1, a: 0.95}
+  orbColor: {r: 1, g: 0.78, b: 0.05, a: 1}
   circleResolution: 32

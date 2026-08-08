@@ -13,10 +13,15 @@ namespace SharpI7.Combat
         private BossHealth bossHealth;
         private bool movementLocked;
         private float speedMultiplier = 1f;
+        private float boundaryPadding;
 
         private void Awake()
         {
             bossHealth = GetComponent<BossHealth>();
+            var collider = GetComponent<Collider2D>();
+            boundaryPadding = collider == null
+                ? 0f
+                : Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.y);
         }
 
         private void Update()
@@ -41,10 +46,11 @@ namespace SharpI7.Combat
                 return;
             }
 
-            transform.position = Vector3.MoveTowards(
+            var nextPosition = Vector3.MoveTowards(
                 currentPosition,
                 targetPosition,
                 moveSpeed * speedMultiplier * Time.deltaTime);
+            transform.position = ArenaBounds.ClampPosition(nextPosition, boundaryPadding);
         }
 
         public void SetPlayerTarget(Transform target)

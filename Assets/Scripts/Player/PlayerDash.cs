@@ -14,6 +14,7 @@ internal sealed class PlayerDash
     private readonly float distance;
     private readonly CancellationToken cancellationToken;
     private readonly Action<Vector2> dashStarted;
+    private readonly float boundaryPadding;
 
     private bool isOnCooldown;
     private float cooldownStartedAt;
@@ -36,6 +37,10 @@ internal sealed class PlayerDash
         this.distance = distance;
         this.cancellationToken = cancellationToken;
         this.dashStarted = dashStarted;
+        var collider = rigidbody2D.GetComponent<Collider2D>();
+        boundaryPadding = collider == null
+            ? 0f
+            : Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.y);
     }
 
     public float CooldownUntil { get; private set; }
@@ -79,8 +84,10 @@ internal sealed class PlayerDash
             dashStarted?.Invoke(dashDirection.normalized);
         }
 
-        await rigidbody2D.DOMove(dashDirection * distance, duration)
-            .SetRelative()
+        var destination = ArenaBounds.ClampPosition(
+            rigidbody2D.position + dashDirection * distance,
+            boundaryPadding);
+        await rigidbody2D.DOMove(destination, duration)
             .SetEase(Ease.InOutQuad)
             .ToUniTask(cancellationToken: cancellationToken);
         IsDashing = false;
