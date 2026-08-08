@@ -6,36 +6,38 @@ using UnityEngine;
 
 internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
 {
+    private const float LevelThreeStrikeDamage = 70f;
     private const float LevelThreeTickDamage = 5f;
     private const int LevelThreeTickCount = 5;
     private const float LevelThreeTickInterval = 0.8f;
-    private const float EffectLifetime = 1.05f;
 
+    private const string LevelOneEffectId = "FlickingLightning_Lv1";
+    private const string LevelTwoEffectId = "FlickingLightning_Lv2";
+    private const string LevelThreeImpactEffectId = "FlickingLightning_Lv3_Impact";
     private const string LevelThreeTickEffectId = "FlickingLightning_Lv3_Tick";
 
     private readonly BossHealth target;
-    private readonly Transform playerEffectOrigin;
     private readonly SpellEffectRegistry effectRegistry;
     private readonly CancellationTokenSource cancellationTokenSource;
-    private readonly AudioSource audioSource;
-    private readonly AudioClip castSFX;
+    private readonly AudioSource audioPlayer;
+    private readonly AudioClip lightningSFX;
 
     private bool disposed;
 
     public LightningSpellCaster(
         BossHealth target,
-        Transform playerEffectOrigin,
         SpellEffectRegistry effectRegistry,
         CancellationToken lifetimeToken,
-        AudioSource audioSource,
-        AudioClip castSFX)
+        AudioSource audioPlayer,
+        AudioClip lightningSFX)
     {
         this.target = target;
-        this.playerEffectOrigin = playerEffectOrigin;
         this.effectRegistry = effectRegistry;
-        cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken);
-        this.audioSource = audioSource;
-        this.castSFX = castSFX;
+        this.audioPlayer = audioPlayer;
+        this.lightningSFX = lightningSFX;
+
+        cancellationTokenSource =
+            CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken);
     }
 
     public void Cast(CastResult result)
@@ -43,63 +45,60 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         if (disposed || target == null || !target.IsAlive)
             return;
 
-        if (audioSource != null && castSFX != null)
-        {
-            audioSource.PlayOneShot(castSFX);
-        }
+        PlayLightningSFX();
 
         switch (result.castLevel)
         {
             case 1:
-                CastStandardLightning(result.actualDamage, result.effectId);
+                CastStandardLightning(result, LevelOneEffectId);
                 break;
             case 2:
-                CastStandardLightning(result.actualDamage, result.effectId);
+                CastStandardLightning(result, LevelTwoEffectId);
                 break;
             case 3:
-                CastLevelThreeAsync(result.actualDamage, result.effectId).Forget();
+                CastLevelThreeAsync().Forget();
                 break;
             default:
-                Debug.LogWarning($"[LightningSpellCaster] 지원하지 않는 번개 주문 단계입니다: {result.castLevel}");
+                Debug.LogWarning(
+                    $"[LightningSpellCaster] 지원하지 않는 번개 주문 단계입니다: {result.castLevel}"
+                );
                 break;
         }
     }
 
-    private void CastStandardLightning(float damage, string effectId)
+    private void CastStandardLightning(CastResult result, string effectId)
     {
         if (target == null || !target.IsAlive)
             return;
 
-        if (effectRegistry != null)
+        if (effectRegistry != null && !string.IsNullOrEmpty(effectId))
         {
-            GameObject effect = effectRegistry.SpawnEffect(
+            effectRegistry.SpawnEffect(
                 effectId,
                 target.transform.position,
-                Quaternion.identity);
-
-            if (effect != null)
-            {
-                UnityEngine.Object.Destroy(effect, EffectLifetime);
-            }
+                Quaternion.identity
+            );
         }
 
-        target.TakeDamageWithoutSpellHitEffect(damage);
+        target.TakeDamageWithoutSpellHitEffect(result.actualDamage);
     }
 
-    private async UniTask CastLevelThreeAsync(float totalDamage, string impactEffectId)
+    private async UniTask CastLevelThreeAsync()
     {
         CancellationToken token = cancellationTokenSource.Token;
 
         if (!CanContinueLevelThree())
             return;
 
-        SpawnLevelThreeImpactEffect(impactEffectId);
-        float strikeDamage = Mathf.Max(0f, totalDamage - LevelThreeTickDamage * LevelThreeTickCount);
-        target.TakeDamageWithoutSpellHitEffect(strikeDamage);
+        SpawnLevelThreeImpactEffect();
+        target.TakeDamageWithoutSpellHitEffect(LevelThreeStrikeDamage);
 
         for (int i = 0; i < LevelThreeTickCount; i++)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(LevelThreeTickInterval), cancellationToken: token);
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(LevelThreeTickInterval),
+                cancellationToken: token
+            );
 
             if (!CanContinueLevelThree())
                 return;
@@ -123,42 +122,41 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         return true;
     }
 
-    private void SpawnLevelThreeImpactEffect(string effectId)
+    private void SpawnLevelThreeImpactEffect()
+    {
+        if (effectRegistry == null || target == null)
+            return;
+
+        effectRegistry.SpawnEffect(
+            LevelThreeImpactEffectId,
+            target.transform.position,
+            Quaternion.identity
+        );
+    }
+
+    private void SpawnLevelThreeTickEffect()
     {
         if (effectRegistry == null || target == null)
             return;
 
         GameObject effect = effectRegistry.SpawnEffect(
-            effectId,
+            LevelThreeTickEffectId,
             target.transform.position,
-            Quaternion.identity);
+            Quaternion.identity
+        );
 
-        if (effect != null)
+        if (effect == null)
         {
-            UnityEngine.Object.Destroy(effect, EffectLifetime);
+            Debug.LogWarning("[LightningSpellCaster] 번개 Tick 이펙트 생성 실패");
         }
     }
 
-    private void SpawnLevelThreeTickEffect()
+    private void PlayLightningSFX()
     {
-        if (effectRegistry == null || playerEffectOrigin == null || target == null)
-            return;
-
-        GameObject effect = effectRegistry.SpawnEffect(LevelThreeTickEffectId, playerEffectOrigin.position, Quaternion.identity);
-
-        if (effect == null)
-            return;
-
-        LightningProjectile projectile = effect.GetComponent<LightningProjectile>();
-
-        if (projectile == null)
+        if (audioPlayer != null && lightningSFX != null)
         {
-            Debug.LogWarning($"[LightningSpellCaster] {LevelThreeTickEffectId} 프리팹에 LightningProjectile 컴포넌트가 없습니다.");
-            UnityEngine.Object.Destroy(effect);
-            return;
+            audioPlayer.PlayOneShot(lightningSFX);
         }
-
-        projectile.SetTarget(target.transform);
     }
 
     public void Dispose()

@@ -2,65 +2,44 @@ using UnityEngine;
 
 public sealed class LightningProjectile : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 15f;
-    [SerializeField] private float destroyDistance = 0.1f;
-    [SerializeField] private float maxLifetime = 3f;
-    [SerializeField] private bool rotateTowardTarget = true;
-    [SerializeField] private int sortingOrderOffset = 1;
+    [SerializeField, Min(0f)] private float moveSpeed = 8f;
+    [SerializeField, Min(0.01f)] private float lifetime = 0.5f;
+    [SerializeField] private bool rotateTowardDirection = true;
 
-    private Transform target;
+    private Vector3 moveDirection;
+    private bool launched;
 
-    private void Start()
+    public void LaunchOutward()
     {
-        Destroy(gameObject, maxLifetime);
+        float angle = Random.Range(0f, 360f);
+        float radians = angle * Mathf.Deg2Rad;
+
+        moveDirection = new Vector3(
+            Mathf.Cos(radians),
+            Mathf.Sin(radians),
+            0f
+        ).normalized;
+
+        if (rotateTowardDirection)
+        {
+            float rotationAngle =
+                Mathf.Atan2(moveDirection.y, moveDirection.x) *
+                Mathf.Rad2Deg;
+
+            transform.rotation =
+                Quaternion.Euler(0f, 0f, rotationAngle);
+        }
+
+        launched = true;
+        Destroy(gameObject, lifetime);
     }
 
     private void Update()
     {
-        if (target == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Vector3 direction = target.position - transform.position;
-
-        if (rotateTowardTarget && direction.sqrMagnitude > 0f)
-        {
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, 0f, angle);
-        }
-
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            target.position,
-            moveSpeed * Time.deltaTime
-        );
-
-        if (Vector3.Distance(transform.position, target.position) <= destroyDistance)
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    public void SetTarget(Transform newTarget)
-    {
-        target = newTarget;
-
-        if (target == null)
+        if (!launched)
             return;
 
-        SpriteRenderer targetRenderer = target.GetComponent<SpriteRenderer>();
-
-        if (targetRenderer == null)
-            return;
-
-        SpriteRenderer[] effectRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-
-        foreach (SpriteRenderer effectRenderer in effectRenderers)
-        {
-            effectRenderer.sortingLayerID = targetRenderer.sortingLayerID;
-            effectRenderer.sortingOrder = targetRenderer.sortingOrder + sortingOrderOffset;
-        }
+        transform.position +=
+            moveDirection * moveSpeed * Time.deltaTime;
     }
 }
