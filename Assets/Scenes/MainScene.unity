@@ -450,6 +450,18 @@ PrefabInstance:
       propertyPath: toastMessageManager
       value: 
       objectReference: {fileID: 207577491}
+    - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: hideNonCandidateSpells
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: initialUnlockedSpellIds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 483765457459832276, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
+      propertyPath: 'initialUnlockedSpellIds.Array.data[1]'
+      value: flicking_lightning
+      objectReference: {fileID: 0}
     - target: {fileID: 1392754086381814093, guid: 7d1b42bb5f1a7f044b30fde097513107, type: 3}
       propertyPath: m_Name
       value: ChantLevelText

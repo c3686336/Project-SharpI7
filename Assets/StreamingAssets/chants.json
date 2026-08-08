@@ -13,7 +13,7 @@
           "chantLevel": 1,
           "chantText": "불",
           "damageMultiplier": 1.0,
-          "manaCost":  10
+          "manaCost": 10
         },
         {
           "chantLevel": 2,
@@ -24,6 +24,35 @@
         {
           "chantLevel": 3,
           "chantText": "영원히 타오르는 불",
+          "damageMultiplier": 2.0,
+          "manaCost": 50
+        }
+      ]
+    },
+    {
+      "id": "flicking_lightning",
+      "spellName": "내리치는 번개",
+      "fullChantText": "끝없이 내리치는 번개",
+      "baseDamage": 120.0,
+      "manaRelease": 40.0,
+      "magicType": "Lightning",
+      "effectId": "FlickingLightning",
+      "stages": [
+        {
+          "chantLevel": 1,
+          "chantText": "번개",
+          "damageMultiplier": 1.0,
+          "manaCost": 10
+        },
+        {
+          "chantLevel": 2,
+          "chantText": "내리치는 번개",
+          "damageMultiplier": 1.5,
+          "manaCost": 30
+        },
+        {
+          "chantLevel": 3,
+          "chantText": "끝없이 내리치는 번개",
           "damageMultiplier": 2.0,
           "manaCost": 50
         }
