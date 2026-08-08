@@ -244,8 +244,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c23d8f2e549e4f52a76eb00a92e956f1, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   movementFrames:
   - {fileID: 2395171169746166628, guid: f9b754d6b4fe52a44b70941623b1ef18, type: 3}
   - {fileID: -9190950720821370306, guid: 5ffff3d1925c9ed43a92bbcc61080e23, type: 3}
@@ -322,7 +322,7 @@ AudioSource:
   m_GameObject: {fileID: 5215665589235079319}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 3476722896076113455, guid: b5d13b8089ed70c98ad051624d3c02ed, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: b3d116f8b9c8d3e50bf6caf1fda11f0d, type: 3}
   m_PlayOnAwake: 0
@@ -420,8 +420,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9d8243b47a845e78ce3b21e807e8f23, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   auraPrefab: {fileID: 5381488786946506934, guid: fedfa42862fa16b4f98c8f74e47e2abf, type: 3}
   minimumCharacters: 6
   worldOffset: {x: 0, y: 0.15, z: 0.2}

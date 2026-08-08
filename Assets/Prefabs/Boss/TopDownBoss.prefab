@@ -48,8 +48,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 22222222222222222222222222222222, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
   spellHitVideoClip: {fileID: 32900000, guid: 02e86ba80e8e0de40bce835eaa87cb53, type: 3}
   spellHitVideoLevelTwoClip: {fileID: 32900000, guid: 0d5845cdcb46a6f41b1052b4ffee4c6d, type: 3}
@@ -95,6 +95,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTarget: {fileID: 0}
+--- !u!114 &11400003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d9b746fd8c04ee49f259578d64ca485, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkFrames:
+  - {fileID: -9190950720821370306, guid: 7526094b663920c458bba9a258db07be, type: 3}
+  - {fileID: 589950116323344301, guid: 0e4e3024a7c9d594e98db48155feac1e, type: 3}
+  - {fileID: -8538219170695544576, guid: 8efb0a6e34a34d0418e17418cbd123e9, type: 3}
+  - {fileID: -4911446307247983195, guid: e4c0da999ad09e940892f7917362de95, type: 3}
+  - {fileID: 979358755696017567, guid: c315e05d419e3844dad5e533be0b2146, type: 3}
+  - {fileID: -3547462953489778252, guid: f3886bf4637b6c1478ea870b6915472d, type: 3}
+  - {fileID: -7244507966289389119, guid: 50cf6f8934a5c7d47b9faec1aadb6ccc, type: 3}
+  - {fileID: -2605779105812968907, guid: 2ade7ae754170914abe4c5fd68a6b27b, type: 3}
+  - {fileID: 2435866311996458916, guid: 36b1e62d0e6d06d47a4a95500b20a17a, type: 3}
+  frameDuration: 0.12
+  movementThreshold: 0.001
 --- !u!212 &21200000
 SpriteRenderer:
   serializedVersion: 3
@@ -200,7 +224,7 @@ AudioSource:
   m_GameObject: {fileID: 100000}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 3476722896076113455, guid: b5d13b8089ed70c98ad051624d3c02ed, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 7ea036f7622571b85b6af41c87ea6a77, type: 3}
   m_PlayOnAwake: 0
@@ -288,27 +312,3 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &11400003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d9b746fd8c04ee49f259578d64ca485, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  walkFrames:
-  - {fileID: -9190950720821370306, guid: 7526094b663920c458bba9a258db07be, type: 3}
-  - {fileID: 589950116323344301, guid: 0e4e3024a7c9d594e98db48155feac1e, type: 3}
-  - {fileID: -8538219170695544576, guid: 8efb0a6e34a34d0418e17418cbd123e9, type: 3}
-  - {fileID: -4911446307247983195, guid: e4c0da999ad09e940892f7917362de95, type: 3}
-  - {fileID: 979358755696017567, guid: c315e05d419e3844dad5e533be0b2146, type: 3}
-  - {fileID: -3547462953489778252, guid: f3886bf4637b6c1478ea870b6915472d, type: 3}
-  - {fileID: -7244507966289389119, guid: 50cf6f8934a5c7d47b9faec1aadb6ccc, type: 3}
-  - {fileID: -2605779105812968907, guid: 2ade7ae754170914abe4c5fd68a6b27b, type: 3}
-  - {fileID: 2435866311996458916, guid: 36b1e62d0e6d06d47a4a95500b20a17a, type: 3}
-  frameDuration: 0.12
-  movementThreshold: 0.001
