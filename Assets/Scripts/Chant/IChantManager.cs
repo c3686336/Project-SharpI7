@@ -4,9 +4,7 @@ public interface IChantManager
 {
     bool IsCasting { get; }
 
-    float CurrentManaCost { get; }
-
-    bool CanResolveCurrentStage { get; }
+    void SetManaSource(IPlayerMana manaSource);
 
     void StartChant();
 

@@ -23,6 +23,10 @@ public class ChantManager : MonoBehaviour, IChantManager
     [SerializeField]
     private string defaultSpellId = "dark_flame";
 
+    [Header("Dependencies")]
+    [SerializeField]
+    private ToastMessageManager toastMessageManager;
+
     // =========================================================
     // UI
     // =========================================================
@@ -70,17 +74,11 @@ public class ChantManager : MonoBehaviour, IChantManager
     // 데이터와 외부 접근은 유지.
     public int ChantLevel => currentStage?.chantLevel ?? 0;
 
-    /// <summary>
-    /// 현재 영창 단계에서 소비할 마나.
-    /// PlayerController가 현재 마나와 비교할 때 사용.
-    /// </summary>
-    public float CurrentManaCost => currentStage?.manaCost ?? 0f;
+    private float CurrentManaCost => currentStage?.manaCost ?? 0f;
 
-    /// <summary>
-    /// 현재 단계의 영창문 길이까지 입력했는지 여부.
-    /// 마나는 검사하지 않는다.
-    /// </summary>
-    public bool CanResolveCurrentStage => CanCastCurrentStage();
+    public float CurrentMana => playerMana?.CurrentMana ?? 0f;
+
+    public bool HasEnoughMana => playerMana != null && CurrentMana >= CurrentManaCost;
 
     /// <summary>
     /// 현재 영창 단계의 예상 피해.
@@ -112,15 +110,6 @@ public class ChantManager : MonoBehaviour, IChantManager
     public event Action<CastResult> OnChantCast;
 
     /// <summary>
-    /// 영창 중 Enter가 눌렸을 때 발생.
-    ///
-    /// PlayerController에서
-    /// 오타 여부 / 마나 여부를 확인하고
-    /// 취소 또는 발동을 결정한다.
-    /// </summary>
-    public event Action OnChantSubmitRequested;
-
-    /// <summary>
     /// 영창 입력 상태가 바뀔 때마다 외부 UI 담당에게
     /// 영창 정보를 전달한다.
     ///
@@ -143,6 +132,9 @@ public class ChantManager : MonoBehaviour, IChantManager
     private int correctCount;
 
     private int typoCount;
+
+    private IPlayerMana playerMana;
+    private bool manaSubscribed;
 
     // 영창 시작에 사용된 Enter가
     // 같은 프레임에 Submit Enter로 또 처리되는 것을 방지.
@@ -180,6 +172,16 @@ public class ChantManager : MonoBehaviour, IChantManager
         }
 
         SetChantUI(false);
+    }
+
+    private void OnEnable()
+    {
+        SubscribeToMana();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromMana();
     }
 
     private void Start()
@@ -224,7 +226,7 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (!enterPressed)
             return;
 
-        OnChantSubmitRequested?.Invoke();
+        ResolveChant();
     }
 
     private void LateUpdate()
@@ -298,6 +300,23 @@ public class ChantManager : MonoBehaviour, IChantManager
     // =========================================================
     // Chant Control
     // =========================================================
+
+    public void SetManaSource(IPlayerMana manaSource)
+    {
+        UnsubscribeFromMana();
+        playerMana = manaSource;
+
+        if (isActiveAndEnabled)
+        {
+            SubscribeToMana();
+        }
+
+        UpdateUI();
+        if (IsCasting)
+        {
+            NotifyPreviewChanged();
+        }
+    }
 
     public void StartChant()
     {
@@ -375,30 +394,75 @@ public class ChantManager : MonoBehaviour, IChantManager
 
         CastResult result = CreateCastResult();
 
-        /*
-         * 현재 단계의 영창문 길이를 끝까지
-         * 입력하지 않았다면 발동하지 않는다.
-         */
-        if (!CanCastCurrentStage())
+        if (result.typoCount > 0)
+        {
+            CancelChant();
+            return result;
+        }
+
+        if (!result.canCast)
         {
             return result;
         }
 
-        /*
-         * PlayerController가 ResolveChant 호출 전에
-         *
-         * - 오타 여부
-         * - 현재 마나
-         * - 필요 마나
-         *
-         * 를 확인한다.
-         */
+        if (!HasEnoughMana)
+        {
+            ShowInsufficientManaFeedback();
+            CancelChant();
+            return result;
+        }
 
         ResetChant();
 
         OnChantCast?.Invoke(result);
 
         return result;
+    }
+
+    private void ShowInsufficientManaFeedback()
+    {
+        string message = $"마나가 부족합니다. 현재 {CurrentMana:0.#} / 필요 {CurrentManaCost:0.#}";
+
+        if (toastMessageManager != null)
+        {
+            toastMessageManager.Show(message);
+            return;
+        }
+
+        Debug.LogWarning(message, this);
+    }
+
+    private void HandleManaStatusChanged(ManaStatus _)
+    {
+        if (!IsCasting)
+        {
+            return;
+        }
+
+        UpdateUI();
+        NotifyPreviewChanged();
+    }
+
+    private void SubscribeToMana()
+    {
+        if (manaSubscribed || playerMana == null)
+        {
+            return;
+        }
+
+        playerMana.ManaStatusChanged += HandleManaStatusChanged;
+        manaSubscribed = true;
+    }
+
+    private void UnsubscribeFromMana()
+    {
+        if (!manaSubscribed || playerMana == null)
+        {
+            return;
+        }
+
+        playerMana.ManaStatusChanged -= HandleManaStatusChanged;
+        manaSubscribed = false;
     }
 
     // =========================================================
@@ -624,9 +688,11 @@ public class ChantManager : MonoBehaviour, IChantManager
             expectedDamage = ExpectedDamage,
             actualDamage = ActualDamage,
             manaCost = CurrentManaCost,
+            currentMana = CurrentMana,
             correctCount = CorrectCount,
             typoCount = TypoCount,
-            canResolve = CanCastCurrentStage()
+            hasEnoughMana = HasEnoughMana,
+            canResolve = CanCastCurrentStage() && TypoCount == 0 && HasEnoughMana
         };
 
         OnChantPreviewChanged?.Invoke(preview);
@@ -653,7 +719,6 @@ public class ChantManager : MonoBehaviour, IChantManager
             actualDamage = CalculateActualDamage(),
             penaltyMultiplier = typoCount == 0 ? 1f : 0f,
             manaCost = currentStage?.manaCost ?? 0f,
-            manaRelease = canCast && currentSpell != null ? currentSpell.manaRelease : 0f,
             magicType = currentSpell?.magicType ?? "",
             effectId = currentSpell?.effectId ?? "",
             canCast = canCast,
@@ -686,7 +751,7 @@ public class ChantManager : MonoBehaviour, IChantManager
          */
         if (manaCostUI != null)
         {
-            manaCostUI.text = $"마나 소비 : {CurrentManaCost:0.#}";
+            manaCostUI.text = $"마나 : {CurrentMana:0.#} / 필요 : {CurrentManaCost:0.#}";
         }
 
         /*

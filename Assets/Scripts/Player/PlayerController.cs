@@ -73,6 +73,8 @@ public sealed class PlayerController : MonoBehaviour,
             return;
         }
 
+        chantManager.SetManaSource(this);
+
         Rigidbody2D rigidbody2D = GetComponent<Rigidbody2D>();
         locomotion = new PlayerLocomotion(
             rigidbody2D,
@@ -109,7 +111,6 @@ public sealed class PlayerController : MonoBehaviour,
         chantManager.OnChantCancelled += UnlockMovement;
         chantManager.OnChantInterrupted += UnlockMovement;
         chantManager.OnChantCast += HandleChantCast;
-        chantManager.OnChantSubmitRequested += HandleChantSubmit;
 
         bossHealth.Died -= HandleBossDied;
         bossHealth.Died += HandleBossDied;
@@ -125,7 +126,6 @@ public sealed class PlayerController : MonoBehaviour,
             chantManager.OnChantCancelled -= UnlockMovement;
             chantManager.OnChantInterrupted -= UnlockMovement;
             chantManager.OnChantCast -= HandleChantCast;
-            chantManager.OnChantSubmitRequested -= HandleChantSubmit;
         }
 
         if (bossHealth != null)
@@ -235,10 +235,8 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void HandleChantCast(CastResult result)
     {
-        if (spellCaster.TryCast(result, mana.Current))
-        {
-            DeductMana(result.manaCost);
-        }
+        spellCaster.Cast(result);
+        DeductMana(result.manaCost);
 
         UnlockMovement();
     }
@@ -288,67 +286,6 @@ public sealed class PlayerController : MonoBehaviour,
     private void PublishManaStatus()
     {
         ManaStatusChanged?.Invoke(mana.Status);
-    }
-
-    private void TryResolveChant()
-    {
-        // 현재 단계 영창을 끝까지 입력하지 않음
-        if (!chantManager.CanResolveCurrentStage)
-        {
-            return;
-        }
-
-        // 안전장치:
-        // 오타가 있다면 발동하지 않음
-        if (chantManager.TypoCount > 0)
-        {
-            return;
-        }
-
-        float manaCost =
-            chantManager.CurrentManaCost;
-
-        // 현재 마나 부족
-        if (mana.Current < manaCost)
-        {
-            Debug.Log(
-                $"마나 부족. 현재 마나: {mana.Current:0.#}, " +
-                $"필요 마나: {manaCost:0.#}",
-                this
-            );
-
-            chantManager.CancelChant();
-
-            return;
-        }
-
-        chantManager.ResolveChant();
-    }
-
-    private void HandleChantSubmit()
-    {
-        if (!chantManager.IsCasting)
-        {
-            return;
-        }
-
-        // 오타가 하나라도 있으면
-        // Enter 한 번으로 영창 실패/취소
-        if (chantManager.TypoCount > 0)
-        {
-            chantManager.CancelChant();
-            return;
-        }
-
-        // 아직 현재 단계를 끝까지 입력하지 않았음
-        if (!chantManager.CanResolveCurrentStage)
-        {
-            return;
-        }
-
-        // 완벽하게 입력했다면
-        // 마나 검사 후 바로 발동
-        TryResolveChant();
     }
 
 #if UNITY_EDITOR

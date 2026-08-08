@@ -588,6 +588,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChantManager
   chantDatabase: {fileID: 739842751609284113}
   defaultSpellId: eternal_flame
+  toastMessageManager: {fileID: 0}
   chantPanel: {fileID: 1340574779710009253}
   spellNameUI: {fileID: 684803946110374012}
   targetTextUI: {fileID: 4122494063286841456}
