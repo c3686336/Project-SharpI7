@@ -12,6 +12,7 @@ public sealed class StageManager : MonoBehaviour
 
     private static StageData initialStageOverride;
     private static bool showTutorialOnStart;
+    private static bool hasInitialStageRequest;
 
     private PlayerController player;
     private BossHealthBar bossHealthBar;
@@ -24,6 +25,7 @@ public sealed class StageManager : MonoBehaviour
     {
         initialStageOverride = initialStage;
         showTutorialOnStart = showTutorial;
+        hasInitialStageRequest = true;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -31,6 +33,7 @@ public sealed class StageManager : MonoBehaviour
     {
         initialStageOverride = null;
         showTutorialOnStart = false;
+        hasInitialStageRequest = false;
     }
 
     private void Start()
@@ -41,9 +44,10 @@ public sealed class StageManager : MonoBehaviour
         StageData initialStage = initialStageOverride != null
             ? initialStageOverride
             : stageData;
-        bool shouldShowTutorial = showTutorialOnStart;
+        bool shouldShowTutorial = hasInitialStageRequest && showTutorialOnStart;
         initialStageOverride = null;
         showTutorialOnStart = false;
+        hasInitialStageRequest = false;
 
         bool stageLoaded = LoadStage(initialStage);
         SetTutorialMode(stageLoaded && shouldShowTutorial);
