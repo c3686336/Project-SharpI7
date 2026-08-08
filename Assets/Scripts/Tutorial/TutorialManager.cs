@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -14,12 +15,18 @@ public sealed class TutorialDialogueData
 }
 
 [Serializable]
+public sealed class TutorialArrowData
+{
+    public Vector2 position;
+    public string direction;
+}
+
+[Serializable]
 public sealed class TutorialDialogueStep
 {
     public string description;
     public string text;
-    public Vector2 arrowPosition;
-    public string arrowDirection;
+    public TutorialArrowData[] arrows;
     public string action;
 }
 
@@ -36,6 +43,14 @@ public sealed class TutorialManager : MonoBehaviour
     [SerializeField] private string fileName = DefaultFileName;
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private RectTransform tutorialArrow;
+
+    [Header("Dialogue Typing")]
+    [SerializeField, Min(1f)] private float charactersPerSecond = 35f;
+    [SerializeField, Min(0f)] private float firstDialogueDelay = 0.5f;
+
+    [Header("Arrow Animation")]
+    [SerializeField, Min(0f)] private float arrowMoveDistance = 8f;
+    [SerializeField, Min(0f)] private float arrowMoveSpeed = 2f;
 
     [Header("Chant Preview UI")]
     [SerializeField] private GameObject chantPreviewPanel;
@@ -65,16 +80,24 @@ public sealed class TutorialManager : MonoBehaviour
     [SerializeField] private Sprite emptyHeartSprite;
 
     private TutorialDialogueStep[] steps;
+    private readonly List<RectTransform> arrowPool = new();
+    private readonly List<Vector2> arrowBasePositions = new();
+    private readonly List<Vector2> arrowMoveAxes = new();
     private InGameManager inGameManager;
     private Coroutine actionRoutine;
+    private Coroutine typingRoutine;
     private ManaVisualSnapshot manaVisualSnapshot;
     private HeartVisualSnapshot heartVisualSnapshot;
     private Image previewHeartImage;
     private float actionFinalFillAmount;
+    private float arrowAnimationElapsed;
+    private int activeArrowCount;
     private int currentStepIndex = -1;
     private int inputBlockedThroughFrame = -1;
     private bool isRunning;
     private bool isActionPlaying;
+    private bool isTyping;
+    private bool isTypingDelayActive;
     private bool isWaitingForChantEnter;
     private bool chantPreviewSnapshotCaptured;
     private bool chantPreviewInitialActive;
@@ -97,7 +120,9 @@ public sealed class TutorialManager : MonoBehaviour
 
     public void Begin(InGameManager manager)
     {
+        StopTyping();
         StopCurrentAction();
+        HideAllArrows();
         RestoreChantPreview();
         RestoreManaVisuals();
         RestoreHealthVisuals();
@@ -127,8 +152,26 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void Update()
     {
-        if (!isRunning || Time.frameCount <= inputBlockedThroughFrame)
+        if (!isRunning)
         {
+            return;
+        }
+
+        UpdateArrowAnimation();
+
+        if (Time.frameCount <= inputBlockedThroughFrame)
+        {
+            return;
+        }
+
+        if (isTypingDelayActive)
+        {
+            return;
+        }
+
+        if (isTyping && WasLeftClickPressedThisFrame())
+        {
+            CompleteTyping();
             return;
         }
 
@@ -138,8 +181,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        Mouse mouse = Mouse.current;
-        if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
+        if (isTyping || !WasLeftClickPressedThisFrame())
         {
             return;
         }
@@ -199,9 +241,81 @@ public sealed class TutorialManager : MonoBehaviour
     private void ShowCurrentStep()
     {
         TutorialDialogueStep step = steps[currentStepIndex];
-        dialogueText.text = step.text ?? string.Empty;
-        ApplyArrow(step);
+        float typingDelay = currentStepIndex == 0
+            ? Mathf.Max(0f, firstDialogueDelay)
+            : 0f;
+
+        StartTyping(step.text ?? string.Empty, typingDelay);
+        ApplyArrows(step);
         RunStepAction(step);
+    }
+
+    private void StartTyping(string text, float delay)
+    {
+        StopTyping();
+
+        dialogueText.text = text;
+        dialogueText.maxVisibleCharacters = 0;
+        dialogueText.ForceMeshUpdate();
+
+        int characterCount = dialogueText.textInfo.characterCount;
+        if (characterCount == 0)
+        {
+            dialogueText.maxVisibleCharacters = int.MaxValue;
+            return;
+        }
+
+        isTyping = true;
+        typingRoutine = StartCoroutine(TypeDialogue(characterCount, delay));
+    }
+
+    private IEnumerator TypeDialogue(int characterCount, float delay)
+    {
+        if (delay > 0f)
+        {
+            isTypingDelayActive = true;
+            yield return new WaitForSecondsRealtime(delay);
+            isTypingDelayActive = false;
+        }
+
+        float visibleCharacterCount = 0f;
+        float typingSpeed = Mathf.Max(1f, charactersPerSecond);
+
+        while (visibleCharacterCount < characterCount)
+        {
+            visibleCharacterCount += typingSpeed * Time.unscaledDeltaTime;
+            dialogueText.maxVisibleCharacters = Mathf.Min(
+                characterCount,
+                Mathf.FloorToInt(visibleCharacterCount));
+            yield return null;
+        }
+
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+        typingRoutine = null;
+        isTyping = false;
+    }
+
+    private void CompleteTyping()
+    {
+        if (!isTyping)
+        {
+            return;
+        }
+
+        StopTyping();
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+    }
+
+    private void StopTyping()
+    {
+        if (typingRoutine != null)
+        {
+            StopCoroutine(typingRoutine);
+            typingRoutine = null;
+        }
+
+        isTyping = false;
+        isTypingDelayActive = false;
     }
 
     private void RunStepAction(TutorialDialogueStep step)
@@ -238,15 +352,7 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void HandleChantEnterInput()
     {
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null)
-        {
-            return;
-        }
-
-        bool enterPressed = keyboard.enterKey.wasPressedThisFrame ||
-                            keyboard.numpadEnterKey.wasPressedThisFrame;
-        if (!enterPressed)
+        if (!WasEnterPressedThisFrame())
         {
             return;
         }
@@ -254,6 +360,20 @@ public sealed class TutorialManager : MonoBehaviour
         isWaitingForChantEnter = false;
         ShowChantPreview();
         AdvanceDialogue();
+    }
+
+    private static bool WasEnterPressedThisFrame()
+    {
+        Keyboard keyboard = Keyboard.current;
+        return keyboard != null &&
+               (keyboard.enterKey.wasPressedThisFrame ||
+                keyboard.numpadEnterKey.wasPressedThisFrame);
+    }
+
+    private static bool WasLeftClickPressedThisFrame()
+    {
+        Mouse mouse = Mouse.current;
+        return mouse != null && mouse.leftButton.wasPressedThisFrame;
     }
 
     private void ShowChantPreview()
@@ -585,23 +705,116 @@ public sealed class TutorialManager : MonoBehaviour
         return manaConsumptionDuration > 0f ? manaConsumptionDuration : 1.5f;
     }
 
-    private void ApplyArrow(TutorialDialogueStep step)
+    private void ApplyArrows(TutorialDialogueStep step)
     {
+        HideAllArrows();
+
         if (tutorialArrow == null)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(step.arrowDirection) ||
-            step.arrowDirection.Equals("none", StringComparison.OrdinalIgnoreCase))
+        if (step.arrows == null || step.arrows.Length == 0)
         {
-            tutorialArrow.gameObject.SetActive(false);
             return;
         }
 
-        tutorialArrow.gameObject.SetActive(true);
-        tutorialArrow.anchoredPosition = step.arrowPosition;
-        tutorialArrow.localRotation = Quaternion.Euler(0f, 0f, GetArrowRotation(step.arrowDirection));
+        EnsureArrowPoolInitialized();
+        arrowBasePositions.Clear();
+        arrowMoveAxes.Clear();
+        arrowAnimationElapsed = 0f;
+
+        foreach (TutorialArrowData arrowData in step.arrows)
+        {
+            if (arrowData == null || string.IsNullOrWhiteSpace(arrowData.direction) ||
+                arrowData.direction.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string direction = arrowData.direction.Trim().ToLowerInvariant();
+            RectTransform arrow = GetArrowFromPool(activeArrowCount);
+
+            arrowBasePositions.Add(arrowData.position);
+            arrowMoveAxes.Add(GetArrowMoveAxis(direction));
+            arrow.anchoredPosition = arrowData.position;
+            arrow.localRotation = Quaternion.Euler(0f, 0f, GetArrowRotation(direction));
+            arrow.gameObject.SetActive(true);
+            activeArrowCount++;
+        }
+    }
+
+    private void UpdateArrowAnimation()
+    {
+        if (activeArrowCount == 0)
+        {
+            return;
+        }
+
+        arrowAnimationElapsed += Time.unscaledDeltaTime;
+        float phase = arrowAnimationElapsed * arrowMoveSpeed * Mathf.PI * 2f;
+        float offset = Mathf.Sin(phase) * arrowMoveDistance;
+
+        for (int index = 0; index < activeArrowCount; index++)
+        {
+            arrowPool[index].anchoredPosition =
+                arrowBasePositions[index] + arrowMoveAxes[index] * offset;
+        }
+    }
+
+    private void EnsureArrowPoolInitialized()
+    {
+        if (arrowPool.Count == 0 && tutorialArrow != null)
+        {
+            arrowPool.Add(tutorialArrow);
+        }
+    }
+
+    private RectTransform GetArrowFromPool(int index)
+    {
+        EnsureArrowPoolInitialized();
+
+        while (arrowPool.Count <= index)
+        {
+            RectTransform arrowClone = Instantiate(tutorialArrow, tutorialArrow.parent);
+            arrowClone.name = $"{tutorialArrow.name} ({arrowPool.Count + 1})";
+            arrowPool.Add(arrowClone);
+        }
+
+        return arrowPool[index];
+    }
+
+    private void HideAllArrows()
+    {
+        EnsureArrowPoolInitialized();
+
+        foreach (RectTransform arrow in arrowPool)
+        {
+            if (arrow != null)
+            {
+                arrow.gameObject.SetActive(false);
+            }
+        }
+
+        activeArrowCount = 0;
+        arrowBasePositions.Clear();
+        arrowMoveAxes.Clear();
+    }
+
+    private static Vector2 GetArrowMoveAxis(string direction)
+    {
+        switch (direction)
+        {
+            case "up":
+                return Vector2.up;
+            case "left":
+                return Vector2.left;
+            case "down":
+                return Vector2.down;
+            case "right":
+            default:
+                return Vector2.right;
+        }
     }
 
     private static float GetArrowRotation(string direction)
@@ -622,6 +835,7 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void Finish()
     {
+        StopTyping();
         StopCurrentAction();
         RestoreChantPreview();
         RestoreManaVisuals();
@@ -630,10 +844,7 @@ public sealed class TutorialManager : MonoBehaviour
         isWaitingForChantEnter = false;
         currentStepIndex = -1;
 
-        if (tutorialArrow != null)
-        {
-            tutorialArrow.gameObject.SetActive(false);
-        }
+        HideAllArrows();
 
         inGameManager?.ResumeGameplay();
         gameObject.SetActive(false);
