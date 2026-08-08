@@ -288,11 +288,7 @@ public sealed class PlayerController : MonoBehaviour,
 
     private void HandleBossDied()
     {
-        combatEnded = true;
         lightningSpellCaster?.Dispose();
-
-        locomotion.Stop();
-        dash.Stop();
 
         if (chantManager.IsCasting)
         {
