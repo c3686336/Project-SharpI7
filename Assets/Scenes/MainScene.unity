@@ -1627,7 +1627,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 47}
+  m_AnchoredPosition: {x: 0, y: 50}
   m_SizeDelta: {x: 260, y: 260}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &649426900
@@ -1650,7 +1650,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
+  m_Sprite: {fileID: -855298285791758126, guid: 5a282576aac4dea41a6a13b65b9d24c0, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2001,6 +2001,12 @@ MonoBehaviour:
   normalPortrait: {fileID: -855298285791758126, guid: 5a282576aac4dea41a6a13b65b9d24c0, type: 3}
   warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
   saturatedPortrait: {fileID: -6470460504253458178, guid: 06c05b5968d730a498da2d06fba67c8b, type: 3}
+  normalPortraitPosition: {x: 0, y: 50}
+  normalPortraitSize: {x: 260, y: 260}
+  warningPortraitPosition: {x: 10, y: 10}
+  warningPortraitSize: {x: 200, y: 200}
+  saturatedPortraitPosition: {x: 5, y: 60}
+  saturatedPortraitSize: {x: 270, y: 280}
 --- !u!1 &1073548656
 GameObject:
   m_ObjectHideFlags: 0

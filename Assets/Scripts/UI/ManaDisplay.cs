@@ -13,6 +13,18 @@ public sealed class ManaDisplay : MonoBehaviour
     [SerializeField] private Sprite warningPortrait;
     [SerializeField] private Sprite saturatedPortrait;
 
+    [Header("Normal Portrait Layout")]
+    [SerializeField] private Vector2 normalPortraitPosition = new(0f, 47f);
+    [SerializeField] private Vector2 normalPortraitSize = new(260f, 260f);
+
+    [Header("Warning Portrait Layout")]
+    [SerializeField] private Vector2 warningPortraitPosition = new(0f, 47f);
+    [SerializeField] private Vector2 warningPortraitSize = new(260f, 260f);
+
+    [Header("Saturated Portrait Layout")]
+    [SerializeField] private Vector2 saturatedPortraitPosition = new(0f, 47f);
+    [SerializeField] private Vector2 saturatedPortraitSize = new(260f, 260f);
+
     private IPlayerMana playerMana;
 
     private void Awake()
@@ -70,15 +82,36 @@ public sealed class ManaDisplay : MonoBehaviour
             return;
         }
 
-        Sprite nextPortrait = status.Current >= status.OverloadThreshold
-            ? saturatedPortrait
-            : status.Current >= status.WarningThreshold
-                ? warningPortrait
-                : normalPortrait;
+        Sprite nextPortrait;
+        Vector2 nextPosition;
+        Vector2 nextSize;
+
+        if (status.Current >= status.OverloadThreshold)
+        {
+            nextPortrait = saturatedPortrait;
+            nextPosition = saturatedPortraitPosition;
+            nextSize = saturatedPortraitSize;
+        }
+        else if (status.Current >= status.WarningThreshold)
+        {
+            nextPortrait = warningPortrait;
+            nextPosition = warningPortraitPosition;
+            nextSize = warningPortraitSize;
+        }
+        else
+        {
+            nextPortrait = normalPortrait;
+            nextPosition = normalPortraitPosition;
+            nextSize = normalPortraitSize;
+        }
 
         if (nextPortrait != null && portraitImage.sprite != nextPortrait)
         {
             portraitImage.sprite = nextPortrait;
         }
+
+        RectTransform portraitTransform = portraitImage.rectTransform;
+        portraitTransform.anchoredPosition = nextPosition;
+        portraitTransform.sizeDelta = nextSize;
     }
 }
