@@ -15,6 +15,7 @@ namespace SharpI7.Combat
 
         private SpriteRenderer spriteRenderer;
         private BossHealth bossHealth;
+        private BossMovement bossMovement;
         private Sprite phaseOneIdleSprite;
         private Sprite idleSprite;
         private Sprite[] activeWalkFrames;
@@ -28,6 +29,7 @@ namespace SharpI7.Combat
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             bossHealth = GetComponent<BossHealth>();
+            bossMovement = GetComponent<BossMovement>();
             phaseOneIdleSprite = spriteRenderer.sprite;
             phaseOneScale = transform.localScale;
             SetPhaseVisual(bossHealth != null && bossHealth.IsPhaseTwo);
@@ -41,6 +43,10 @@ namespace SharpI7.Combat
                 bossHealth = GetComponent<BossHealth>();
             }
 
+            if (bossMovement == null)
+            {
+                bossMovement = GetComponent<BossMovement>();
+            }
             if (bossHealth != null)
             {
                 bossHealth.PhaseTwoStarted += OnPhaseTwoStarted;
@@ -59,7 +65,9 @@ namespace SharpI7.Combat
         {
             var movement = transform.position - previousPosition;
             previousPosition = transform.position;
-            var isMoving = movement.sqrMagnitude >= movementThreshold * movementThreshold;
+            var isMoving = bossMovement != null
+                ? bossMovement.IsMoving
+                : movement.sqrMagnitude >= movementThreshold * movementThreshold;
 
             if (!isMoving || activeWalkFrames == null || activeWalkFrames.Length == 0)
             {
@@ -108,6 +116,24 @@ namespace SharpI7.Combat
             SetPhaseVisual(true);
         }
 
+        /// <summary>
+        /// Restores the size authored on the boss prefab after it is spawned at runtime.
+        /// Stage spawning can run after Awake, so keep the animator's cached base scale in sync.
+        /// </summary>
+        public void SetBaseScale(Vector3 baseScale)
+        {
+            phaseOneScale = baseScale;
+
+            var usePhaseTwoVisual = bossHealth != null && bossHealth.IsPhaseTwo;
+            transform.localScale = Vector3.Scale(
+                phaseOneScale,
+                usePhaseTwoVisual ? phaseTwoScaleMultiplier : Vector3.one);
+        }
+        /// <summary>Immediately selects the correct idle visual for the current boss phase.</summary>
+        public void RefreshVisual()
+        {
+            SetPhaseVisual(bossHealth != null && bossHealth.IsPhaseTwo);
+        }
         private void SetPhaseVisual(bool usePhaseTwoVisual)
         {
             var hasPhaseTwoVisual = phaseTwoIdleSprite != null;

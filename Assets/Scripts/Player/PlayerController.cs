@@ -123,7 +123,7 @@ public sealed class PlayerController : MonoBehaviour,
 
         if (spellEffectRegistry == null)
         {
-            Debug.LogWarning("[PlayerController] SpellEffectRegistry가 연결되지 않아 주문 이펙트를 생성할 수 없습니다.", this);
+            Debug.LogWarning("[PlayerController] SpellEffectRegistry媛 ?곌껐?섏? ?딆븘 二쇰Ц ?댄럺?몃? ?앹꽦?????놁뒿?덈떎.", this);
         }
     }
 

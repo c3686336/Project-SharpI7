@@ -52,6 +52,6 @@ MonoBehaviour:
   highDamageColor: {r: 1, g: 0.1, b: 0.08, a: 1}
   fontSize: 58
   characterSize: 0.35
-  damageSizeReference: 100
+  damageSizeReference: 30
   minimumDamageSizeMultiplier: 0.4
   maximumDamageSizeMultiplier: 2

@@ -49,7 +49,7 @@ namespace SharpI7.Combat
 
         private void Awake()
         {
-            balance = BalanceDataLoader.Current.boss.health;
+            balance = BossBalanceProfileSelector.Resolve(gameObject).health;
             CurrentHealth = balance.maxHealth;
             PrepareSpellHitVideo();
 

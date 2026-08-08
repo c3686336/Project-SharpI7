@@ -9,10 +9,13 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
     [SerializeField] private Sprite[] dashFrames;
     [SerializeField, Min(0.01f)] private float dashFramesPerSecond = 10f;
     [SerializeField, Min(0.01f)] private float dashFrameBlendDuration = 0.1f;
+    [SerializeField, Min(0.01f)] private float dashFrameTwoWidthMultiplier = 1.35f;
+    [SerializeField, Min(0.01f)] private float dashFrameTwoHeightMultiplier = 1.25f;
 
     private PlayerController playerController;
     private SpriteRenderer spriteRenderer;
     private SpriteRenderer previousDashRenderer;
+    private SpriteRenderer dashFrameTwoRenderer;
     private float elapsed;
     private float previousDashFadeRemaining;
     private int frameIndex;
@@ -24,6 +27,7 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         playerController = GetComponent<PlayerController>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         CreatePreviousDashRenderer();
+        CreateDashFrameTwoRenderer();
     }
 
     private void Update()
@@ -45,6 +49,7 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         }
 
         wasDashing = false;
+        HideDashFrameTwoOverride();
         UpdatePreviousDashFade();
 
         if (movementFrames == null || movementFrames.Length == 0)
@@ -107,6 +112,7 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
 
             dashFrameIndex = nextDashFrameIndex;
             spriteRenderer.sprite = dashFrames[dashFrameIndex];
+            ShowDashFrameTwoOverrideIfNeeded();
         }
 
         UpdatePreviousDashFade();
@@ -123,6 +129,48 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         previousDashRenderer.enabled = false;
     }
 
+    private void CreateDashFrameTwoRenderer()
+    {
+        var frameTwoObject = new GameObject("Dash Frame 2 Size Override");
+        frameTwoObject.transform.SetParent(transform, false);
+
+        dashFrameTwoRenderer = frameTwoObject.AddComponent<SpriteRenderer>();
+        dashFrameTwoRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
+        dashFrameTwoRenderer.sortingOrder = spriteRenderer.sortingOrder;
+        dashFrameTwoRenderer.enabled = false;
+    }
+
+    private void ShowDashFrameTwoOverrideIfNeeded()
+    {
+        if (dashFrameIndex != 2 || dashFrameTwoRenderer == null)
+        {
+            HideDashFrameTwoOverride();
+            return;
+        }
+
+        dashFrameTwoRenderer.sprite = spriteRenderer.sprite;
+        dashFrameTwoRenderer.flipX = spriteRenderer.flipX;
+        dashFrameTwoRenderer.color = spriteRenderer.color;
+        dashFrameTwoRenderer.transform.localScale = new Vector3(
+            dashFrameTwoWidthMultiplier,
+            dashFrameTwoHeightMultiplier,
+            1f);
+        dashFrameTwoRenderer.enabled = true;
+        spriteRenderer.enabled = false;
+    }
+
+    private void HideDashFrameTwoOverride()
+    {
+        if (dashFrameTwoRenderer != null)
+        {
+            dashFrameTwoRenderer.enabled = false;
+        }
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = true;
+        }
+    }
     private void BeginPreviousDashFade(Sprite sprite)
     {
         if (previousDashRenderer == null || sprite == null)
@@ -133,6 +181,9 @@ public sealed class PlayerMoveVideoVisual : MonoBehaviour
         previousDashRenderer.sprite = sprite;
         previousDashRenderer.flipX = spriteRenderer.flipX;
         previousDashRenderer.color = Color.white;
+        previousDashRenderer.transform.localScale = dashFrameIndex == 2
+            ? new Vector3(dashFrameTwoWidthMultiplier, dashFrameTwoHeightMultiplier, 1f)
+            : Vector3.one;
         previousDashRenderer.enabled = true;
         previousDashFadeRemaining = dashFrameBlendDuration;
     }

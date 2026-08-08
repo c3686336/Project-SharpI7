@@ -8,7 +8,7 @@ namespace SharpI7.Balance
     {
         public int schemaVersion;
         public PlayerBalance player;
-        public BossBalance boss;
+        public BossBalanceCollection boss;
     }
 
     [Serializable]
@@ -41,6 +41,23 @@ namespace SharpI7.Balance
         public float distance;
     }
 
+    public enum BossBalanceProfile
+    {
+        FloorOne,
+        FloorTwo
+    }
+
+    [Serializable]
+    public sealed class BossBalanceCollection
+    {
+        public BossBalance floorOne;
+        public BossBalance floorTwo;
+
+        public BossBalance Get(BossBalanceProfile profile)
+        {
+            return profile == BossBalanceProfile.FloorTwo ? floorTwo : floorOne;
+        }
+    }
     [Serializable]
     public sealed class BossBalance
     {
@@ -56,6 +73,7 @@ namespace SharpI7.Balance
         public DashLaserWallBalance dashLaserWall;
         public RadialOrbBalance radialOrb;
         public BossDistanceAttackBalance distanceAttack;
+        public SlimeHopperBalance slimeHopper;
     }
 
     [Serializable]
@@ -89,6 +107,7 @@ namespace SharpI7.Balance
         public float chantOpportunityDuration;
         public float attackDamage;
         public float unavailableAttackRetryDelay;
+        public int maxConsecutiveSamePattern;
     }
 
     [Serializable]
@@ -171,6 +190,21 @@ namespace SharpI7.Balance
         public Vector2 playAreaSize;
     }
 
+    [Serializable]
+    public sealed class SlimeHopperBalance
+    {
+        public int minCount;
+        public int maxCount;
+        public float warningDuration;
+        public float warningWidth;
+        public float speed;
+        public float hitRadius;
+        public float scale;
+        public float lifetime;
+        public float bounceFrequency;
+        public float bounceScaleAmount;
+        public float bounceHeight;
+    }
     [Serializable]
     public sealed class BossDistanceAttackBalance
     {

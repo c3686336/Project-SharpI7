@@ -18,12 +18,17 @@ namespace SharpI7.Combat
         [SerializeField] private SlowWobbleOrb slowWobbleOrbPrefab;
         [SerializeField] private BossDistanceDanger bossDistanceDangerPrefab;
         [SerializeField] private DashLaserWallDanger dashLaserWallDangerPrefab;
+        [SerializeField] private BossJumpShockwaveAttack jumpShockwaveAttack;
+        [SerializeField] private SlimeStretchAttack slimeStretchAttack;
+        [SerializeField] private SlimeBounceAttack slimeBounceAttack;
+        [SerializeField] private SlimeHopperAttack slimeHopperAttack;
 
         private float firstAttackDelay;
         private float recoveryDuration;
         private float chantOpportunityDuration;
         private float attackDamage;
         private float unavailableAttackRetryDelay;
+        private int maxConsecutiveSamePattern = 2;
         private bool enableTrackingBarrage;
         private int minTrackingStrikes;
         private int maxTrackingStrikes;
@@ -86,6 +91,10 @@ namespace SharpI7.Combat
         private SafeZoneDanger activeSafeZone;
         private RotatingLaserDanger activeLaserZone;
         private DashLaserWallDanger activeDashLaserWall;
+        private BossJumpShockwaveAttack activeJumpShockwave;
+        private SlimeStretchAttack activeSlimeStretch;
+        private SlimeBounceAttack activeSlimeBounce;
+        private SlimeHopperAttack activeSlimeHopper;
         private readonly List<SlowWobbleOrb> activeOrbs = new();
         private readonly List<BossAttackPattern> availableAttacks = new();
         private BossDistanceDanger activeBossDistanceZone;
@@ -96,10 +105,12 @@ namespace SharpI7.Combat
         private bool combatStopped;
         private bool phaseTwoActive;
         private float nextContactDamageTime;
+        private BossAttackPattern lastSelectedAttack;
+        private int consecutiveAttackCount;
 
         private void Awake()
         {
-            ApplyBalance(BalanceDataLoader.Current.boss);
+            ApplyBalance(BossBalanceProfileSelector.Resolve(gameObject));
             bossHealth = GetComponent<BossHealth>();
             bossMovement = GetComponent<BossMovement>();
             bossVisual = GetComponent<BossVisual>();
@@ -113,6 +124,7 @@ namespace SharpI7.Combat
             chantOpportunityDuration = timing.chantOpportunityDuration;
             attackDamage = timing.attackDamage;
             unavailableAttackRetryDelay = timing.unavailableAttackRetryDelay;
+            maxConsecutiveSamePattern = Mathf.Max(1, timing.maxConsecutiveSamePattern);
 
             TrackingBarrageBalance tracking = data.trackingBarrage;
             enableTrackingBarrage = tracking.enabled;
@@ -180,12 +192,15 @@ namespace SharpI7.Combat
             bossDistanceFieldSize = distance.fieldSize;
             bossDistanceRadius = distance.radius;
             bossDistancePostAttackDelay = distance.postAttackDelay;
+            slimeHopperAttack?.Configure(data.slimeHopper);
         }
 
         private void OnEnable()
         {
             combatStopped = false;
             nextContactDamageTime = 0f;
+            lastSelectedAttack = default;
+            consecutiveAttackCount = 0;
             bossHealth.Died += StopAttacking;
             bossHealth.PhaseTwoTransitionStarted += BeginPhaseTwoTransition;
             bossHealth.PhaseTwoStarted += StartPhaseTwo;
@@ -235,6 +250,10 @@ namespace SharpI7.Combat
             CancelActiveSafeZone();
             CancelActiveLaserZone();
             CancelActiveDashLaserWall();
+            CancelActiveJumpShockwave();
+            CancelActiveSlimeStretch();
+            CancelActiveSlimeBounce();
+            CancelActiveSlimeHopper();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
         }
@@ -278,6 +297,7 @@ namespace SharpI7.Combat
                 }
 
                 var selectedAttack = availableAttacks[Random.Range(0, availableAttacks.Count)];
+                RecordSelectedAttack(selectedAttack);
                 yield return PerformAttack(selectedAttack);
                 lastAttackFamily = selectedAttack == BossAttackPattern.OrbFamily
                     ? AttackFamily.OrbProjectile
@@ -299,18 +319,49 @@ namespace SharpI7.Combat
         {
             availableAttacks.Clear();
 
+            // A slime has its own attack set. It must never inherit a golem
+            // pattern just because this controller is shared by both bosses.
+            var isSlimeBoss = slimeStretchAttack != null || slimeBounceAttack != null;
+            if (isSlimeBoss)
+            {
+                AddAttackIf(slimeStretchAttack != null, BossAttackPattern.SlimeStretch);
+                AddAttackIf(slimeBounceAttack != null, BossAttackPattern.SlimeBounce);
+                AddAttackIf(slimeHopperAttack != null, BossAttackPattern.SlimeHopper);
+                AddAttackIf(jumpShockwaveAttack != null, BossAttackPattern.JumpShockwave);
+                RemoveBlockedConsecutiveAttack();
+                return;
+            }
+
             AddAttackIf(enableTrackingBarrage && dangerZonePrefab != null, BossAttackPattern.TrackingBarrage);
             AddAttackIf(enableLineGroundAttack && lineDangerZonePrefab != null, BossAttackPattern.Line);
             AddAttackIf(enableSafeZoneAttack && safeZoneDangerPrefab != null, BossAttackPattern.SafeZone);
             AddAttackIf(enableRotatingLaserAttack && rotatingLaserDangerPrefab != null, BossAttackPattern.RotatingLaser);
             AddAttackIf(enableDashLaserWallAttack && dashLaserWallDangerPrefab != null, BossAttackPattern.DashLaserWall);
+            AddAttackIf(jumpShockwaveAttack != null, BossAttackPattern.JumpShockwave);
             AddAttackIf(
                 lastAttackFamily != AttackFamily.OrbProjectile && enableRadialWobbleOrbAttack
                     && slowWobbleOrbPrefab != null,
                 BossAttackPattern.OrbFamily);
             AddAttackIf(enableBossDistanceAttack && bossDistanceDangerPrefab != null, BossAttackPattern.BossDistance);
+            RemoveBlockedConsecutiveAttack();
+        }
+        private void RemoveBlockedConsecutiveAttack()
+        {
+            if (consecutiveAttackCount < maxConsecutiveSamePattern)
+            {
+                return;
+            }
+
+            availableAttacks.RemoveAll(attack => attack == lastSelectedAttack);
         }
 
+        private void RecordSelectedAttack(BossAttackPattern attack)
+        {
+            consecutiveAttackCount = attack == lastSelectedAttack
+                ? consecutiveAttackCount + 1
+                : 1;
+            lastSelectedAttack = attack;
+        }
         private void AddAttackIf(bool condition, BossAttackPattern attack)
         {
             if (condition)
@@ -337,6 +388,18 @@ namespace SharpI7.Combat
                     break;
                 case BossAttackPattern.DashLaserWall:
                     yield return PerformDashLaserWallAttack();
+                    break;
+                case BossAttackPattern.JumpShockwave:
+                    yield return PerformJumpShockwaveAttack();
+                    break;
+                case BossAttackPattern.SlimeStretch:
+                    yield return PerformSlimeStretchAttack();
+                    break;
+                case BossAttackPattern.SlimeBounce:
+                    yield return PerformSlimeBounceAttack();
+                    break;
+                case BossAttackPattern.SlimeHopper:
+                    yield return PerformSlimeHopperAttack();
                     break;
                 case BossAttackPattern.OrbFamily:
                     yield return PerformOrbFamilyAttack();
@@ -380,6 +443,10 @@ namespace SharpI7.Combat
             CancelActiveSafeZone();
             CancelActiveLaserZone();
             CancelActiveDashLaserWall();
+            CancelActiveJumpShockwave();
+            CancelActiveSlimeStretch();
+            CancelActiveSlimeBounce();
+            CancelActiveSlimeHopper();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
 
@@ -570,6 +637,113 @@ namespace SharpI7.Combat
             activeDashLaserWall = null;
         }
 
+        private IEnumerator PerformSlimeHopperAttack()
+        {
+            var fieldBounds = new Bounds(transform.position, new Vector3(45f, 27f, 1f));
+            if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                fieldBounds = wallInteriorBounds;
+            }
+            else if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldBounds = arenaBounds;
+            }
+
+            activeSlimeHopper = slimeHopperAttack;
+            var duration = activeSlimeHopper.Begin(playerTarget, fieldBounds, attackDamage);
+            yield return new WaitForSeconds(duration);
+            activeSlimeHopper = null;
+        }
+        private IEnumerator PerformSlimeBounceAttack()
+        {
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
+
+            var fieldBounds = new Bounds(transform.position, new Vector3(45f, 27f, 1f));
+            if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                fieldBounds = wallInteriorBounds;
+            }
+            else if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldBounds = arenaBounds;
+            }
+
+            activeSlimeBounce = slimeBounceAttack;
+            var duration = activeSlimeBounce.Begin(playerTarget, fieldBounds, attackDamage);
+            yield return new WaitForSeconds(duration);
+            activeSlimeBounce = null;
+
+            if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
+            {
+                bossMovement.UnlockMovement();
+            }
+        }
+        private IEnumerator PerformSlimeStretchAttack()
+        {
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
+
+            var horizontal = Random.value < 0.5f;
+            var stretchLength = lineAttackLength;
+            if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                stretchLength = horizontal
+                    ? 2f * Mathf.Max(
+                        Mathf.Abs(transform.position.x - arenaBounds.min.x),
+                        Mathf.Abs(arenaBounds.max.x - transform.position.x))
+                    : 2f * Mathf.Max(
+                        Mathf.Abs(transform.position.y - arenaBounds.min.y),
+                        Mathf.Abs(arenaBounds.max.y - transform.position.y));
+            }
+
+            activeSlimeStretch = slimeStretchAttack;
+            var duration = activeSlimeStretch.Begin(
+                playerTarget,
+                horizontal,
+                stretchLength,
+                lineAttackWidth,
+                lineWarningDuration,
+                attackDamage);
+            yield return new WaitForSeconds(duration);
+            activeSlimeStretch = null;
+
+            if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
+            {
+                bossMovement.UnlockMovement();
+            }
+        }
+        private IEnumerator PerformJumpShockwaveAttack()
+        {
+            if (bossMovement != null)
+            {
+                bossMovement.LockMovement();
+            }
+
+            var fieldBounds = new Bounds(transform.position, new Vector3(45f, 27f, 1f));
+            if (ArenaBounds.TryGetWallInteriorBounds(out var wallInteriorBounds))
+            {
+                fieldBounds = wallInteriorBounds;
+            }
+            else if (ArenaBounds.TryGetWorldBounds(out var arenaBounds))
+            {
+                fieldBounds = arenaBounds;
+            }
+
+            activeJumpShockwave = jumpShockwaveAttack;
+            var duration = activeJumpShockwave.Begin(playerTarget, fieldBounds, attackDamage);
+            yield return new WaitForSeconds(duration);
+            activeJumpShockwave = null;
+
+            if (bossMovement != null && bossHealth.IsAlive && !bossHealth.IsTransitioningToPhaseTwo)
+            {
+                bossMovement.UnlockMovement();
+            }
+        }
         private IEnumerator PerformSafeZoneAttack()
         {
             if (bossMovement != null)
@@ -798,6 +972,10 @@ namespace SharpI7.Combat
             CancelActiveSafeZone();
             CancelActiveLaserZone();
             CancelActiveDashLaserWall();
+            CancelActiveJumpShockwave();
+            CancelActiveSlimeStretch();
+            CancelActiveSlimeBounce();
+            CancelActiveSlimeHopper();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
 
@@ -862,6 +1040,45 @@ namespace SharpI7.Combat
             activeDashLaserWall = null;
         }
 
+        private void CancelActiveSlimeHopper()
+        {
+            if (slimeHopperAttack != null)
+            {
+                slimeHopperAttack.Cancel();
+            }
+
+            activeSlimeHopper = null;
+        }
+        private void CancelActiveSlimeBounce()
+        {
+            if (activeSlimeBounce == null)
+            {
+                return;
+            }
+
+            activeSlimeBounce.Cancel();
+            activeSlimeBounce = null;
+        }
+        private void CancelActiveSlimeStretch()
+        {
+            if (activeSlimeStretch == null)
+            {
+                return;
+            }
+
+            activeSlimeStretch.Cancel();
+            activeSlimeStretch = null;
+        }
+        private void CancelActiveJumpShockwave()
+        {
+            if (activeJumpShockwave == null)
+            {
+                return;
+            }
+
+            activeJumpShockwave.Cancel();
+            activeJumpShockwave = null;
+        }
         private void CancelActiveOrbs()
         {
             for (var orbIndex = activeOrbs.Count - 1; orbIndex >= 0; orbIndex--)
@@ -900,6 +1117,10 @@ namespace SharpI7.Combat
             SafeZone,
             RotatingLaser,
             DashLaserWall,
+            JumpShockwave,
+            SlimeStretch,
+            SlimeBounce,
+            SlimeHopper,
             OrbFamily,
             BossDistance
         }

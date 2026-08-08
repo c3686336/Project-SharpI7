@@ -15,9 +15,11 @@ namespace SharpI7.Combat
         private float speedMultiplier = 1f;
         private float boundaryPadding;
 
+        public bool IsMoving { get; private set; }
+
         private void Awake()
         {
-            balance = BalanceDataLoader.Current.boss.movement;
+            balance = BossBalanceProfileSelector.Resolve(gameObject).movement;
             bossHealth = GetComponent<BossHealth>();
             var collider = GetComponent<Collider2D>();
             boundaryPadding = collider == null
@@ -27,6 +29,8 @@ namespace SharpI7.Combat
 
         private void Update()
         {
+            IsMoving = false;
+
             if (movementLocked || !bossHealth.IsAlive || bossHealth.IsTransitioningToPhaseTwo)
             {
                 return;
@@ -51,7 +55,9 @@ namespace SharpI7.Combat
                 currentPosition,
                 targetPosition,
                 balance.moveSpeed * speedMultiplier * Time.deltaTime);
-            transform.position = ArenaBounds.ClampPosition(nextPosition, boundaryPadding);
+            var clampedPosition = ArenaBounds.ClampPosition(nextPosition, boundaryPadding);
+            IsMoving = ((Vector2)clampedPosition - (Vector2)currentPosition).sqrMagnitude > 0.00000001f;
+            transform.position = clampedPosition;
         }
 
         public void SetPlayerTarget(Transform target)

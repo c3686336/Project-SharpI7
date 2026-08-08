@@ -13,7 +13,7 @@ namespace SharpI7.Combat
         [SerializeField] private Color highDamageColor = new(1f, 0.1f, 0.08f, 1f);
         [SerializeField, Min(1)] private int fontSize = 58;
         [SerializeField, Min(0.001f)] private float characterSize = 0.35f;
-        [SerializeField, Min(1f)] private float damageSizeReference = 100f;
+        [SerializeField, Min(1f)] private float damageSizeReference = 30f;
         [SerializeField, Range(0.1f, 1f)] private float minimumDamageSizeMultiplier = 0.4f;
         [SerializeField, Min(1f)] private float maximumDamageSizeMultiplier = 2f;
 
@@ -74,12 +74,12 @@ namespace SharpI7.Combat
 
         private Color GetDamageColor(float damageAmount)
         {
-            if (damageAmount >= 200f)
+            if (damageAmount >= 55f)
             {
                 return highDamageColor;
             }
 
-            return damageAmount >= 150f ? mediumDamageColor : lowDamageColor;
+            return damageAmount >= 30f ? mediumDamageColor : lowDamageColor;
         }
 
         private float GetDamageSizeMultiplier(float damageAmount)

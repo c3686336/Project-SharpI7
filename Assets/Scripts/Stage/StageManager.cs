@@ -132,6 +132,12 @@ public sealed class StageManager : MonoBehaviour
         }
 
         GameObject bossObject = Instantiate(newStage.BossPrefab);
+        // Keep the runtime instance at the exact size authored on the prefab.
+        // This prevents initialization code from leaving it at a different scale
+        // from the same prefab placed directly in a scene.
+        Vector3 prefabScale = newStage.BossPrefab.transform.localScale;
+        bossObject.transform.localScale = prefabScale;
+        bossObject.GetComponent<BossMovementAnimator>()?.SetBaseScale(prefabScale);
         BossHealth newBoss = bossObject.GetComponent<BossHealth>();
         if (newBoss == null)
         {

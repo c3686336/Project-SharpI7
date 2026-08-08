@@ -7,7 +7,7 @@ namespace SharpI7.Balance
     public static class BalanceDataLoader
     {
         private const string DefaultFileName = "balance.json";
-        private const int CurrentSchemaVersion = 2;
+        private const int CurrentSchemaVersion = 3;
 
         private static readonly (string Name, int Count)[] RequiredProperties =
         {
@@ -129,7 +129,7 @@ namespace SharpI7.Balance
                     index += token.Length;
                 }
 
-                if (actualCount != expectedCount)
+                if (actualCount < expectedCount)
                 {
                     throw new InvalidDataException(
                         $"Expected {expectedCount} '{name}' properties in '{path}', found {actualCount}.");
@@ -137,7 +137,7 @@ namespace SharpI7.Balance
             }
         }
 
-        private static void Validate(BalanceData data, string path)
+        private static void Validate(BalanceData data, string path, bool validateSecondFloor = true)
         {
             if (data == null || data.schemaVersion != CurrentSchemaVersion)
             {
@@ -149,13 +149,19 @@ namespace SharpI7.Balance
                 throw new InvalidDataException($"Player balance data is incomplete in '{path}'.");
             }
 
-            BossBalance boss = data.boss;
-            if (boss?.health == null || boss.movement == null || boss.phaseTwo == null ||
+            BossBalanceCollection bossCollection = data.boss;
+            if (bossCollection?.floorOne == null || bossCollection.floorTwo == null)
+            {
+                throw new InvalidDataException($"Boss floor balance data is incomplete in '{path}'.");
+            }
+
+            BossBalance boss = bossCollection.floorOne;
+            if (boss.health == null || boss.movement == null || boss.phaseTwo == null ||
                 boss.attackTiming == null || boss.contact == null || boss.trackingBarrage == null ||
                 boss.lineAttack == null || boss.safeZoneAttack == null || boss.rotatingLaser == null ||
                 boss.dashLaserWall == null || boss.radialOrb == null || boss.distanceAttack == null)
             {
-                throw new InvalidDataException($"Boss balance data is incomplete in '{path}'.");
+                throw new InvalidDataException($"First-floor boss balance data is incomplete in '{path}'.");
             }
 
             RequirePositive(data.player.maxHealth, "player.maxHealth", path);
@@ -366,6 +372,25 @@ namespace SharpI7.Balance
                 boss.distanceAttack.radius,
                 "boss.distanceAttack.fieldSize",
                 path);
+
+            if (validateSecondFloor)
+            {
+                Validate(CreateFloorValidationData(data, bossCollection.floorTwo), path, false);
+            }
+        }
+
+        private static BalanceData CreateFloorValidationData(BalanceData source, BossBalance floorBalance)
+        {
+            return new BalanceData
+            {
+                schemaVersion = source.schemaVersion,
+                player = source.player,
+                boss = new BossBalanceCollection
+                {
+                    floorOne = floorBalance,
+                    floorTwo = floorBalance
+                }
+            };
         }
 
         private static void RequirePositive(float value, string field, string path)
