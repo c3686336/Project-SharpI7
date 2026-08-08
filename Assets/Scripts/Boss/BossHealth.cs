@@ -6,6 +6,7 @@ using UnityEngine.Video;
 
 namespace SharpI7.Combat
 {
+    [RequireComponent(typeof(AudioSource))]
     public sealed class BossHealth : MonoBehaviour, IDamageable
     {
         [SerializeField] private DamagePopup damagePopupPrefab;
@@ -41,11 +42,15 @@ namespace SharpI7.Combat
         private Material spellHitVideoMaterial;
         private Coroutine hideSpellHitVideoRoutine;
 
+        private AudioSource audioPlayer;
+
         private void Awake()
         {
             balance = BalanceDataLoader.Current.boss.health;
             CurrentHealth = balance.maxHealth;
             PrepareSpellHitVideo();
+
+            audioPlayer = GetComponent<AudioSource>();
         }
 
         public void TakeDamage(float amount)
@@ -134,6 +139,7 @@ namespace SharpI7.Combat
 
         private void ShowSpellHitEffect()
         {
+            PlaySpellHitAudio();
             PlaySpellHitVideo();
         }
 
@@ -197,6 +203,11 @@ namespace SharpI7.Combat
             spellHitVideoPlayer.targetTexture = spellHitVideoTexture;
             spellHitVideoPlayer.clip = spellHitVideoClip;
             spellHitVideoPlayer.Prepare();
+        }
+
+        private void PlaySpellHitAudio()
+        {
+            audioPlayer.Play();
         }
 
         private void PlaySpellHitVideo()

@@ -18,6 +18,8 @@ internal sealed class PlayerDash
     private bool isOnCooldown;
     private float cooldownStartedAt;
 
+    public event Action dash;
+
     public PlayerDash(
         Rigidbody2D rigidbody2D,
         Func<Vector2> directionProvider,
@@ -69,6 +71,8 @@ internal sealed class PlayerDash
         {
             return;
         }
+
+        dash?.Invoke();
 
         // FixedUpdate stops normal locomotion as soon as IsDashing becomes true.
         // Store the input direction first so the windup cannot turn this dash into

@@ -17,21 +17,36 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
     private readonly Transform playerEffectOrigin;
     private readonly SpellEffectRegistry effectRegistry;
     private readonly CancellationTokenSource cancellationTokenSource;
+    private readonly AudioSource audioSource;
+    private readonly AudioClip castSFX;
 
     private bool disposed;
 
-    public LightningSpellCaster(BossHealth target, Transform playerEffectOrigin, SpellEffectRegistry effectRegistry, CancellationToken lifetimeToken)
+    public LightningSpellCaster(
+        BossHealth target,
+        Transform playerEffectOrigin,
+        SpellEffectRegistry effectRegistry,
+        CancellationToken lifetimeToken,
+        AudioSource audioSource,
+        AudioClip castSFX)
     {
         this.target = target;
         this.playerEffectOrigin = playerEffectOrigin;
         this.effectRegistry = effectRegistry;
         cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken);
+        this.audioSource = audioSource;
+        this.castSFX = castSFX;
     }
 
     public void Cast(CastResult result)
     {
         if (disposed || target == null || !target.IsAlive)
             return;
+
+        if (audioSource != null && castSFX != null)
+        {
+            audioSource.PlayOneShot(castSFX);
+        }
 
         switch (result.castLevel)
         {
