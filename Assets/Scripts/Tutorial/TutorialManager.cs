@@ -47,6 +47,13 @@ public sealed class TutorialManager : MonoBehaviour
         "마우스 좌클릭으로 튜토리얼을 진행할 수 있습니다.";
     private const string FollowInstructionsMessage =
         "튜토리얼의 지시사항을 확인해주세요.";
+    private const string RefocusChantInputMessage =
+        "위의 영창 입력칸을 한 번 클릭해주세요.";
+    private const int ChantInputBlinkCount = 2;
+    private const float ChantInputBlinkFadeDuration = 0.12f;
+    private const float ChantInputBlinkHoldDuration = 0.08f;
+    private static readonly Color ChantInputBlinkColor =
+        new(1f, 0.85f, 0.1f, 0.55f);
 
     [SerializeField] private string fileName = DefaultFileName;
     [SerializeField] private TMP_Text dialogueText;
@@ -98,7 +105,9 @@ public sealed class TutorialManager : MonoBehaviour
     private readonly List<Vector2> arrowMoveAxes = new();
     private InGameManager inGameManager;
     private ChantInputField chantPracticeInputField;
+    private Graphic chantInputBlinkGraphic;
     private Coroutine actionRoutine;
+    private Coroutine chantInputBlinkRoutine;
     private Coroutine chantInputCleanupRoutine;
     private Coroutine chantPracticeRestartRoutine;
     private Coroutine typingRoutine;
@@ -107,7 +116,9 @@ public sealed class TutorialManager : MonoBehaviour
     private Image previewHeartImage;
     private float actionFinalFillAmount;
     private float arrowAnimationElapsed;
+    private Color chantInputBlinkOriginalColor;
     private float nextInputHintTime;
+    private float nextChantInputHintTime;
     private int activeArrowCount;
     private int currentStepIndex = -1;
     private int inputBlockedThroughFrame = -1;
@@ -170,6 +181,7 @@ public sealed class TutorialManager : MonoBehaviour
         isWaitingForChantEnter = false;
         isWaitingForChantPractice = false;
         nextInputHintTime = 0f;
+        nextChantInputHintTime = 0f;
         isRunning = true;
         ShowCurrentStep();
     }
@@ -449,8 +461,23 @@ public sealed class TutorialManager : MonoBehaviour
         nextInputHintTime = Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
     }
 
+    private void ShowChantInputRefocusHint()
+    {
+        if (toastMessageManager == null ||
+            Time.unscaledTime < nextChantInputHintTime)
+        {
+            return;
+        }
+
+        toastMessageManager.Show(RefocusChantInputMessage);
+        nextChantInputHintTime =
+            Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
+        StartChantInputBlink();
+    }
+
     private void StartChantPractice(TutorialDialogueStep step)
     {
+        StopChantInputBlink();
         StopChantInputCleanup();
         StopChantPracticeRestart();
 
@@ -503,11 +530,23 @@ public sealed class TutorialManager : MonoBehaviour
 
         if (WasLeftClickPressedThisFrame())
         {
-            if (!IsPointerOverChantInputField())
+            if (IsPointerOverChantInputField())
+            {
+                StopChantInputBlink();
+            }
+            else
             {
                 ShowToastWithCooldown(FollowInstructionsMessage);
             }
 
+            return;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (!IsChantInputFocused() && keyboard != null &&
+            keyboard.anyKey.wasPressedThisFrame)
+        {
+            ShowChantInputRefocusHint();
             return;
         }
 
@@ -559,6 +598,96 @@ public sealed class TutorialManager : MonoBehaviour
             inputRect,
             mouse.position.ReadValue(),
             eventCamera);
+    }
+
+    private bool IsChantInputFocused()
+    {
+        if (chantPracticeInputField == null)
+        {
+            return false;
+        }
+
+        GameObject selectedObject =
+            EventSystem.current?.currentSelectedGameObject;
+        return chantPracticeInputField.isFocused ||
+               selectedObject == chantPracticeInputField.gameObject;
+    }
+
+    private void StartChantInputBlink()
+    {
+        StopChantInputBlink();
+
+        Graphic targetGraphic = chantPracticeInputField?.targetGraphic;
+        if (targetGraphic == null)
+        {
+            return;
+        }
+
+        chantInputBlinkGraphic = targetGraphic;
+        chantInputBlinkOriginalColor = targetGraphic.color;
+        chantInputBlinkRoutine = StartCoroutine(BlinkChantInput(targetGraphic));
+    }
+
+    private IEnumerator BlinkChantInput(Graphic targetGraphic)
+    {
+        Color originalColor = chantInputBlinkOriginalColor;
+
+        for (int i = 0; i < ChantInputBlinkCount; i++)
+        {
+            yield return AnimateGraphicColor(
+                targetGraphic,
+                originalColor,
+                ChantInputBlinkColor,
+                ChantInputBlinkFadeDuration);
+            yield return WaitForUnscaledSeconds(ChantInputBlinkHoldDuration);
+            yield return AnimateGraphicColor(
+                targetGraphic,
+                ChantInputBlinkColor,
+                originalColor,
+                ChantInputBlinkFadeDuration);
+            yield return WaitForUnscaledSeconds(ChantInputBlinkHoldDuration);
+        }
+
+        targetGraphic.color = originalColor;
+        chantInputBlinkRoutine = null;
+        chantInputBlinkGraphic = null;
+    }
+
+    private static IEnumerator AnimateGraphicColor(
+        Graphic targetGraphic,
+        Color from,
+        Color to,
+        float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            targetGraphic.color = Color.Lerp(
+                from,
+                to,
+                Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+
+        targetGraphic.color = to;
+    }
+
+    private void StopChantInputBlink()
+    {
+        if (chantInputBlinkRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantInputBlinkRoutine);
+        chantInputBlinkRoutine = null;
+
+        if (chantInputBlinkGraphic != null)
+        {
+            chantInputBlinkGraphic.color = chantInputBlinkOriginalColor;
+            chantInputBlinkGraphic = null;
+        }
     }
 
     private void RestartChantPractice()
@@ -614,6 +743,7 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void StopChantPractice(bool keepPreviewVisible)
     {
+        StopChantInputBlink();
         StopChantInputCleanup();
         StopChantPracticeRestart();
 
