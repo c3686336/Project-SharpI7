@@ -15,5 +15,5 @@ MonoBehaviour:
   stageId: stage1
   isTutorial: 0
   backgroundSprite: {fileID: 3389026909784064338, guid: a22079c13c1f68d429c2f0486152dc56, type: 3}
-  bossPrefab: {fileID: 0}
+  bossPrefab: {fileID: 100000, guid: 66666666666666666666666666666666, type: 3}
   nextStage: {fileID: 0}

@@ -33,6 +33,7 @@ public sealed class BossHealthBar : MonoBehaviour
         }
 
         bossHealth.HealthChanged += UpdateHealth;
+        bossHealth.Died += Hide;
         UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
     }
 
@@ -51,11 +52,17 @@ public sealed class BossHealthBar : MonoBehaviour
         }
     }
 
+    private void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+
     private void OnDestroy()
     {
         if (bossHealth != null)
         {
             bossHealth.HealthChanged -= UpdateHealth;
+            bossHealth.Died -= Hide;
         }
     }
 }

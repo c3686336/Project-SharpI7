@@ -18,5 +18,7 @@ public sealed class StageManager : MonoBehaviour
         }
 
         backgroundRenderer.sprite = stageData.BackgroundSprite;
+		backgroundRenderer.transform.position = new Vector3(0f, 1.5f, 0f);
+		backgroundRenderer.sortingOrder = -100;
     }
 }
