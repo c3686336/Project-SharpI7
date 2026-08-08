@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -28,6 +29,7 @@ public sealed class TutorialDialogueStep
     public string text;
     public TutorialArrowData[] arrows;
     public string action;
+    public string expectedChant;
 }
 
 [DisallowMultipleComponent]
@@ -38,7 +40,20 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PreviewManaSaturationDamageAction = "previewManaSaturationDamage";
     private const string PreviewManaConsumptionAction = "previewManaConsumption";
     private const string WaitForChantEnterAction = "waitForChantEnter";
+    private const string PracticeChantAction = "practiceChant";
+    private const string AdvanceWithEnterAction = "advanceWithEnter";
     private const string HideChantPreviewAction = "hideChantPreview";
+    private const string ClickToContinueMessage =
+        "마우스 좌클릭으로 튜토리얼을 진행할 수 있습니다.";
+    private const string FollowInstructionsMessage =
+        "튜토리얼의 지시사항을 확인해주세요.";
+    private const string RefocusChantInputMessage =
+        "위의 영창 입력칸을 한 번 클릭해주세요.";
+    private const int ChantInputBlinkCount = 2;
+    private const float ChantInputBlinkFadeDuration = 0.12f;
+    private const float ChantInputBlinkHoldDuration = 0.08f;
+    private static readonly Color ChantInputBlinkColor =
+        new(1f, 0.85f, 0.1f, 0.55f);
 
     [SerializeField] private string fileName = DefaultFileName;
     [SerializeField] private TMP_Text dialogueText;
@@ -47,6 +62,10 @@ public sealed class TutorialManager : MonoBehaviour
     [Header("Dialogue Typing")]
     [SerializeField, Min(1f)] private float charactersPerSecond = 35f;
     [SerializeField, Min(0f)] private float firstDialogueDelay = 0.5f;
+    [SerializeField, Min(0f)] private float inputHintCooldown = 1.5f;
+
+    [Header("Tutorial Feedback")]
+    [SerializeField] private ToastMessageManager toastMessageManager;
 
     [Header("Arrow Animation")]
     [SerializeField, Min(0f)] private float arrowMoveDistance = 8f;
@@ -55,6 +74,7 @@ public sealed class TutorialManager : MonoBehaviour
     [Header("Chant Preview UI")]
     [SerializeField] private GameObject chantPreviewPanel;
     [SerializeField] private BookChantAnimator chantPreviewBook;
+    [SerializeField] private ChantManager chantManager;
 
     [Header("Mana Preview UI")]
     [SerializeField] private Image manaFillImage;
@@ -84,13 +104,21 @@ public sealed class TutorialManager : MonoBehaviour
     private readonly List<Vector2> arrowBasePositions = new();
     private readonly List<Vector2> arrowMoveAxes = new();
     private InGameManager inGameManager;
+    private ChantInputField chantPracticeInputField;
+    private Graphic chantInputBlinkGraphic;
     private Coroutine actionRoutine;
+    private Coroutine chantInputBlinkRoutine;
+    private Coroutine chantInputCleanupRoutine;
+    private Coroutine chantPracticeRestartRoutine;
     private Coroutine typingRoutine;
     private ManaVisualSnapshot manaVisualSnapshot;
     private HeartVisualSnapshot heartVisualSnapshot;
     private Image previewHeartImage;
     private float actionFinalFillAmount;
     private float arrowAnimationElapsed;
+    private Color chantInputBlinkOriginalColor;
+    private float nextInputHintTime;
+    private float nextChantInputHintTime;
     private int activeArrowCount;
     private int currentStepIndex = -1;
     private int inputBlockedThroughFrame = -1;
@@ -99,10 +127,14 @@ public sealed class TutorialManager : MonoBehaviour
     private bool isTyping;
     private bool isTypingDelayActive;
     private bool isWaitingForChantEnter;
+    private bool isWaitingForChantPractice;
+    private bool chantPracticeActive;
+    private bool canAdvanceWithEnter;
     private bool chantPreviewSnapshotCaptured;
     private bool chantPreviewInitialActive;
     private bool manaPreviewActive;
     private bool healthPreviewActive;
+    private string expectedPracticeChant;
 
     private struct ManaVisualSnapshot
     {
@@ -122,6 +154,7 @@ public sealed class TutorialManager : MonoBehaviour
     {
         StopTyping();
         StopCurrentAction();
+        StopChantPractice(false);
         HideAllArrows();
         RestoreChantPreview();
         RestoreManaVisuals();
@@ -146,6 +179,9 @@ public sealed class TutorialManager : MonoBehaviour
         currentStepIndex = 0;
         inputBlockedThroughFrame = Time.frameCount;
         isWaitingForChantEnter = false;
+        isWaitingForChantPractice = false;
+        nextInputHintTime = 0f;
+        nextChantInputHintTime = 0f;
         isRunning = true;
         ShowCurrentStep();
     }
@@ -169,6 +205,12 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
+        if (isWaitingForChantPractice)
+        {
+            HandleChantPracticeInput();
+            return;
+        }
+
         if (isTyping && WasLeftClickPressedThisFrame())
         {
             CompleteTyping();
@@ -180,6 +222,14 @@ public sealed class TutorialManager : MonoBehaviour
             HandleChantEnterInput();
             return;
         }
+
+        if (!isTyping && canAdvanceWithEnter && WasEnterPressedThisFrame())
+        {
+            AdvanceDialogue();
+            return;
+        }
+
+        ShowClickHintForKeyboardInput();
 
         if (isTyping || !WasLeftClickPressedThisFrame())
         {
@@ -193,7 +243,6 @@ public sealed class TutorialManager : MonoBehaviour
     {
         if (isActionPlaying)
         {
-            CompleteCurrentAction();
             return;
         }
 
@@ -241,6 +290,7 @@ public sealed class TutorialManager : MonoBehaviour
     private void ShowCurrentStep()
     {
         TutorialDialogueStep step = steps[currentStepIndex];
+        canAdvanceWithEnter = false;
         float typingDelay = currentStepIndex == 0
             ? Mathf.Max(0f, firstDialogueDelay)
             : 0f;
@@ -330,7 +380,14 @@ public sealed class TutorialManager : MonoBehaviour
             case WaitForChantEnterAction:
                 isWaitingForChantEnter = true;
                 break;
+            case PracticeChantAction:
+                StartChantPractice(step);
+                break;
+            case AdvanceWithEnterAction:
+                canAdvanceWithEnter = true;
+                break;
             case HideChantPreviewAction:
+                StopChantPractice(false);
                 HideChantPreview();
                 break;
             case PreviewManaProfilesAction:
@@ -352,14 +409,18 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void HandleChantEnterInput()
     {
-        if (!WasEnterPressedThisFrame())
+        if (WasEnterPressedThisFrame())
         {
+            isWaitingForChantEnter = false;
+            ShowChantPreview();
+            AdvanceDialogue();
             return;
         }
 
-        isWaitingForChantEnter = false;
-        ShowChantPreview();
-        AdvanceDialogue();
+        if (WasLeftClickPressedThisFrame())
+        {
+            ShowToastWithCooldown(FollowInstructionsMessage);
+        }
     }
 
     private static bool WasEnterPressedThisFrame()
@@ -374,6 +435,390 @@ public sealed class TutorialManager : MonoBehaviour
     {
         Mouse mouse = Mouse.current;
         return mouse != null && mouse.leftButton.wasPressedThisFrame;
+    }
+
+    private void ShowClickHintForKeyboardInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (canAdvanceWithEnter || keyboard == null ||
+            !keyboard.anyKey.wasPressedThisFrame ||
+            toastMessageManager == null || Time.unscaledTime < nextInputHintTime)
+        {
+            return;
+        }
+
+        ShowToastWithCooldown(ClickToContinueMessage);
+    }
+
+    private void ShowToastWithCooldown(string message)
+    {
+        if (toastMessageManager == null || Time.unscaledTime < nextInputHintTime)
+        {
+            return;
+        }
+
+        toastMessageManager.Show(message);
+        nextInputHintTime = Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
+    }
+
+    private void ShowChantInputRefocusHint()
+    {
+        if (toastMessageManager == null ||
+            Time.unscaledTime < nextChantInputHintTime)
+        {
+            return;
+        }
+
+        toastMessageManager.Show(RefocusChantInputMessage);
+        nextChantInputHintTime =
+            Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
+        StartChantInputBlink();
+    }
+
+    private void StartChantPractice(TutorialDialogueStep step)
+    {
+        StopChantInputBlink();
+        StopChantInputCleanup();
+        StopChantPracticeRestart();
+
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        if (chantManager == null)
+        {
+            Debug.LogError(
+                "[TutorialDialogue] 영창 연습에 사용할 ChantManager가 연결되지 않았습니다.",
+                this);
+            return;
+        }
+
+        expectedPracticeChant = NormalizeChant(step.expectedChant);
+        if (string.IsNullOrEmpty(expectedPracticeChant))
+        {
+            Debug.LogError(
+                "[TutorialDialogue] practiceChant 단계에 expectedChant가 없습니다.",
+                this);
+            return;
+        }
+
+        if (chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        chantManager.StartChant();
+        chantPracticeActive = chantManager.IsCasting;
+        isWaitingForChantPractice = chantPracticeActive;
+
+        if (!chantPracticeActive)
+        {
+            Debug.LogError(
+                "[TutorialDialogue] 영창 연습 모드를 시작하지 못했습니다.",
+                chantManager);
+        }
+    }
+
+    private void HandleChantPracticeInput()
+    {
+        if (chantPracticeRestartRoutine != null)
+        {
+            return;
+        }
+
+        if (WasLeftClickPressedThisFrame())
+        {
+            if (IsPointerOverChantInputField())
+            {
+                StopChantInputBlink();
+            }
+            else
+            {
+                ShowToastWithCooldown(FollowInstructionsMessage);
+            }
+
+            return;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (!IsChantInputFocused() && keyboard != null &&
+            keyboard.anyKey.wasPressedThisFrame)
+        {
+            ShowChantInputRefocusHint();
+            return;
+        }
+
+        if (!WasEnterPressedThisFrame())
+        {
+            return;
+        }
+
+        string submittedChant = NormalizeChant(
+            chantManager?.CommitImeCompositionAndGetInput());
+        if (!string.Equals(
+                submittedChant,
+                expectedPracticeChant,
+                StringComparison.Ordinal))
+        {
+            RestartChantPractice();
+            ShowChantPracticeRetryMessage();
+            return;
+        }
+
+        StopChantPractice(true);
+        inputBlockedThroughFrame = Time.frameCount;
+        AdvanceDialogue();
+    }
+
+    private bool IsPointerOverChantInputField()
+    {
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        Mouse mouse = Mouse.current;
+        if (chantPracticeInputField == null || mouse == null)
+        {
+            return false;
+        }
+
+        RectTransform inputRect =
+            chantPracticeInputField.GetComponent<RectTransform>();
+        Canvas inputCanvas = chantPracticeInputField.GetComponentInParent<Canvas>();
+        Camera eventCamera = inputCanvas != null &&
+                             inputCanvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? inputCanvas.worldCamera
+            : null;
+
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            inputRect,
+            mouse.position.ReadValue(),
+            eventCamera);
+    }
+
+    private bool IsChantInputFocused()
+    {
+        if (chantPracticeInputField == null)
+        {
+            return false;
+        }
+
+        GameObject selectedObject =
+            EventSystem.current?.currentSelectedGameObject;
+        return chantPracticeInputField.isFocused ||
+               selectedObject == chantPracticeInputField.gameObject;
+    }
+
+    private void StartChantInputBlink()
+    {
+        StopChantInputBlink();
+
+        Graphic targetGraphic = chantPracticeInputField?.targetGraphic;
+        if (targetGraphic == null)
+        {
+            return;
+        }
+
+        chantInputBlinkGraphic = targetGraphic;
+        chantInputBlinkOriginalColor = targetGraphic.color;
+        chantInputBlinkRoutine = StartCoroutine(BlinkChantInput(targetGraphic));
+    }
+
+    private IEnumerator BlinkChantInput(Graphic targetGraphic)
+    {
+        Color originalColor = chantInputBlinkOriginalColor;
+
+        for (int i = 0; i < ChantInputBlinkCount; i++)
+        {
+            yield return AnimateGraphicColor(
+                targetGraphic,
+                originalColor,
+                ChantInputBlinkColor,
+                ChantInputBlinkFadeDuration);
+            yield return WaitForUnscaledSeconds(ChantInputBlinkHoldDuration);
+            yield return AnimateGraphicColor(
+                targetGraphic,
+                ChantInputBlinkColor,
+                originalColor,
+                ChantInputBlinkFadeDuration);
+            yield return WaitForUnscaledSeconds(ChantInputBlinkHoldDuration);
+        }
+
+        targetGraphic.color = originalColor;
+        chantInputBlinkRoutine = null;
+        chantInputBlinkGraphic = null;
+    }
+
+    private static IEnumerator AnimateGraphicColor(
+        Graphic targetGraphic,
+        Color from,
+        Color to,
+        float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            targetGraphic.color = Color.Lerp(
+                from,
+                to,
+                Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+
+        targetGraphic.color = to;
+    }
+
+    private void StopChantInputBlink()
+    {
+        if (chantInputBlinkRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantInputBlinkRoutine);
+        chantInputBlinkRoutine = null;
+
+        if (chantInputBlinkGraphic != null)
+        {
+            chantInputBlinkGraphic.color = chantInputBlinkOriginalColor;
+            chantInputBlinkGraphic = null;
+        }
+    }
+
+    private void RestartChantPractice()
+    {
+        if (chantManager == null)
+        {
+            isWaitingForChantPractice = false;
+            chantPracticeActive = false;
+            return;
+        }
+
+        if (chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        chantPracticeActive = false;
+        chantPracticeRestartRoutine =
+            StartCoroutine(RestartChantPracticeAfterImeEnds());
+    }
+
+    private IEnumerator RestartChantPracticeAfterImeEnds()
+    {
+        while (chantPracticeInputField != null &&
+               chantPracticeInputField.HasActiveImeComposition)
+        {
+            yield return null;
+        }
+
+        chantManager.StartChant();
+        chantPracticeActive = chantManager.IsCasting;
+        isWaitingForChantPractice = chantPracticeActive;
+        chantPracticeRestartRoutine = null;
+    }
+
+    private void StopChantPracticeRestart()
+    {
+        if (chantPracticeRestartRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantPracticeRestartRoutine);
+        chantPracticeRestartRoutine = null;
+    }
+
+    private void ShowChantPracticeRetryMessage()
+    {
+        StopTyping();
+        dialogueText.text = $"‘{expectedPracticeChant}’이라고 정확히 입력해 봐.";
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+    }
+
+    private void StopChantPractice(bool keepPreviewVisible)
+    {
+        StopChantInputBlink();
+        StopChantInputCleanup();
+        StopChantPracticeRestart();
+
+        if (chantPracticeActive && chantManager != null && chantManager.IsCasting)
+        {
+            chantManager.CancelChant();
+        }
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        chantPracticeActive = false;
+        isWaitingForChantPractice = false;
+        expectedPracticeChant = string.Empty;
+
+        if (keepPreviewVisible)
+        {
+            ShowChantPreview();
+            StartChantInputCleanup();
+        }
+    }
+
+    private void StartChantInputCleanup()
+    {
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        if (chantPracticeInputField == null)
+        {
+            return;
+        }
+
+        chantPracticeInputField.ClearVisibleText();
+        chantInputCleanupRoutine = StartCoroutine(ClearChantInputAfterImeEnds());
+    }
+
+    private IEnumerator ClearChantInputAfterImeEnds()
+    {
+        while (chantPracticeInputField != null &&
+               chantPracticeInputField.HasActiveImeComposition)
+        {
+            chantPracticeInputField.ClearVisibleText();
+            yield return null;
+        }
+
+        if (chantPracticeInputField != null)
+        {
+            chantPracticeInputField.ClearVisibleText();
+            chantPracticeInputField.ForceLabelUpdate();
+        }
+
+        chantInputCleanupRoutine = null;
+    }
+
+    private void StopChantInputCleanup()
+    {
+        if (chantInputCleanupRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(chantInputCleanupRoutine);
+        chantInputCleanupRoutine = null;
+    }
+
+    private static string NormalizeChant(string chant)
+    {
+        return string.IsNullOrEmpty(chant)
+            ? string.Empty
+            : chant.Replace("\u200B", string.Empty).Trim();
     }
 
     private void ShowChantPreview()
@@ -837,11 +1282,14 @@ public sealed class TutorialManager : MonoBehaviour
     {
         StopTyping();
         StopCurrentAction();
+        StopChantPractice(false);
         RestoreChantPreview();
         RestoreManaVisuals();
         RestoreHealthVisuals();
         isRunning = false;
         isWaitingForChantEnter = false;
+        isWaitingForChantPractice = false;
+        canAdvanceWithEnter = false;
         currentStepIndex = -1;
 
         HideAllArrows();

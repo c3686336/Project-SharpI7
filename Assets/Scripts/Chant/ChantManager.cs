@@ -262,6 +262,16 @@ public class ChantManager : MonoBehaviour, IChantManager
         OnChantCancelled?.Invoke();
     }
 
+    public string CommitImeCompositionAndGetInput()
+    {
+        if (State == ChantState.Casting)
+        {
+            chantInputField?.CommitImeComposition();
+        }
+
+        return currentInput;
+    }
+
     public void InterruptChant()
     {
         if (State != ChantState.Casting)
@@ -278,6 +288,7 @@ public class ChantManager : MonoBehaviour, IChantManager
         if (State != ChantState.Casting)
             return default;
 
+        chantInputField?.CommitImeComposition();
         RefreshSpellRecognition();
         EvaluateInput();
 

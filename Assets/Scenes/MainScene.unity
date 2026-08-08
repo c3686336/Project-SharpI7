@@ -483,6 +483,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 207577490}
+  - component: {fileID: 207577494}
   - component: {fileID: 207577491}
   - component: {fileID: 207577492}
   - component: {fileID: 207577493}
@@ -581,6 +582,30 @@ VideoPlayer:
   m_WaitForFirstFrame: 1
   m_FrameReadyEventEnabled: 0
   m_VideoShaders: []
+--- !u!223 &207577494
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207577489}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 0
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 2
+  m_TargetDisplay: 0
 --- !u!1 &222325129
 GameObject:
   m_ObjectHideFlags: 0
@@ -2163,7 +2188,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &877866162
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2202,10 +2227,13 @@ MonoBehaviour:
   tutorialArrow: {fileID: 559770629}
   charactersPerSecond: 30
   firstDialogueDelay: 0.5
+  inputHintCooldown: 1.5
+  toastMessageManager: {fileID: 207577491}
   arrowMoveDistance: 8
   arrowMoveSpeed: 2
   chantPreviewPanel: {fileID: 2077000001}
   chantPreviewBook: {fileID: 2114229406}
+  chantManager: {fileID: 1330538459}
   manaFillImage: {fileID: 1160547530}
   portraitImage: {fileID: 649426900}
   warningPortrait: {fileID: 6937817954938267909, guid: 3a7e505e8a6b8b845af42999ac368971, type: 3}
@@ -2775,7 +2803,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 30}
-  m_SizeDelta: {x: 800, y: 280}
+  m_SizeDelta: {x: 820, y: 280}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1073754081
 MonoBehaviour:
@@ -2824,8 +2852,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 55
-  m_fontSizeBase: 55
+  m_fontSize: 53
+  m_fontSizeBase: 53
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5235,7 +5263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aadb15e0773d70b42a03fe1f6ccfdc60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
-  stageData: {fileID: 11400000, guid: dbee7770e0516c1429e8c3d6f3bef1b5, type: 2}
+  stageData: {fileID: 11400000, guid: 8693c7bdedb8e7645aa30cff81271b63, type: 2}
   backgroundRenderer: {fileID: 1711106417}
   tutorialManager: {fileID: 877866163}
   inGameManager: {fileID: 440768436}
