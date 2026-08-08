@@ -4,6 +4,10 @@ public interface IChantManager
 {
     bool IsCasting { get; }
 
+    float CurrentManaCost { get; }
+
+    bool CanResolveCurrentStage { get; }
+
     void StartChant();
 
     void CancelChant();
@@ -21,4 +25,6 @@ public interface IChantManager
     event Action OnChantInterrupted;
 
     event Action<CastResult> OnChantCast;
+
+    event Action<ChantPreviewData> OnChantPreviewChanged;
 }
