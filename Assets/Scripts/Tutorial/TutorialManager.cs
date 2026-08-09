@@ -44,8 +44,8 @@ public sealed class TutorialManager : MonoBehaviour
     private const string PracticeChantAction = "practiceChant";
     private const string AdvanceWithEnterAction = "advanceWithEnter";
     private const string HideChantPreviewAction = "hideChantPreview";
-    private const string ClickToContinueMessage =
-        "마우스 좌클릭으로 튜토리얼을 진행할 수 있습니다.";
+    private const string SpaceToContinueMessage =
+        "스페이스바로 튜토리얼을 진행할 수 있습니다.";
     private const string FollowInstructionsMessage =
         "튜토리얼의 지시사항을 확인해주세요.";
     private const string RefocusChantInputMessage =
@@ -222,7 +222,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (isTyping && WasLeftClickPressedThisFrame())
+        if (isTyping && WasSpacePressedThisFrame())
         {
             CompleteTyping();
             return;
@@ -240,9 +240,9 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        ShowClickHintForKeyboardInput();
+        ShowSpaceHintForKeyboardInput();
 
-        if (isTyping || !WasLeftClickPressedThisFrame())
+        if (isTyping || !WasSpacePressedThisFrame())
         {
             return;
         }
@@ -431,7 +431,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (WasLeftClickPressedThisFrame())
+        if (WasSpacePressedThisFrame())
         {
             ShowToastWithCooldown(FollowInstructionsMessage);
         }
@@ -445,13 +445,13 @@ public sealed class TutorialManager : MonoBehaviour
                 keyboard.numpadEnterKey.wasPressedThisFrame);
     }
 
-    private static bool WasLeftClickPressedThisFrame()
+    private static bool WasSpacePressedThisFrame()
     {
-        Mouse mouse = Mouse.current;
-        return mouse != null && mouse.leftButton.wasPressedThisFrame;
+        Keyboard keyboard = Keyboard.current;
+        return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
     }
 
-    private void ShowClickHintForKeyboardInput()
+    private void ShowSpaceHintForKeyboardInput()
     {
         Keyboard keyboard = Keyboard.current;
         if (canAdvanceWithEnter || keyboard == null ||
@@ -461,7 +461,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        ShowToastWithCooldown(ClickToContinueMessage);
+        ShowToastWithCooldown(SpaceToContinueMessage);
     }
 
     private void ShowToastWithCooldown(string message)
@@ -542,18 +542,9 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (WasLeftClickPressedThisFrame())
+        if (IsChantInputFocused())
         {
-            if (IsPointerOverChantInputField())
-            {
-                StopChantInputBlink();
-            }
-            else
-            {
-                ShowToastWithCooldown(FollowInstructionsMessage);
-            }
-
-            return;
+            StopChantInputBlink();
         }
 
         Keyboard keyboard = Keyboard.current;
@@ -584,34 +575,6 @@ public sealed class TutorialManager : MonoBehaviour
         StopChantPractice(true);
         inputBlockedThroughFrame = Time.frameCount;
         AdvanceDialogue();
-    }
-
-    private bool IsPointerOverChantInputField()
-    {
-        if (chantPracticeInputField == null && chantPreviewPanel != null)
-        {
-            chantPracticeInputField =
-                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
-        }
-
-        Mouse mouse = Mouse.current;
-        if (chantPracticeInputField == null || mouse == null)
-        {
-            return false;
-        }
-
-        RectTransform inputRect =
-            chantPracticeInputField.GetComponent<RectTransform>();
-        Canvas inputCanvas = chantPracticeInputField.GetComponentInParent<Canvas>();
-        Camera eventCamera = inputCanvas != null &&
-                             inputCanvas.renderMode != RenderMode.ScreenSpaceOverlay
-            ? inputCanvas.worldCamera
-            : null;
-
-        return RectTransformUtility.RectangleContainsScreenPoint(
-            inputRect,
-            mouse.position.ReadValue(),
-            eventCamera);
     }
 
     private bool IsChantInputFocused()
