@@ -14,7 +14,7 @@
     },
     "dash": {
       "windupDuration": 0.0,
-      "cooldownDuration": 3.0,
+      "cooldownDuration": 1.5,
       "duration": 0.4,
       "distance": 5.0
     }
@@ -22,9 +22,9 @@
   "boss": {
     "floorOne": {
       "health": {
-        "maxHealth": 250,
+        "maxHealth": 70,
         "enablePhaseTwo": true,
-        "phaseTwoMaxHealth": 500,
+        "phaseTwoMaxHealth": 100,
         "phaseTwoTransitionDelay": 2.0,
         "spellDamageByStage": [10.0, 30.0, 70.0]
       },
@@ -79,7 +79,7 @@
       "rotatingLaser": {
         "enabled": true,
         "warningDuration": 2.0,
-        "activeDuration": 5.0,
+        "activeDuration": 6.0,
         "length": 14.0,
         "width": 1.2,
         "damagePerTick": 1.0,
@@ -95,7 +95,7 @@
         },
         "thickness": 1.4,
         "warningDuration": 1.0,
-        "travelDuration": 2.7,
+        "travelDuration": 5.4,
         "damage": 1.0,
         "postAttackDelay": 0.1
       },
