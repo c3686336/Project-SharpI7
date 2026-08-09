@@ -85,6 +85,7 @@ namespace SharpI7.Combat
         private BossHealth bossHealth;
         private BossMovement bossMovement;
         private BossVisual bossVisual;
+        private BossAttackAnimator bossAttackAnimator;
         private Coroutine attackRoutine;
         private CircularDangerZone activeZone;
         private LineDangerZone activeLineZone;
@@ -114,6 +115,7 @@ namespace SharpI7.Combat
             bossHealth = GetComponent<BossHealth>();
             bossMovement = GetComponent<BossMovement>();
             bossVisual = GetComponent<BossVisual>();
+            bossAttackAnimator = GetComponent<BossAttackAnimator>();
         }
 
         private void ApplyBalance(BossBalance data)
@@ -449,6 +451,7 @@ namespace SharpI7.Combat
             CancelActiveSlimeHopper();
             CancelActiveOrbs();
             CancelActiveBossDistanceZone();
+            bossAttackAnimator?.StopAnimation();
 
             if (bossMovement != null)
             {
@@ -521,6 +524,7 @@ namespace SharpI7.Combat
                 bossDistanceRadius,
                 bossDistanceWarningDuration,
                 attackDamage);
+            PlayAttackAnimationBeforeImpact(bossDistanceWarningDuration);
 
             nextBossDistanceMode = nextBossDistanceMode == BossDistanceDangerMode.InnerDanger
                 ? BossDistanceDangerMode.OuterDanger
@@ -546,6 +550,7 @@ namespace SharpI7.Combat
             spawnPosition.z = 0f;
             var playAreaBounds = CreateOrbPlayAreaBounds(spawnPosition);
             var projectileCount = Mathf.Max(3, radialOrbCount);
+            PlayAttackAnimationImmediately();
 
             for (var orbIndex = 0; orbIndex < projectileCount; orbIndex++)
             {
@@ -597,6 +602,7 @@ namespace SharpI7.Combat
                 laserDamagePerTick,
                 laserPlayerDamageInvulnerabilityDuration,
                 laserSweepDegrees);
+            PlayAttackAnimationBeforeImpact(laserWarningDuration);
 
             yield return new WaitForSeconds(
                 laserWarningDuration + laserActiveDuration + laserPostAttackDelay);
@@ -630,6 +636,7 @@ namespace SharpI7.Combat
                 dashLaserWallWarningDuration,
                 dashLaserWallTravelDuration,
                 dashLaserWallDamage);
+            PlayAttackAnimationBeforeImpact(dashLaserWallWarningDuration);
 
             yield return new WaitForSeconds(
                 dashLaserWallWarningDuration + dashLaserWallTravelDuration +
@@ -778,6 +785,7 @@ namespace SharpI7.Combat
                 safeZoneRadius,
                 safeZoneWarningDuration,
                 attackDamage);
+            PlayAttackAnimationBeforeImpact(safeZoneWarningDuration);
 
             yield return new WaitForSeconds(safeZoneWarningDuration + safeZonePostAttackDelay);
             activeSafeZone = null;
@@ -790,29 +798,54 @@ namespace SharpI7.Combat
 
         private Vector2 ChooseSafeZonePosition(Vector2 fieldCenter, Vector2 fieldSize)
         {
-            var direction = Random.insideUnitCircle;
-            if (direction.sqrMagnitude < 0.001f)
-            {
-                direction = Vector2.right;
-            }
-
-            direction.Normalize();
-            var distance = Random.Range(safeZoneMinDistance, safeZoneMaxDistance);
-            var desiredPosition = (Vector2)playerTarget.position + direction * distance;
             var availableHalfWidth = Mathf.Max(0f, fieldSize.x * 0.5f - safeZoneRadius);
             var availableHalfHeight = Mathf.Max(0f, fieldSize.y * 0.5f - safeZoneRadius);
+            var minimumBossDistance = GetMinimumSafeZoneDistanceFromBoss();
+            var safestPosition = fieldCenter;
+            var greatestBossDistance = float.NegativeInfinity;
 
-            desiredPosition.x = Mathf.Clamp(
-                desiredPosition.x,
-                fieldCenter.x - availableHalfWidth,
-                fieldCenter.x + availableHalfWidth);
-            desiredPosition.y = Mathf.Clamp(
-                desiredPosition.y,
-                fieldCenter.y - availableHalfHeight,
-                fieldCenter.y + availableHalfHeight);
-            return desiredPosition;
+            // Avoid safe zones that cover half or more of the boss.
+            for (var attempt = 0; attempt < 24; attempt++)
+            {
+                var direction = Random.insideUnitCircle;
+                if (direction.sqrMagnitude < 0.001f)
+                {
+                    direction = Vector2.right;
+                }
+
+                direction.Normalize();
+                var distance = Random.Range(safeZoneMinDistance, safeZoneMaxDistance);
+                var candidate = (Vector2)playerTarget.position + direction * distance;
+                candidate.x = Mathf.Clamp(candidate.x, fieldCenter.x - availableHalfWidth, fieldCenter.x + availableHalfWidth);
+                candidate.y = Mathf.Clamp(candidate.y, fieldCenter.y - availableHalfHeight, fieldCenter.y + availableHalfHeight);
+
+                var bossDistance = Vector2.Distance(candidate, transform.position);
+                if (bossDistance > greatestBossDistance)
+                {
+                    greatestBossDistance = bossDistance;
+                    safestPosition = candidate;
+                }
+
+                if (bossDistance >= minimumBossDistance)
+                {
+                    return candidate;
+                }
+            }
+
+            return safestPosition;
         }
 
+        private float GetMinimumSafeZoneDistanceFromBoss()
+        {
+            var bossRadius = 0f;
+            if (TryGetComponent<CircleCollider2D>(out var bossCollider))
+            {
+                var scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+                bossRadius = bossCollider.radius * scale;
+            }
+
+            return safeZoneRadius + (bossRadius * bossRadius) / Mathf.Max(0.01f, safeZoneRadius * 2f);
+        }
         private IEnumerator PerformLineGroundAttack()
         {
             var patternCount = System.Enum.GetValues(typeof(LineDangerPattern)).Length;
@@ -829,6 +862,7 @@ namespace SharpI7.Combat
                 lineAttackWidth,
                 lineWarningDuration,
                 attackDamage);
+            PlayAttackAnimationBeforeImpact(lineWarningDuration);
 
             yield return new WaitForSeconds(lineWarningDuration + linePostAttackDelay);
             activeLineZone = null;
@@ -866,8 +900,18 @@ namespace SharpI7.Combat
             targetPosition.z = 0f;
             activeZone = Instantiate(dangerZonePrefab, targetPosition, Quaternion.identity);
             activeZone.Begin(playerTarget, trackingAttackRadius, duration, attackDamage);
+            PlayAttackAnimationBeforeImpact(duration);
         }
 
+        private void PlayAttackAnimationBeforeImpact(float warningDuration)
+        {
+            bossAttackAnimator?.PlayBeforeImpact(warningDuration);
+        }
+
+        private void PlayAttackAnimationImmediately()
+        {
+            bossAttackAnimator?.PlayImmediately();
+        }
         private void ResolvePlayerTarget()
         {
             if (playerTarget != null)
@@ -960,6 +1004,7 @@ namespace SharpI7.Combat
         private void StopAttacking()
         {
             combatStopped = true;
+            bossAttackAnimator?.StopAnimation();
 
             if (attackRoutine != null)
             {

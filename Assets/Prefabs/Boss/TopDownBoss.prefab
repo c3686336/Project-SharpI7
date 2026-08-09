@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 11400001}
   - component: {fileID: 11400002}
   - component: {fileID: 11400003}
+  - component: {fileID: 11400004}
   - component: {fileID: 21200000}
   - component: {fileID: 580000}
   - component: {fileID: 7800236733129569651}
@@ -48,7 +49,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 22222222222222222222222222222222, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
   spellHitVideoClip: {fileID: 32900000, guid: 02e86ba80e8e0de40bce835eaa87cb53, type: 3}
@@ -72,7 +73,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 44444444444444444444444444444444, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   playerTarget: {fileID: 0}
   dangerZonePrefab: {fileID: 11400000, guid: 55555555555555555555555555555555, type: 3}
@@ -92,7 +93,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31415926314159263141592631415926, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   playerTarget: {fileID: 0}
 --- !u!114 &11400003
@@ -105,7 +106,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d9b746fd8c04ee49f259578d64ca485, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   walkFrames:
   - {fileID: -9190950720821370306, guid: 7526094b663920c458bba9a258db07be, type: 3}
@@ -131,7 +132,29 @@ MonoBehaviour:
   phaseTwoScaleMultiplier: {x: 1.2351, y: 1.1063, z: 1}
   frameDuration: 0.12
   movementThreshold: 0.001
---- !u!212 &21200000
+--- !u!114 &11400004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f1c5d4e9a034bd8a5a22e3948621c1e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SharpI7.Combat.BossAttackAnimator
+  attackFrames:
+  - {fileID: 589950116323344301, guid: 14c5c95b3c01860408c679764f31633b, type: 3}
+  - {fileID: -8538219170695544576, guid: 6f2e4f2a4e0734c49896a5bb5fac3586, type: 3}
+  - {fileID: 3535422003912807925, guid: 77ae654e73cf2ed42b29e22414c26511, type: 3}
+  - {fileID: 979358755696017567, guid: 11e96bcace3c860428cacc86c9e98d81, type: 3}
+  - {fileID: -3547462953489778252, guid: 46e206429639f174db76cec4d787834f, type: 3}
+  - {fileID: -7244507966289389119, guid: ed6fae8fd476b2a46bfc377219d28e73, type: 3}
+  - {fileID: -3857758273064244269, guid: 271799970180c5f41a0de2b5e28a2862, type: 3}
+  animationDuration: 0.56
+  attackVisualScale: 1.75
+  playDuringPhaseTwo: 0--- !u!212 &21200000
 SpriteRenderer:
   serializedVersion: 3
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ namespace SharpI7.Combat
         [SerializeField] private Color warningColor = new(1f, 0.08f, 0.08f, 0.35f);
         [SerializeField] private Color explosionColor = new(1f, 0.08f, 0.02f, 0.72f);
         [SerializeField] private GameObject explosionEffectPrefab;
-        [SerializeField, Min(0.01f)] private float explosionEffectScale = 0.7f;
+        [SerializeField, Min(0.01f)] private float explosionEffectScale = 1.2f;
         [SerializeField, Min(0.1f)] private float explosionEffectLifetime = 3f;
         [SerializeField, Range(16, 128)] private int circleResolution = 64;
 
