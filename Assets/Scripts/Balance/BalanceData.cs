@@ -43,25 +43,25 @@ namespace SharpI7.Balance
 
     public enum BossBalanceProfile
     {
-        FloorOne,
-        FloorTwo,
+        FloorOneGolem,
+        FloorTwoSlime,
         TrainingDummy
     }
 
     [Serializable]
     public sealed class BossBalanceCollection
     {
-        public BossBalance floorOne;
-        public BossBalance floorTwo;
-        public BossBalance trainingDummy;
+        public BossBalance floorOneGolem;
+        public BossBalance floorTwoSlime;
+        public BossBalance dummy;
 
         public BossBalance Get(BossBalanceProfile profile)
         {
             return profile switch
             {
-                BossBalanceProfile.FloorTwo => floorTwo,
-                BossBalanceProfile.TrainingDummy => trainingDummy ?? floorOne,
-                _ => floorOne
+                BossBalanceProfile.FloorTwoSlime => floorTwoSlime,
+                BossBalanceProfile.TrainingDummy => dummy ?? floorOneGolem,
+                _ => floorOneGolem
             };
         }
     }

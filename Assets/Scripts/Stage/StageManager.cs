@@ -21,6 +21,7 @@ public sealed class StageManager : MonoBehaviour
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
     private bool showTutorialOutroOnBossDefeat;
+    private bool showKeyboardGuideAfterTutorial;
 
     public StageData CurrentStage => stageData;
 
@@ -52,18 +53,41 @@ public sealed class StageManager : MonoBehaviour
         showTutorialOnStart = false;
         hasInitialStageRequest = false;
 
+        if (tutorialManager != null)
+        {
+            tutorialManager.SequenceFinished += HandleTutorialSequenceFinished;
+        }
+
         bool stageLoaded = LoadStage(initialStage);
         bool tutorialEnabled = stageLoaded && shouldShowTutorial;
         showTutorialOutroOnBossDefeat = tutorialEnabled;
+        showKeyboardGuideAfterTutorial = tutorialEnabled &&
+            string.Equals(stageData?.StageId, "stage0", System.StringComparison.OrdinalIgnoreCase);
         SetTutorialMode(tutorialEnabled);
     }
 
     private void OnDestroy()
     {
+        if (tutorialManager != null)
+        {
+            tutorialManager.SequenceFinished -= HandleTutorialSequenceFinished;
+        }
+
         UnbindBoss();
         DestroyStageExit();
     }
 
+
+    private void HandleTutorialSequenceFinished(bool wasPostBossSequence)
+    {
+        if (wasPostBossSequence || !showKeyboardGuideAfterTutorial)
+        {
+            return;
+        }
+
+        showKeyboardGuideAfterTutorial = false;
+        KeyboardHandsGuide.ShowOnce();
+    }
     private void SetTutorialMode(bool enabled)
     {
         if (tutorialManager == null || inGameManager == null)

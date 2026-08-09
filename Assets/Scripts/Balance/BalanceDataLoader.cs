@@ -150,12 +150,12 @@ namespace SharpI7.Balance
             }
 
             BossBalanceCollection bossCollection = data.boss;
-            if (bossCollection?.floorOne == null || bossCollection.floorTwo == null)
+            if (bossCollection?.floorOneGolem == null || bossCollection.floorTwoSlime == null)
             {
                 throw new InvalidDataException($"Boss floor balance data is incomplete in '{path}'.");
             }
 
-            BossBalance boss = bossCollection.floorOne;
+            BossBalance boss = bossCollection.floorOneGolem;
             if (boss.health == null || boss.movement == null || boss.phaseTwo == null ||
                 boss.attackTiming == null || boss.contact == null || boss.trackingBarrage == null ||
                 boss.lineAttack == null || boss.safeZoneAttack == null || boss.rotatingLaser == null ||
@@ -375,7 +375,7 @@ namespace SharpI7.Balance
 
             if (validateSecondFloor)
             {
-                Validate(CreateFloorValidationData(data, bossCollection.floorTwo), path, false);
+                Validate(CreateFloorValidationData(data, bossCollection.floorTwoSlime), path, false);
             }
         }
 
@@ -387,8 +387,8 @@ namespace SharpI7.Balance
                 player = source.player,
                 boss = new BossBalanceCollection
                 {
-                    floorOne = floorBalance,
-                    floorTwo = floorBalance
+                    floorOneGolem = floorBalance,
+                    floorTwoSlime = floorBalance
                 }
             };
         }

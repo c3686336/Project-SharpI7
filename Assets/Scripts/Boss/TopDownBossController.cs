@@ -327,7 +327,6 @@ namespace SharpI7.Combat
             if (isSlimeBoss)
             {
                 AddAttackIf(slimeStretchAttack != null, BossAttackPattern.SlimeStretch);
-                AddAttackIf(slimeBounceAttack != null, BossAttackPattern.SlimeBounce);
                 AddAttackIf(slimeHopperAttack != null, BossAttackPattern.SlimeHopper);
                 AddAttackIf(jumpShockwaveAttack != null, BossAttackPattern.JumpShockwave);
                 RemoveBlockedConsecutiveAttack();

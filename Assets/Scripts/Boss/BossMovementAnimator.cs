@@ -11,6 +11,7 @@ namespace SharpI7.Combat
         [SerializeField] private Sprite[] phaseTwoWalkFrames;
         [SerializeField] private Vector3 phaseTwoScaleMultiplier = new(1.24f, 1.11f, 1f);
         [SerializeField] private bool useWalkAnimation;
+        [SerializeField] private bool animateWhileStationary;
         [SerializeField, Min(0.01f)] private float frameDuration = 0.08f;
         [SerializeField, Min(0.0001f)] private float movementThreshold = 0.001f;
 
@@ -75,11 +76,17 @@ namespace SharpI7.Combat
             {
                 return;
             }
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = true;
+            }
             var movement = transform.position - previousPosition;
             previousPosition = transform.position;
             var isMoving = bossMovement != null
                 ? bossMovement.IsMoving
                 : movement.sqrMagnitude >= movementThreshold * movementThreshold;
+            isMoving |= animateWhileStationary;
 
             if (!isMoving || activeWalkFrames == null || activeWalkFrames.Length == 0)
             {

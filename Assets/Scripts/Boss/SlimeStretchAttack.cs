@@ -23,6 +23,9 @@ namespace SharpI7.Combat
         private Sprite warningSprite;
         private Texture2D warningTexture;
         private Vector3 originalScale;
+        private Vector3 originalPosition;
+        private Vector3 originalVisualCenter;
+        private Vector2 attackCenter;
         private Sprite originalSprite;
         private bool animatorWasEnabled;
         private bool colliderWasEnabled;
@@ -134,6 +137,9 @@ namespace SharpI7.Combat
             }
 
             originalScale = transform.localScale;
+            originalPosition = transform.position;
+            attackCenter = originalPosition;
+            originalVisualCenter = spriteRenderer.bounds.center;
             originalSprite = spriteRenderer.sprite;
             animatorWasEnabled = movementAnimator != null && movementAnimator.enabled;
             colliderWasEnabled = bodyCollider != null && bodyCollider.enabled;
@@ -161,10 +167,12 @@ namespace SharpI7.Combat
                 elapsed += Time.deltaTime;
                 var progress = Mathf.SmoothStep(0f, 1f, elapsed / stretchDuration);
                 transform.localScale = Vector3.LerpUnclamped(originalScale, targetScale, progress);
+                KeepSpriteCenterAtAttackOrigin();
                 yield return null;
             }
 
             transform.localScale = targetScale;
+            KeepSpriteCenterAtAttackOrigin();
         }
 
         private IEnumerator RetractBody()
@@ -181,11 +189,24 @@ namespace SharpI7.Combat
                 elapsed += Time.deltaTime;
                 var progress = Mathf.SmoothStep(0f, 1f, elapsed / retractDuration);
                 transform.localScale = Vector3.LerpUnclamped(stretchedScale, originalScale, progress);
+                KeepSpriteCenterAtAttackOrigin();
                 yield return null;
             }
 
             transform.localScale = originalScale;
+            transform.position = originalPosition;
         }
+
+        private void KeepSpriteCenterAtAttackOrigin()
+        {
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+
+            transform.position += originalVisualCenter - spriteRenderer.bounds.center;
+        }
+
         private void RestoreBody()
         {
             if (!bodyIsStretched)
@@ -194,6 +215,7 @@ namespace SharpI7.Combat
             }
 
             transform.localScale = originalScale;
+            transform.position = originalPosition;
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = Color.white;
@@ -223,7 +245,7 @@ namespace SharpI7.Combat
                 return false;
             }
 
-            var offset = target.position - transform.position;
+            var offset = target.position - (Vector3)attackCenter;
             var halfLength = Mathf.Max(0.1f, length) * 0.5f;
             var halfWidth = Mathf.Max(0.1f, width) * 0.5f;
             return horizontal

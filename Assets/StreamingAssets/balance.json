@@ -20,7 +20,7 @@
     }
   },
   "boss": {
-    "trainingDummy": {
+    "dummy": {
       "health": {
         "maxHealth": 200.0,
         "enablePhaseTwo": false,
@@ -47,7 +47,7 @@
         "damage": 0.0,
         "interval": 1.0
       }
-    },    "floorOne": {
+    },    "floorOneGolem": {
       "health": {
         "maxHealth": 70,
         "enablePhaseTwo": true,
@@ -150,7 +150,7 @@
         "postAttackDelay": 0.25
       }
     },
-    "floorTwo": {
+    "floorTwoSlime": {
       "health": {
         "maxHealth": 250.0,
         "enablePhaseTwo": true,

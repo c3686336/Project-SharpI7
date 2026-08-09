@@ -100,6 +100,8 @@ public sealed class TutorialManager : MonoBehaviour
     [SerializeField] private RectTransform heartContainer;
     [SerializeField] private Sprite emptyHeartSprite;
 
+    public event Action<bool> SequenceFinished;
+
     private TutorialDialogueStep[] steps;
     private readonly List<RectTransform> arrowPool = new();
     private readonly List<Vector2> arrowBasePositions = new();
@@ -135,6 +137,8 @@ public sealed class TutorialManager : MonoBehaviour
     private bool chantPreviewInitialActive;
     private bool manaPreviewActive;
     private bool healthPreviewActive;
+    private bool sequenceActive;
+    private bool isPostBossSequence;
     private string expectedPracticeChant;
 
     private struct ManaVisualSnapshot
@@ -171,6 +175,8 @@ public sealed class TutorialManager : MonoBehaviour
         RestoreManaVisuals();
         RestoreHealthVisuals();
         inGameManager = manager;
+        sequenceActive = true;
+        isPostBossSequence = usePostBossSteps;
 
         if (dialogueText == null)
         {
@@ -1326,6 +1332,9 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void Finish()
     {
+        bool notifyFinished = sequenceActive;
+        bool finishedPostBossSequence = isPostBossSequence;
+        sequenceActive = false;
         StopTyping();
         StopCurrentAction();
         StopChantPractice(false);
@@ -1341,6 +1350,10 @@ public sealed class TutorialManager : MonoBehaviour
         HideAllArrows();
 
         inGameManager?.ResumeGameplay();
+        if (notifyFinished)
+        {
+            SequenceFinished?.Invoke(finishedPostBossSequence);
+        }
         gameObject.SetActive(false);
     }
 }
