@@ -152,6 +152,7 @@ public sealed class StageManager : MonoBehaviour
         DestroyStageExit();
         stageData = newStage;
         ApplyStageData();
+        bossHealthBar?.SetStagePortrait(stageData.StageId);
         BindBoss(newBoss);
         CreateStageExit();
         return true;

@@ -9,6 +9,11 @@ public sealed class BossHealthBar : MonoBehaviour
     [SerializeField] private Slider healthSlider;
     [SerializeField] private TMP_Text healthText;
 
+    [Header("Boss Portrait")]
+    [SerializeField] private Image bossPortraitImage;
+    [SerializeField] private Sprite stageOnePortrait;
+    [SerializeField] private Sprite stageTwoPortrait;
+
     [Header("Phase UI")]
     [SerializeField] private Image phaseOneImage;
     [SerializeField] private Image phaseTwoImage;
@@ -55,6 +60,30 @@ public sealed class BossHealthBar : MonoBehaviour
 
         UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
         UpdatePhaseUI();
+    }
+
+    public void SetStagePortrait(string stageId)
+    {
+        if (bossPortraitImage == null)
+        {
+            Debug.LogWarning("[BossHealthBar] Boss Portrait Image가 연결되지 않았습니다.", this);
+            return;
+        }
+
+        bool isStageTwo = string.Equals(
+            stageId,
+            "stage2",
+            System.StringComparison.OrdinalIgnoreCase);
+
+        Sprite portrait = isStageTwo ? stageTwoPortrait : stageOnePortrait;
+        bossPortraitImage.sprite = portrait;
+
+        if (portrait == null)
+        {
+            Debug.LogWarning(
+                $"[BossHealthBar] {stageId}의 보스 프로필 스프라이트가 연결되지 않았습니다.",
+                this);
+        }
     }
 
     private void EnsureReferences()

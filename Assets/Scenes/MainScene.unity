@@ -472,6 +472,9 @@ MonoBehaviour:
   bossHealth: {fileID: 0}
   healthSlider: {fileID: 153257088}
   healthText: {fileID: 1684246139}
+  bossPortraitImage: {fileID: 1819937736}
+  stageOnePortrait: {fileID: 528465121073024193, guid: 100b98cb8f5d44e4c809875d599da410, type: 3}
+  stageTwoPortrait: {fileID: 6983691309263112460, guid: 729378d8acc9a304b9f3564d7e0f987a, type: 3}
   phaseOneImage: {fileID: 114923689}
   phaseTwoImage: {fileID: 508794319}
 --- !u!1 &207577489
@@ -3017,13 +3020,13 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1977335316}
     - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
-      propertyPath: toastMessageManager
-      value:
-      objectReference: {fileID: 207577491}
-    - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: referenceHeading.y
       value: -1
       objectReference: {fileID: 0}
+    - target: {fileID: 2321059675307188937, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
+      propertyPath: toastMessageManager
+      value: 
+      objectReference: {fileID: 207577491}
     - target: {fileID: 5215665589235079319, guid: 3cf62fbb3c6b7a010a8d935bf0dd18f4, type: 3}
       propertyPath: m_Name
       value: Player
