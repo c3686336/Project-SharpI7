@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "player": {
     "maxHealth": 3.0,
-    "moveSpeed": 0.1,
+    "moveSpeed": 0.5,
     "overloadDamage": 1.0,
     "invincibilityDuration": 0.7,
     "mana": {
@@ -21,9 +21,9 @@
   },
   "boss": {
     "health": {
-      "maxHealth": 150.0,
+      "maxHealth": 30.0,
       "enablePhaseTwo": true,
-      "phaseTwoMaxHealth": 300.0,
+      "phaseTwoMaxHealth": 40.0,
       "phaseTwoTransitionDelay": 2.0,
       "spellDamageByStage": [10.0, 30.0, 70.0]
     },
