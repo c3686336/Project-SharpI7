@@ -153,5 +153,17 @@
       "description": "튜토리얼 설명 종료",
       "text": "설명은 여기까지야. 살아남아 보자."
     }
+  ],
+  "postBossSteps": [
+    {
+      "description": "튜토리얼 보스 처치 후 다음 층 안내",
+      "text": "좋아, 골렘을 쓰러뜨렸네! 위쪽에 열린 문으로 들어가서 다음 층으로 올라가자.",
+      "arrows": [
+        {
+          "position": { "x": 230, "y": 490 },
+          "direction": "left"
+        }
+      ]
+    }
   ]
 }

@@ -20,6 +20,7 @@ public sealed class StageManager : MonoBehaviour
     private GameObject stageExitInstance;
     private StageExitTrigger stageExitTrigger;
     private bool isChangingStage;
+    private bool showTutorialOutroOnBossDefeat;
 
     public StageData CurrentStage => stageData;
 
@@ -52,7 +53,9 @@ public sealed class StageManager : MonoBehaviour
         hasInitialStageRequest = false;
 
         bool stageLoaded = LoadStage(initialStage);
-        SetTutorialMode(stageLoaded && shouldShowTutorial);
+        bool tutorialEnabled = stageLoaded && shouldShowTutorial;
+        showTutorialOutroOnBossDefeat = tutorialEnabled;
+        SetTutorialMode(tutorialEnabled);
     }
 
     private void OnDestroy()
@@ -211,6 +214,27 @@ public sealed class StageManager : MonoBehaviour
         {
             stageExitInstance.SetActive(true);
         }
+
+        if (showTutorialOutroOnBossDefeat)
+        {
+            showTutorialOutroOnBossDefeat = false;
+            ShowTutorialOutro();
+        }
+    }
+
+    private void ShowTutorialOutro()
+    {
+        if (tutorialManager == null || inGameManager == null)
+        {
+            Debug.LogError(
+                "[StageManager] TutorialManager or InGameManager reference is missing.",
+                this);
+            return;
+        }
+
+        inGameManager.PauseGameplay();
+        tutorialManager.gameObject.SetActive(true);
+        tutorialManager.BeginPostBoss(inGameManager);
     }
 
     private void HandleStageExitEntered()

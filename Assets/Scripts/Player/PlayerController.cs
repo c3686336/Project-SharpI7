@@ -190,13 +190,16 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
 
     private void Update()
     {
-        if (InGameManager.GameplayInputBlocked || !health.IsAlive || combatEnded)
+        if (InGameManager.GameplayInputBlocked || !health.IsAlive)
             return;
 
         if (input.Movement.Dash.WasPressedThisFrame() && !isMovementLocked)
         {
             dash.ExecuteAsync().Forget();
         }
+
+        if (combatEnded)
+            return;
 
         if (input.Movement.Spell.WasPressedThisFrame() && !chantManager.IsCasting)
         {
@@ -220,7 +223,7 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
 
     private void FixedUpdate()
     {
-        if (InGameManager.GameplayInputBlocked || !health.IsAlive || combatEnded)
+        if (InGameManager.GameplayInputBlocked || !health.IsAlive)
             return;
 
         locomotion.FixedTick(

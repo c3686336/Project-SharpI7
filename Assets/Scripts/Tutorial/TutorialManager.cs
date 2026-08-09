@@ -13,6 +13,7 @@ public sealed class TutorialDialogueData
 {
     public string tutorialId;
     public TutorialDialogueStep[] steps;
+    public TutorialDialogueStep[] postBossSteps;
 }
 
 [Serializable]
@@ -152,6 +153,16 @@ public sealed class TutorialManager : MonoBehaviour
 
     public void Begin(InGameManager manager)
     {
+        BeginSequence(manager, false);
+    }
+
+    public void BeginPostBoss(InGameManager manager)
+    {
+        BeginSequence(manager, true);
+    }
+
+    private void BeginSequence(InGameManager manager, bool usePostBossSteps)
+    {
         StopTyping();
         StopCurrentAction();
         StopChantPractice(false);
@@ -170,7 +181,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (!TryLoadSteps())
+        if (!TryLoadSteps(usePostBossSteps))
         {
             Finish();
             return;
@@ -257,7 +268,7 @@ public sealed class TutorialManager : MonoBehaviour
         ShowCurrentStep();
     }
 
-    private bool TryLoadSteps()
+    private bool TryLoadSteps(bool usePostBossSteps)
     {
         string path = Path.Combine(Application.streamingAssetsPath, fileName);
         if (!File.Exists(path))
@@ -270,14 +281,17 @@ public sealed class TutorialManager : MonoBehaviour
         {
             string json = File.ReadAllText(path);
             TutorialDialogueData data = JsonUtility.FromJson<TutorialDialogueData>(json);
+            TutorialDialogueStep[] selectedSteps = usePostBossSteps
+                ? data?.postBossSteps
+                : data?.steps;
 
-            if (data?.steps == null || data.steps.Length == 0)
+            if (selectedSteps == null || selectedSteps.Length == 0)
             {
                 Debug.LogError("[TutorialDialogue] 출력할 튜토리얼 대사가 없습니다.", this);
                 return false;
             }
 
-            steps = data.steps;
+            steps = selectedSteps;
             return true;
         }
         catch (Exception exception)
