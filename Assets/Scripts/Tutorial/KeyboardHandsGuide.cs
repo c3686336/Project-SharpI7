@@ -117,9 +117,9 @@ public sealed class KeyboardHandsGuide : MonoBehaviour
         rect.anchorMin = new Vector2(0.5f, 0f);
         rect.anchorMax = new Vector2(0.5f, 0f);
         rect.pivot = new Vector2(0.5f, 0f);
-        // Four times the original 620 x 620 display size, offset so the keyboard stays centered.
-        rect.anchoredPosition = new Vector2(0f, -680f);
-        rect.sizeDelta = new Vector2(2480f, 2480f);
+        // Slightly larger than the original 620 x 620 guide, while keeping it centered.
+        rect.anchoredPosition = new Vector2(0f, -110f);
+        rect.sizeDelta = new Vector2(750f, 750f);
 
         Image image = imageObject.GetComponent<Image>();
         image.sprite = guideSprite;
