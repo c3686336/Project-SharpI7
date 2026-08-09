@@ -912,7 +912,7 @@ public class ChantManager : MonoBehaviour, IChantManager
 
     private void ShowInsufficientManaFeedback()
     {
-        string message = $"마나가 부족합니다. 현재 {CurrentMana:0.#} / 필요 {CurrentManaCost:0.#}";
+        const string message = "마나가 부족합니다.";
 
         if (toastMessageManager != null)
         {

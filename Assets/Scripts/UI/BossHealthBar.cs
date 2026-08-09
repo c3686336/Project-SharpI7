@@ -9,9 +9,14 @@ public sealed class BossHealthBar : MonoBehaviour
     [SerializeField] private Slider healthSlider;
     [SerializeField] private TMP_Text healthText;
 
+    [Header("Boss Portrait")]
+    [SerializeField] private Image bossPortraitImage;
+
     [Header("Phase UI")]
     [SerializeField] private Image phaseOneImage;
     [SerializeField] private Image phaseTwoImage;
+
+    private BossPortraitInfo currentPortraitInfo;
 
     private void Start()
     {
@@ -53,8 +58,24 @@ public sealed class BossHealthBar : MonoBehaviour
         bossHealth.PhaseTwoStarted += HandlePhaseTwoStarted;
         bossHealth.Died += Hide;
 
+        currentPortraitInfo = bossHealth.GetComponent<BossPortraitInfo>();
+
+        if (currentPortraitInfo == null)
+        {
+            currentPortraitInfo = bossHealth.GetComponentInParent<BossPortraitInfo>();
+        }
+
+        if (currentPortraitInfo == null)
+        {
+            Debug.LogWarning(
+                $"[BossHealthBar] {bossHealth.name}에서 BossPortraitInfo를 찾을 수 없습니다.",
+                bossHealth
+            );
+        }
+
         UpdateHealth(bossHealth.CurrentHealth, bossHealth.MaxHealth);
         UpdatePhaseUI();
+        UpdatePortrait();
     }
 
     private void EnsureReferences()
@@ -89,6 +110,7 @@ public sealed class BossHealthBar : MonoBehaviour
     private void HandlePhaseTwoStarted()
     {
         UpdatePhaseUI();
+        UpdatePortrait();
     }
 
     private void UpdatePhaseUI()
@@ -104,6 +126,18 @@ public sealed class BossHealthBar : MonoBehaviour
         {
             phaseTwoImage.color = isPhaseTwo ? Color.black : Color.red;
         }
+    }
+
+    private void UpdatePortrait()
+    {
+        if (bossPortraitImage == null || currentPortraitInfo == null)
+        {
+            return;
+        }
+
+        bossPortraitImage.sprite = bossHealth.IsPhaseTwo
+            ? currentPortraitInfo.PhaseTwoPortrait
+            : currentPortraitInfo.PhaseOnePortrait;
     }
 
     private void Hide()

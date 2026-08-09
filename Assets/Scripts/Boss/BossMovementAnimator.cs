@@ -24,6 +24,7 @@ namespace SharpI7.Combat
         private float frameTimer;
         private int currentFrame;
         private bool isWalking;
+        private bool attackAnimationPlaying;
 
         private void Awake()
         {
@@ -63,6 +64,10 @@ namespace SharpI7.Combat
 
         private void LateUpdate()
         {
+            if (attackAnimationPlaying)
+            {
+                return;
+            }
             var movement = transform.position - previousPosition;
             previousPosition = transform.position;
             var isMoving = bossMovement != null
@@ -98,19 +103,33 @@ namespace SharpI7.Combat
             }
         }
 
-        private void StopWalking()
+
+        /// <summary>Temporarily gives BossAttackAnimator exclusive control of the sprite.</summary>
+        public void SetAttackAnimationPlaying(bool isPlaying)
         {
-            if (!isWalking)
+            attackAnimationPlaying = isPlaying;
+            if (isPlaying)
             {
+                isWalking = false;
+                frameTimer = 0f;
                 return;
             }
 
+            if (bossMovement == null || !bossMovement.IsMoving)
+            {
+                spriteRenderer.sprite = idleSprite;
+            }
+        }
+        private void StopWalking()
+        {
             isWalking = false;
             frameTimer = 0f;
             currentFrame = 0;
-            spriteRenderer.sprite = idleSprite;
+            if (idleSprite != null)
+            {
+                spriteRenderer.sprite = idleSprite;
+            }
         }
-
         private void OnPhaseTwoStarted()
         {
             SetPhaseVisual(true);

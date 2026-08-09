@@ -6,7 +6,6 @@ using UnityEngine;
 
 internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
 {
-    private const float LevelThreeStrikeDamage = 70f;
     private const float LevelThreeTickDamage = 5f;
     private const int LevelThreeTickCount = 5;
     private const float LevelThreeTickInterval = 0.8f;
@@ -56,7 +55,7 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
                 CastStandardLightning(result, LevelTwoEffectId);
                 break;
             case 3:
-                CastLevelThreeAsync().Forget();
+                CastLevelThreeAsync(result.actualDamage).Forget();
                 break;
             default:
                 Debug.LogWarning(
@@ -83,15 +82,17 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         target.TakeDamageWithoutSpellHitEffect(result.actualDamage);
     }
 
-    private async UniTask CastLevelThreeAsync()
+    private async UniTask CastLevelThreeAsync(float totalDamage)
     {
         CancellationToken token = cancellationTokenSource.Token;
+        float totalTickDamage = LevelThreeTickDamage * LevelThreeTickCount;
+        float strikeDamage = Mathf.Max(0f, totalDamage - totalTickDamage);
 
         if (!CanContinueLevelThree())
             return;
 
         SpawnLevelThreeImpactEffect();
-        target.TakeDamageWithoutSpellHitEffect(LevelThreeStrikeDamage);
+        target.TakeDamageWithoutSpellHitEffect(strikeDamage);
 
         for (int i = 0; i < LevelThreeTickCount; i++)
         {

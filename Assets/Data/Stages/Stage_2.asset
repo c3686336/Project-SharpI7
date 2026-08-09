@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   stageId: stage2
   isTutorial: 0
-  backgroundSprite: {fileID: 3389026909784064338, guid: a22079c13c1f68d429c2f0486152dc56, type: 3}
+  backgroundSprite: {fileID: 5461894285092930544, guid: 04dd3e02f4f7f304286d192160a0a85d, type: 3}
   bossPrefab: {fileID: 100000, guid: 1a4b2768cc5f4dd5a9a0ddc02cb20d42, type: 3}
   stageExitPrefab: {fileID: 1349269020979428596, guid: d80a2a0f6f7a8c34b96dd5f04d4b7956, type: 3}
   nextStage: {fileID: 0}
