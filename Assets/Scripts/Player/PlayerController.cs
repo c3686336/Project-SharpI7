@@ -23,6 +23,7 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
     [SerializeField] private BossHealth bossHealth;
     [SerializeField] private Color flashColor;
     [SerializeField] private StageManager stageManager;
+    [SerializeField] private ToastMessageManager toastMessageManager;
 
     [Header("Spell Effects")]
     [SerializeField] private SpellEffectRegistry spellEffectRegistry;
@@ -217,7 +218,13 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
 
         if (overloadDamageDue)
         {
+            float healthBeforeDamage = health.Current;
             ApplyDamage(balance.overloadDamage, true);
+
+            if (health.Current < healthBeforeDamage)
+            {
+                ShowManaSaturationFeedback();
+            }
         }
     }
 
@@ -454,6 +461,19 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
     private void PlayDashSFX()
     {
         PlaySFX(dashSFX);
+    }
+
+    private void ShowManaSaturationFeedback()
+    {
+        const string message = "마나가 넘쳐 목숨 하나를 잃었습니다.";
+
+        if (toastMessageManager != null)
+        {
+            toastMessageManager.Show(message);
+            return;
+        }
+
+        Debug.LogWarning(message, this);
     }
 
     private void PlaySFX(AudioClip clip)
