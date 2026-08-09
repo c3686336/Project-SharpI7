@@ -11,6 +11,7 @@ public sealed class BossHealthBar : MonoBehaviour
 
     [Header("Boss Portrait")]
     [SerializeField] private Image bossPortraitImage;
+    [SerializeField] private Sprite stageZeroPortrait;
     [SerializeField] private Sprite stageOnePortrait;
     [SerializeField] private Sprite stageTwoPortrait;
 
@@ -70,12 +71,13 @@ public sealed class BossHealthBar : MonoBehaviour
             return;
         }
 
-        bool isStageTwo = string.Equals(
-            stageId,
-            "stage2",
-            System.StringComparison.OrdinalIgnoreCase);
-
-        Sprite portrait = isStageTwo ? stageTwoPortrait : stageOnePortrait;
+        Sprite portrait = stageId?.Trim().ToLowerInvariant() switch
+        {
+            "stage0" => stageZeroPortrait,
+            "stage1" => stageOnePortrait,
+            "stage2" => stageTwoPortrait,
+            _ => null
+        };
         bossPortraitImage.sprite = portrait;
 
         if (portrait == null)
