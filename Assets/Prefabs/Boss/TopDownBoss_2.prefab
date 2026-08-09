@@ -121,6 +121,7 @@ MonoBehaviour:
   - {fileID: 28297713616720747, guid: 087d79fb97f67ce4ab78eca1552d47b7, type: 3}
   - {fileID: -2487872029573060158, guid: 717271865e0fcde41a31db8e7c33213e, type: 3}
   phaseTwoScaleMultiplier: {x: 1, y: 1, z: 1}
+  useWalkAnimation: 0
   frameDuration: 0.3
   movementThreshold: 0.001
 --- !u!114 &11400004

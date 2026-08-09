@@ -20,7 +20,34 @@
     }
   },
   "boss": {
-    "floorOne": {
+    "trainingDummy": {
+      "health": {
+        "maxHealth": 200.0,
+        "enablePhaseTwo": false,
+        "phaseTwoMaxHealth": 0.0,
+        "phaseTwoTransitionDelay": 0.0
+      },
+      "movement": {
+        "moveSpeed": 0.0,
+        "stoppingDistance": 0.0
+      },
+      "phaseTwo": {
+        "attackDelayMultiplier": 1.0,
+        "moveSpeedMultiplier": 1.0
+      },
+      "attackTiming": {
+        "firstAttackDelay": 0.0,
+        "recoveryDuration": 0.0,
+        "chantOpportunityDuration": 0.0,
+        "attackDamage": 0.0,
+        "unavailableAttackRetryDelay": 0.0,
+        "maxConsecutiveSamePattern": 1
+      },
+      "contact": {
+        "damage": 0.0,
+        "interval": 1.0
+      }
+    },    "floorOne": {
       "health": {
         "maxHealth": 70,
         "enablePhaseTwo": true,
@@ -29,7 +56,7 @@
         "spellDamageByStage": [10.0, 30.0, 70.0]
       },
       "movement": {
-        "moveSpeed": 1.25,
+        "moveSpeed": 0.0,
         "stoppingDistance": 1.5
       },
       "phaseTwo": {
@@ -38,8 +65,8 @@
       },
       "attackTiming": {
         "firstAttackDelay": 3.0,
-        "recoveryDuration": 5.0,
-        "chantOpportunityDuration": 1.0,
+        "recoveryDuration": 10.0,
+        "chantOpportunityDuration": 2.0,
         "attackDamage": 1.0,
         "unavailableAttackRetryDelay": 0.25,
         "maxConsecutiveSamePattern": 2
@@ -132,7 +159,7 @@
         "spellDamageByStage": [10.0, 30.0, 70.0]
       },
       "movement": {
-        "moveSpeed": 1.25,
+        "moveSpeed": 0.0,
         "stoppingDistance": 1.5
       },
       "phaseTwo": {
@@ -141,8 +168,8 @@
       },
       "attackTiming": {
         "firstAttackDelay": 3.0,
-        "recoveryDuration": 5.0,
-        "chantOpportunityDuration": 1.0,
+        "recoveryDuration": 10.0,
+        "chantOpportunityDuration": 2.0,
         "attackDamage": 1.0,
         "unavailableAttackRetryDelay": 0.25,
         "maxConsecutiveSamePattern": 2

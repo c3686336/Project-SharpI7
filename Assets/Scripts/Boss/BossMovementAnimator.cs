@@ -10,6 +10,7 @@ namespace SharpI7.Combat
         [SerializeField] private Sprite phaseTwoIdleSprite;
         [SerializeField] private Sprite[] phaseTwoWalkFrames;
         [SerializeField] private Vector3 phaseTwoScaleMultiplier = new(1.24f, 1.11f, 1f);
+        [SerializeField] private bool useWalkAnimation;
         [SerializeField, Min(0.01f)] private float frameDuration = 0.08f;
         [SerializeField, Min(0.0001f)] private float movementThreshold = 0.001f;
 
@@ -64,6 +65,12 @@ namespace SharpI7.Combat
 
         private void LateUpdate()
         {
+            if (!useWalkAnimation)
+            {
+                previousPosition = transform.position;
+                StopWalking();
+                return;
+            }
             if (attackAnimationPlaying)
             {
                 return;
@@ -117,17 +124,28 @@ namespace SharpI7.Combat
 
             if (bossMovement == null || !bossMovement.IsMoving)
             {
-                spriteRenderer.sprite = idleSprite;
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.enabled = true;
+                    spriteRenderer.sprite = idleSprite;
+                }
             }
         }
+
         private void StopWalking()
         {
             isWalking = false;
             frameTimer = 0f;
             currentFrame = 0;
-            if (idleSprite != null)
+
+            if (spriteRenderer != null)
             {
-                spriteRenderer.sprite = idleSprite;
+                // A stationary boss must always restore the base renderer after an attack.
+                spriteRenderer.enabled = true;
+                if (idleSprite != null)
+                {
+                    spriteRenderer.sprite = idleSprite;
+                }
             }
         }
         private void OnPhaseTwoStarted()

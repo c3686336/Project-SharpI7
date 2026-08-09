@@ -94,7 +94,8 @@ namespace SharpI7.Combat
 
             EnsureAttackRenderer();
             movementAnimator?.SetAttackAnimationPlaying(true);
-            spriteRenderer.enabled = false;
+            // Keep the idle body visible underneath the attack frame so a static boss never disappears.
+            spriteRenderer.enabled = true;
             attackRenderer.enabled = true;
 
             var frameDuration = duration / attackFrames.Length;

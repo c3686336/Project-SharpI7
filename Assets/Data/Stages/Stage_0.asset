@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5af05400a258f7b4ba0589cdae77f3c1, type: 3}
-  m_Name: Stage_1
+  m_Name: Stage_0
   m_EditorClassIdentifier: Assembly-CSharp::StageData
-  stageId: stage1
-  isTutorial: 0
+  stageId: stage0
+  isTutorial: 1
   backgroundSprite: {fileID: 3389026909784064338, guid: a22079c13c1f68d429c2f0486152dc56, type: 3}
-  bossPrefab: {fileID: 100000, guid: 66666666666666666666666666666666, type: 3}
+  bossPrefab: {fileID: 100000, guid: a59e14d3289c4726b6bc4f2b9d8e5170, type: 3}
   stageExitPrefab: {fileID: 1349269020979428596, guid: d80a2a0f6f7a8c34b96dd5f04d4b7956, type: 3}
-  nextStage: {fileID: 11400000, guid: dbee7770e0516c1429e8c3d6f3bef1b5, type: 2}
+  nextStage: {fileID: 11400000, guid: 8693c7bdedb8e7645aa30cff81271b63, type: 2}

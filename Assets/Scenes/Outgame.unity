@@ -2613,7 +2613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TutorialSelectionPanel
   yesButton: {fileID: 873252797}
   noButton: {fileID: 834343167}
-  tutorialStageData: {fileID: 11400000, guid: 8693c7bdedb8e7645aa30cff81271b63, type: 2}
+  tutorialStageData: {fileID: 11400000, guid: c696d6a5a6efb9149b19ffffc1991189, type: 2}
 --- !u!1 &1400262871
 GameObject:
   m_ObjectHideFlags: 0

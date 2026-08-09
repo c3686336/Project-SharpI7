@@ -44,7 +44,8 @@ namespace SharpI7.Balance
     public enum BossBalanceProfile
     {
         FloorOne,
-        FloorTwo
+        FloorTwo,
+        TrainingDummy
     }
 
     [Serializable]
@@ -52,10 +53,16 @@ namespace SharpI7.Balance
     {
         public BossBalance floorOne;
         public BossBalance floorTwo;
+        public BossBalance trainingDummy;
 
         public BossBalance Get(BossBalanceProfile profile)
         {
-            return profile == BossBalanceProfile.FloorTwo ? floorTwo : floorOne;
+            return profile switch
+            {
+                BossBalanceProfile.FloorTwo => floorTwo,
+                BossBalanceProfile.TrainingDummy => trainingDummy ?? floorOne,
+                _ => floorOne
+            };
         }
     }
     [Serializable]
