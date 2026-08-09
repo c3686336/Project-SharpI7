@@ -31,9 +31,18 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
 
     [Header("SFX")]
     [SerializeField] private AudioClip hitSFX;
-    [SerializeField] private AudioClip fireSFX;
-    [SerializeField] private AudioClip lightningSFX;
     [SerializeField] private AudioClip dashSFX;
+
+    [Header("Fire SFX")]
+    [SerializeField] private AudioClip fireLevelOneSFX;
+    [SerializeField] private AudioClip fireLevelTwoSFX;
+    [SerializeField] private AudioClip fireLevelThreeSFX;
+
+    [Header("Lightning SFX")]
+    [SerializeField] private AudioClip lightningLevelOneSFX;
+    [SerializeField] private AudioClip lightningLevelTwoSFX;
+    [SerializeField] private AudioClip lightningLevelThree_ImpactSFX;
+    [SerializeField] private AudioClip lightningLevelThree_TickSFX;
 
     private PlayerInputActions input;
     private PlayerHealth health;
@@ -126,7 +135,6 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
 
         if (spellEffectRegistry == null)
         {
-
             Debug.LogWarning(
                 "[PlayerController] SpellEffectRegistry가 연결되지 않아 주문 이펙트를 생성할 수 없습니다.",
                 this
@@ -264,7 +272,9 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
                 homingFireHitRadius,
                 homingFireLifetime,
                 audioPlayer,
-                fireSFX
+                fireLevelOneSFX,
+                fireLevelTwoSFX,
+                fireLevelThreeSFX
             )
         );
 
@@ -275,7 +285,10 @@ public sealed class PlayerController : MonoBehaviour, IPlayerHealth, IPlayerMana
                 spellEffectRegistry,
                 destroyCancellationToken,
                 audioPlayer,
-                lightningSFX
+                lightningLevelOneSFX,
+                lightningLevelTwoSFX,
+                lightningLevelThree_ImpactSFX,
+                lightningLevelThree_TickSFX
             )
         );
     }

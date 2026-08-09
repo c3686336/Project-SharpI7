@@ -19,7 +19,10 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
     private readonly SpellEffectRegistry effectRegistry;
     private readonly CancellationTokenSource cancellationTokenSource;
     private readonly AudioSource audioPlayer;
-    private readonly AudioClip lightningSFX;
+    private readonly AudioClip levelOneSFX;
+    private readonly AudioClip levelTwoSFX;
+    private readonly AudioClip levelThreeImpactSFX;
+    private readonly AudioClip levelThreeTickSFX;
 
     private bool disposed;
 
@@ -28,12 +31,18 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         SpellEffectRegistry effectRegistry,
         CancellationToken lifetimeToken,
         AudioSource audioPlayer,
-        AudioClip lightningSFX)
+        AudioClip levelOneSFX,
+        AudioClip levelTwoSFX,
+        AudioClip levelThreeImpactSFX,
+        AudioClip levelThreeTickSFX)
     {
         this.target = target;
         this.effectRegistry = effectRegistry;
         this.audioPlayer = audioPlayer;
-        this.lightningSFX = lightningSFX;
+        this.levelOneSFX = levelOneSFX;
+        this.levelTwoSFX = levelTwoSFX;
+        this.levelThreeImpactSFX = levelThreeImpactSFX;
+        this.levelThreeTickSFX = levelThreeTickSFX;
 
         cancellationTokenSource =
             CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken);
@@ -44,19 +53,20 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         if (disposed || target == null || !target.IsAlive)
             return;
 
-        PlayLightningSFX();
-
         switch (result.castLevel)
         {
             case 1:
-                CastStandardLightning(result, LevelOneEffectId);
+                CastStandardLightning(result, LevelOneEffectId, levelOneSFX);
                 break;
+
             case 2:
-                CastStandardLightning(result, LevelTwoEffectId);
+                CastStandardLightning(result, LevelTwoEffectId, levelTwoSFX);
                 break;
+
             case 3:
                 CastLevelThreeAsync(result.actualDamage).Forget();
                 break;
+
             default:
                 Debug.LogWarning(
                     $"[LightningSpellCaster] 지원하지 않는 번개 주문 단계입니다: {result.castLevel}"
@@ -65,7 +75,10 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         }
     }
 
-    private void CastStandardLightning(CastResult result, string effectId)
+    private void CastStandardLightning(
+        CastResult result,
+        string effectId,
+        AudioClip castSFX)
     {
         if (target == null || !target.IsAlive)
             return;
@@ -79,12 +92,15 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
             );
         }
 
+        PlaySFX(castSFX);
+
         target.TakeDamageWithoutSpellHitEffect(result.actualDamage);
     }
 
     private async UniTask CastLevelThreeAsync(float totalDamage)
     {
         CancellationToken token = cancellationTokenSource.Token;
+
         float totalTickDamage = LevelThreeTickDamage * LevelThreeTickCount;
         float strikeDamage = Mathf.Max(0f, totalDamage - totalTickDamage);
 
@@ -92,19 +108,30 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
             return;
 
         SpawnLevelThreeImpactEffect();
+        PlaySFX(levelThreeImpactSFX);
+
         target.TakeDamageWithoutSpellHitEffect(strikeDamage);
 
         for (int i = 0; i < LevelThreeTickCount; i++)
         {
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(LevelThreeTickInterval),
-                cancellationToken: token
-            );
+            try
+            {
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(LevelThreeTickInterval),
+                    cancellationToken: token
+                );
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
 
             if (!CanContinueLevelThree())
                 return;
 
             SpawnLevelThreeTickEffect();
+            PlaySFX(levelThreeTickSFX);
+
             target.TakeDamageWithoutSpellHitEffect(LevelThreeTickDamage);
         }
     }
@@ -128,11 +155,18 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
         if (effectRegistry == null || target == null)
             return;
 
-        effectRegistry.SpawnEffect(
+        GameObject effect = effectRegistry.SpawnEffect(
             LevelThreeImpactEffectId,
             target.transform.position,
             Quaternion.identity
         );
+
+        if (effect == null)
+        {
+            Debug.LogWarning(
+                "[LightningSpellCaster] 번개 Lv3 Impact 이펙트 생성 실패"
+            );
+        }
     }
 
     private void SpawnLevelThreeTickEffect()
@@ -148,15 +182,17 @@ internal sealed class LightningSpellCaster : ISpellCaster, IDisposable
 
         if (effect == null)
         {
-            Debug.LogWarning("[LightningSpellCaster] 번개 Tick 이펙트 생성 실패");
+            Debug.LogWarning(
+                "[LightningSpellCaster] 번개 Lv3 Tick 이펙트 생성 실패"
+            );
         }
     }
 
-    private void PlayLightningSFX()
+    private void PlaySFX(AudioClip clip)
     {
-        if (audioPlayer != null && lightningSFX != null)
+        if (audioPlayer != null && clip != null)
         {
-            audioPlayer.PlayOneShot(lightningSFX);
+            audioPlayer.PlayOneShot(clip);
         }
     }
 

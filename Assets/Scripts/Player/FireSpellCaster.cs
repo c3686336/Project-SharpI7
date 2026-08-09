@@ -12,8 +12,10 @@ internal sealed class FireSpellCaster : ISpellCaster
     private readonly float levelThreeScaleMultiplier;
     private readonly float hitRadius;
     private readonly float lifetime;
-    private readonly AudioSource audioSource;
-    private readonly AudioClip castSFX;
+    private readonly AudioSource audioPlayer;
+    private readonly AudioClip levelOneSFX;
+    private readonly AudioClip levelTwoSFX;
+    private readonly AudioClip levelThreeSFX;
 
     public FireSpellCaster(
         BossHealth target,
@@ -25,8 +27,10 @@ internal sealed class FireSpellCaster : ISpellCaster
         float levelThreeScaleMultiplier,
         float hitRadius,
         float lifetime,
-        AudioSource audioSource,
-        AudioClip castSFX)
+        AudioSource audioPlayer,
+        AudioClip levelOneSFX,
+        AudioClip levelTwoSFX,
+        AudioClip levelThreeSFX)
     {
         this.target = target;
         this.effectOrigin = effectOrigin;
@@ -37,8 +41,10 @@ internal sealed class FireSpellCaster : ISpellCaster
         this.levelThreeScaleMultiplier = levelThreeScaleMultiplier;
         this.hitRadius = hitRadius;
         this.lifetime = lifetime;
-        this.audioSource = audioSource;
-        this.castSFX = castSFX;
+        this.audioPlayer = audioPlayer;
+        this.levelOneSFX = levelOneSFX;
+        this.levelTwoSFX = levelTwoSFX;
+        this.levelThreeSFX = levelThreeSFX;
     }
 
     public void Cast(CastResult result)
@@ -46,15 +52,13 @@ internal sealed class FireSpellCaster : ISpellCaster
         if (target == null || !target.IsAlive || effectRegistry == null)
             return;
 
-        if (audioSource != null && castSFX != null)
-        {
-            audioSource.PlayOneShot(castSFX);
-        }
+        PlayCastSFX(result.castLevel);
 
         GameObject effect = effectRegistry.SpawnEffect(
             result.effectId,
             effectOrigin.position,
-            Quaternion.identity);
+            Quaternion.identity
+        );
 
         if (effect == null)
             return;
@@ -68,7 +72,32 @@ internal sealed class FireSpellCaster : ISpellCaster
             projectile = effect.AddComponent<HomingFireProjectile>();
         }
 
-        projectile.Initialize(target, result, projectileSpeed, hitRadius, lifetime);
+        projectile.Initialize(
+            target,
+            result,
+            projectileSpeed,
+            hitRadius,
+            lifetime
+        );
+    }
+
+    private void PlayCastSFX(int castLevel)
+    {
+        if (audioPlayer == null)
+            return;
+
+        AudioClip clip = castLevel switch
+        {
+            1 => levelOneSFX,
+            2 => levelTwoSFX,
+            3 => levelThreeSFX,
+            _ => null
+        };
+
+        if (clip != null)
+        {
+            audioPlayer.PlayOneShot(clip);
+        }
     }
 
     private float GetScaleMultiplier(int castLevel)

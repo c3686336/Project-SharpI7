@@ -155,12 +155,19 @@ MonoBehaviour:
   chantManager: {fileID: 0}
   bossHealth: {fileID: 0}
   flashColor: {r: 0, g: 0, b: 0, a: 0}
+  stageManager: {fileID: 0}
+  toastMessageManager: {fileID: 0}
   spellEffectRegistry: {fileID: 845918742311000003}
   spellEffectOrigin: {fileID: 3101043683077990784}
   hitSFX: {fileID: 8300000, guid: b3d116f8b9c8d3e50bf6caf1fda11f0d, type: 3}
-  fireSFX: {fileID: 8300000, guid: a69d146d14507a9e4989415ee3413375, type: 3}
-  lightningSFX: {fileID: 8300000, guid: 232a5dfb40a134eada912112b8e4a5df, type: 3}
   dashSFX: {fileID: 8300000, guid: 956a5f0130042412090348d9638931fd, type: 3}
+  fireLevelOneSFX: {fileID: 8300000, guid: b35a45c38c657134c8545bf053fbf52c, type: 3}
+  fireLevelTwoSFX: {fileID: 8300000, guid: 553c74d2d49675047b81709bb63c453c, type: 3}
+  fireLevelThreeSFX: {fileID: 8300000, guid: da4119fdf3a74104789629c6db5ef25b, type: 3}
+  lightningLevelOneSFX: {fileID: 8300000, guid: ba99864847d845a46ade69f27a556ebb, type: 3}
+  lightningLevelTwoSFX: {fileID: 8300000, guid: 07687e0adb1f94442a795f67c56b8afa, type: 3}
+  lightningLevelThree_ImpactSFX: {fileID: 8300000, guid: 126e5500851b4654b895c09da272f21d, type: 3}
+  lightningLevelThree_TickSFX: {fileID: 8300000, guid: 59bf71148d0857e49ad0621101f3359e, type: 3}
 --- !u!50 &6057062684835720305
 Rigidbody2D:
   serializedVersion: 5
@@ -263,6 +270,8 @@ MonoBehaviour:
   - {fileID: 979358755696017567, guid: 01566745429bbb047bad55f00188265e, type: 3}
   dashFramesPerSecond: 20
   dashFrameBlendDuration: 0.4
+  dashFrameTwoWidthMultiplier: 1.35
+  dashFrameTwoHeightMultiplier: 1.25
 --- !u!114 &845918742311000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
