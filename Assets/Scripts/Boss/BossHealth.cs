@@ -33,6 +33,7 @@ namespace SharpI7.Combat
         public float MaxHealth => IsPhaseTwo ? balance.phaseTwoMaxHealth : balance.maxHealth;
         public float CurrentHealth { get; private set; }
         public bool IsAlive => CurrentHealth > 0f || IsTransitioningToPhaseTwo;
+        public bool HasPhaseTwo => balance != null && balance.enablePhaseTwo;
         public bool IsPhaseTwo { get; private set; }
         public bool IsTransitioningToPhaseTwo { get; private set; }
 

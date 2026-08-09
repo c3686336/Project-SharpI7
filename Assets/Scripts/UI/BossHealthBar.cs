@@ -124,16 +124,23 @@ public sealed class BossHealthBar : MonoBehaviour
 
     private void UpdatePhaseUI()
     {
+        bool hasPhaseTwo = bossHealth != null && bossHealth.HasPhaseTwo;
         bool isPhaseTwo = bossHealth != null && bossHealth.IsPhaseTwo;
 
         if (phaseOneImage != null)
         {
+            phaseOneImage.gameObject.SetActive(true);
             phaseOneImage.color = Color.red;
         }
 
         if (phaseTwoImage != null)
         {
-            phaseTwoImage.color = isPhaseTwo ? Color.black : Color.red;
+            phaseTwoImage.gameObject.SetActive(hasPhaseTwo);
+
+            if (hasPhaseTwo)
+            {
+                phaseTwoImage.color = isPhaseTwo ? Color.black : Color.red;
+            }
         }
     }
 

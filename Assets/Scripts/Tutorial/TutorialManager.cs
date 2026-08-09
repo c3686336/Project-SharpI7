@@ -510,13 +510,16 @@ public sealed class TutorialManager : MonoBehaviour
 
     private void ShowChantInputRefocusHint()
     {
-        if (toastMessageManager == null ||
-            Time.unscaledTime < nextChantInputHintTime)
+        if (Time.unscaledTime < nextChantInputHintTime)
         {
             return;
         }
 
-        toastMessageManager.Show(RefocusChantInputMessage);
+        if (toastMessageManager != null)
+        {
+            toastMessageManager.Show(RefocusChantInputMessage);
+        }
+
         nextChantInputHintTime =
             Time.unscaledTime + Mathf.Max(0f, inputHintCooldown);
         StartChantInputBlink();
@@ -659,10 +662,7 @@ public sealed class TutorialManager : MonoBehaviour
             return false;
         }
 
-        GameObject selectedObject =
-            EventSystem.current?.currentSelectedGameObject;
-        return chantPracticeInputField.isFocused ||
-               selectedObject == chantPracticeInputField.gameObject;
+        return chantPracticeInputField.isFocused;
     }
 
     private void StartChantInputBlink()
