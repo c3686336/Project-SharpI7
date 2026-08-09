@@ -213,12 +213,23 @@ public sealed class TutorialManager : MonoBehaviour
 
         if (isTypingDelayActive)
         {
+            if (WasLeftClickPressedThisFrame())
+            {
+                ShowToastWithCooldown(SpaceToContinueMessage);
+            }
+
             return;
         }
 
         if (isWaitingForChantPractice)
         {
             HandleChantPracticeInput();
+            return;
+        }
+
+        if (isTyping && WasLeftClickPressedThisFrame())
+        {
+            ShowToastWithCooldown(SpaceToContinueMessage);
             return;
         }
 
@@ -234,6 +245,15 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
+        if (WasLeftClickPressedThisFrame())
+        {
+            string message = canAdvanceWithEnter || isActionPlaying
+                ? FollowInstructionsMessage
+                : SpaceToContinueMessage;
+            ShowToastWithCooldown(message);
+            return;
+        }
+
         if (!isTyping && canAdvanceWithEnter && WasEnterPressedThisFrame())
         {
             AdvanceDialogue();
@@ -242,7 +262,7 @@ public sealed class TutorialManager : MonoBehaviour
 
         ShowSpaceHintForKeyboardInput();
 
-        if (isTyping || !WasSpacePressedThisFrame())
+        if (isTyping || canAdvanceWithEnter || !WasSpacePressedThisFrame())
         {
             return;
         }
@@ -431,7 +451,7 @@ public sealed class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (WasSpacePressedThisFrame())
+        if (WasSpacePressedThisFrame() || WasLeftClickPressedThisFrame())
         {
             ShowToastWithCooldown(FollowInstructionsMessage);
         }
@@ -445,6 +465,12 @@ public sealed class TutorialManager : MonoBehaviour
                 keyboard.numpadEnterKey.wasPressedThisFrame);
     }
 
+    private static bool WasLeftClickPressedThisFrame()
+    {
+        Mouse mouse = Mouse.current;
+        return mouse != null && mouse.leftButton.wasPressedThisFrame;
+    }
+
     private static bool WasSpacePressedThisFrame()
     {
         Keyboard keyboard = Keyboard.current;
@@ -455,6 +481,7 @@ public sealed class TutorialManager : MonoBehaviour
     {
         Keyboard keyboard = Keyboard.current;
         if (canAdvanceWithEnter || keyboard == null ||
+            WasSpacePressedThisFrame() ||
             !keyboard.anyKey.wasPressedThisFrame ||
             toastMessageManager == null || Time.unscaledTime < nextInputHintTime)
         {
@@ -547,6 +574,20 @@ public sealed class TutorialManager : MonoBehaviour
             StopChantInputBlink();
         }
 
+        if (WasLeftClickPressedThisFrame())
+        {
+            if (IsPointerOverChantInputField())
+            {
+                StopChantInputBlink();
+            }
+            else
+            {
+                ShowToastWithCooldown(FollowInstructionsMessage);
+            }
+
+            return;
+        }
+
         Keyboard keyboard = Keyboard.current;
         if (!IsChantInputFocused() && keyboard != null &&
             keyboard.anyKey.wasPressedThisFrame)
@@ -575,6 +616,34 @@ public sealed class TutorialManager : MonoBehaviour
         StopChantPractice(true);
         inputBlockedThroughFrame = Time.frameCount;
         AdvanceDialogue();
+    }
+
+    private bool IsPointerOverChantInputField()
+    {
+        if (chantPracticeInputField == null && chantPreviewPanel != null)
+        {
+            chantPracticeInputField =
+                chantPreviewPanel.GetComponentInChildren<ChantInputField>(true);
+        }
+
+        Mouse mouse = Mouse.current;
+        if (chantPracticeInputField == null || mouse == null)
+        {
+            return false;
+        }
+
+        RectTransform inputRect =
+            chantPracticeInputField.GetComponent<RectTransform>();
+        Canvas inputCanvas = chantPracticeInputField.GetComponentInParent<Canvas>();
+        Camera eventCamera = inputCanvas != null &&
+                             inputCanvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? inputCanvas.worldCamera
+            : null;
+
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            inputRect,
+            mouse.position.ReadValue(),
+            eventCamera);
     }
 
     private bool IsChantInputFocused()
