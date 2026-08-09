@@ -49,16 +49,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SharpI7.Combat.BossHealth
   damagePopupPrefab: {fileID: 11400000, guid: f00df00df00df00df00df00df00df00d, type: 3}
-  spellHitVideoClip: {fileID: 0}
-  spellHitVideoLevelTwoClip: {fileID: 0}
-  spellHitVideoLevelThreeClip: {fileID: 0}
-  spellHitVideoLevelTwoScale: 1.25
-  spellHitVideoLevelThreeScale: 1.6
+  spellHitVideoClip: {fileID: 32900000, guid: 02e86ba80e8e0de40bce835eaa87cb53, type: 3}
+  spellHitVideoLevelTwoClip: {fileID: 32900000, guid: 0d5845cdcb46a6f41b1052b4ffee4c6d, type: 3}
+  spellHitVideoLevelThreeClip: {fileID: 32900000, guid: 4ba6a913cbb7d534ba74f6b38ca84cdf, type: 3}
+  spellHitVideoLevelTwoScale: 2
+  spellHitVideoLevelThreeScale: 4
   spellHitVideoLevelTwoIntensity: 5
   spellHitVideoLevelThreeIntensity: 2
   spellHitVideoLevelThreeWidthMultiplier: 1.8
   spellHitVideoOffset: {x: 0, y: -0.35, z: -0.1}
-  spellHitVideoLevelThreeOffset: {x: 0, y: 0.15, z: -0.1}
+  spellHitVideoLevelThreeOffset: {x: 0, y: 1.2, z: -0.1}
   spellHitVideoSize: {x: 4.8, y: 4.8}
 --- !u!114 &11400001
 MonoBehaviour:
